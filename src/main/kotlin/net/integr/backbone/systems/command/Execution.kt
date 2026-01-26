@@ -1,0 +1,32 @@
+package net.integr.backbone.systems.command
+
+import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
+
+class Execution(val sender: CommandSender, val args: Map<String, Any>, val format: CommandFeedbackFormat) {
+    fun <T> get(key: String): T? {
+        @Suppress("UNCHECKED_CAST")
+        return args[key] as T?
+    }
+
+    fun respond(message: String) {
+        sender.sendMessage(format.format(message))
+    }
+
+    fun failOnPlayer() {
+        if (sender is Player) {
+            fail("This command can only be executed from the console.")
+        }
+    }
+
+    fun failOnConsole() {
+        if (sender !is Player) {
+            fail("This command can only be executed by a player.")
+        }
+    }
+
+    fun fail(message: String) {
+        throw CommandFailedException(message)
+    }
+}
