@@ -42,10 +42,6 @@ class ArgChain(val args: List<String>) {
         return count
     }
 
-    fun originalLength(): Int {
-        return args.size
-    }
-
     fun last(): String? {
         var current = head
         var lastValue: String? = null
@@ -56,16 +52,16 @@ class ArgChain(val args: List<String>) {
         return lastValue
     }
 
-    fun copy(): ArgChain {
-        val remainingArgs = mutableListOf<String>()
+    fun remainingFullString(): String {
+        val values = mutableListOf<String>()
         var current = head
         while (current != null) {
-            remainingArgs.add(current.value)
+            values.add(current.value)
             current = current.next
         }
-        return ArgChain(remainingArgs)
-    }
 
+        return values.joinToString(" ")
+    }
     override fun toString(): String {
         val values = mutableListOf<String>()
         var current = head

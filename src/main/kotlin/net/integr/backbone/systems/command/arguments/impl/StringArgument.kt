@@ -1,65 +1,34 @@
 package net.integr.backbone.systems.command.arguments.impl
 
-import net.integr.backbone.systems.command.arguments.ArgChain
 import net.integr.backbone.systems.command.arguments.Argument
 
 class StringArgument(name: String, description: String) : Argument<String>(name, description) {
-    // A simple string argument that accepts any input string.
-    // Also supports quoted strings with spaces for multi-word inputs.
+    override fun getCompletions(current: ArgumentInput): CompletionResult {
+        val isQuoted = current.value.startsWith("\"")
 
-    override fun getCompletions(argChain: ArgChain): CompletionResult {
-        val current = argChain.current() ?: return CompletionResult.EMPTY
-        val isQuoted = current.startsWith("\"")
-        val last = argChain.last() ?: ""
-        val hasClosingQuote = if (isQuoted) hasClosingQuote(argChain) else false
+        val arg = if (isQuoted) current.getNextContaining('"') else current.getNextSingle()
+        val last = if (isQuoted) arg.getLastSplitBySpace() + "\"" else arg.text
+
+        val hasClosingQuote = isQuoted && arg.found
 
         return if (isQuoted && !hasClosingQuote) {
-            CompletionResult(listOf(last + "\""), needsMoreInput = true)
+            CompletionResult(listOf(last), arg.end)
         } else {
-            CompletionResult(listOf("<$name:string>"), needsMoreInput = current.isBlank() && !isQuoted)
+            CompletionResult(if (arg.text.isBlank()) listOf("<$name:string>") else emptyList(), arg.end)
         }
     }
 
-    fun hasClosingQuote(argChain: ArgChain): Boolean {
-        var isFirst = true
-        while (!argChain.isEmpty()) {
-            val current = argChain.current() ?: break
-            if (current.endsWith("\"") && (isFirst && current.length > 1 || !isFirst)) {
-                return true
-            }
+    override fun parse(current: ArgumentInput): ParseResult<String> {
+        val isQuoted = current.value.startsWith("\"")
+        val arg = if (isQuoted) current.getNextContaining('"') else current.getNextSingle()
 
-            argChain.moveNext()
-            isFirst = false
-        }
-
-        return false
-    }
-
-    override fun parse(argChain: ArgChain): String {
-        val start = argChain.current() ?: throw IllegalArgumentException("Argument '$name' is required.")
-
-        val isQuoted = start.startsWith("\"")
-
-        if (isQuoted) {
-            // Build a string until we find a closing quote
-            val stringBuilder = StringBuilder()
-            while (!argChain.isEmpty()) {
-                val current = argChain.current() ?: break
-
-                stringBuilder.append(current)
-                if (current.endsWith("\"") && stringBuilder.length > 1) {
-                    val result = stringBuilder.toString()
-                    return result.substring(1, result.length - 1)
-                } else {
-                    stringBuilder.append(" ")
-                }
-
-                argChain.moveNext()
-            }
-
-            throw IllegalArgumentException("No closing quote for argument '$name'.")
+        val text = if (isQuoted) {
+            if (!arg.found) throw IllegalArgumentException("Argument '$name' is missing a closing quotation mark.")
+            arg.text.substring(1, arg.text.length - 1)
         } else {
-            return start
+            arg.text
         }
+
+        return ParseResult(text, arg.end)
     }
 }

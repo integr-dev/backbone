@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
 
 abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.feedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
-    val logger = Backbone.LOGGER.derive("command")
+    val logger = Backbone.LOGGER.derive("command.$name")
 
     private val subCommands = mutableListOf<Command>()
     private val arguments = mutableListOf<Argument<*>>()
@@ -64,15 +64,18 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         } else {
             // No matching subcommand found, move on to provide completions for this command
             val possibleSubCommands = subCommandNames.filter { it.startsWith(curr ?: "", ignoreCase = true) }.toMutableList()
-            for (argument in arguments) {
-                val completionResult = argument.getCompletions(argChain)
+            var argumentString = argChain.remainingFullString()
 
-                if (completionResult.needsMoreInput) {
-                    possibleSubCommands.addAll(completionResult.completions)
-                    return possibleSubCommands
+            for (argument in arguments) {
+                val input = Argument.ArgumentInput(argumentString)
+                val completionResult = argument.getCompletions(input)
+
+                if (completionResult.end == argumentString.length) {
+                    // Argument not filled yet, return current completions
+                    return possibleSubCommands + completionResult.completions
                 }
 
-                argChain.moveNext()
+                argumentString = argumentString.substring(completionResult.end).trimStart()
             }
 
             return possibleSubCommands
@@ -81,12 +84,14 @@ abstract class Command(name: String, description: String, aliases: List<String> 
 
     fun parseArgs(argChain: ArgChain): Map<String, Any> { // Any - we just want the values of the args here, casting happens later
         val parsedArgs = mutableMapOf<String, Any>()
+        var argumentString = argChain.remainingFullString()
 
         for (argument in arguments) {
-            val argValue = argument.parse(argChain)
-            argChain.moveNext()
+            val input = Argument.ArgumentInput(argumentString)
+            val argValue = argument.parse(input)
 
-            parsedArgs[argument.name] = argValue
+            parsedArgs[argument.name] = argValue.value
+            argumentString = argumentString.substring(argValue.end).trimStart()
         }
 
         return parsedArgs

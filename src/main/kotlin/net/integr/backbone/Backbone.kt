@@ -1,6 +1,6 @@
 package net.integr.backbone
 
-import net.integr.backbone.base.BackboneCommand
+import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.logger.BackboneLogger
 import org.bukkit.plugin.java.JavaPlugin

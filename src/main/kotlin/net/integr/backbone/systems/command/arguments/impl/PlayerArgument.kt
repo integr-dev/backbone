@@ -1,25 +1,27 @@
 package net.integr.backbone.systems.command.arguments.impl
 
-import net.integr.backbone.systems.command.arguments.ArgChain
 import net.integr.backbone.systems.command.arguments.Argument
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 class PlayerArgument(name: String, description: String) : Argument<Player>(name, description) {
-    // A simple player argument parser.
+    override fun getCompletions(current: ArgumentInput): CompletionResult {
+        val arg = current.getNextSingle()
+        val players = Bukkit.getOnlinePlayers().map { it.name }
 
-    override fun getCompletions(argChain: ArgChain): CompletionResult {
-        val current = argChain.current() ?: return CompletionResult.EMPTY
-
-        return CompletionResult(Bukkit.getOnlinePlayers().map { it.name }, needsMoreInput = current.isBlank())
+        return if (arg.text.isBlank()) {
+            CompletionResult(listOf("<$name:player>", *players.toTypedArray()), arg.end)
+        } else {
+            CompletionResult(players, arg.end)
+        }
     }
 
-    override fun parse(argChain: ArgChain): Player {
-        val current = argChain.current() ?: throw IllegalArgumentException("Argument '$name' is required.")
+    override fun parse(current: ArgumentInput): ParseResult<Player> {
+        val arg = current.getNextSingle()
 
-        val foundPlayer = Bukkit.getPlayer(current)
+        val foundPlayer = Bukkit.getPlayer(arg.text)
             ?: throw IllegalArgumentException("Argument '$name' must be a valid online player.")
 
-        return foundPlayer
+        return ParseResult(foundPlayer, arg.end)
     }
 }
