@@ -1,10 +1,9 @@
 package net.integr.backbone.systems.command.arguments
 
-class ArgChain(val args: List<String>) {
-    class Node(val value: String, var next: Node? = null)
+class ArgChain(args: List<String>) {
+    private class Node(val value: String, var next: Node? = null)
 
     private var head: Node? = if (args.isNotEmpty()) Node(args[0]) else null
-    var moveCount = 0
 
     init {
         var current = head
@@ -21,35 +20,10 @@ class ArgChain(val args: List<String>) {
 
     fun moveNext() {
         head = head?.next
-        moveCount++
-    }
-
-    fun peekNext(): String? {
-        return head?.next?.value
     }
 
     fun current(): String? {
         return head?.value
-    }
-
-    fun length(): Int {
-        var count = 0
-        var current = head
-        while (current != null) {
-            count++
-            current = current.next
-        }
-        return count
-    }
-
-    fun last(): String? {
-        var current = head
-        var lastValue: String? = null
-        while (current != null) {
-            lastValue = current.value
-            current = current.next
-        }
-        return lastValue
     }
 
     fun remainingFullString(): String {
@@ -62,6 +36,7 @@ class ArgChain(val args: List<String>) {
 
         return values.joinToString(" ")
     }
+
     override fun toString(): String {
         val values = mutableListOf<String>()
         var current = head
@@ -69,6 +44,7 @@ class ArgChain(val args: List<String>) {
             values.add(current.value)
             current = current.next
         }
+
         return "ArgChain(${values.joinToString(", ")})"
     }
 }
