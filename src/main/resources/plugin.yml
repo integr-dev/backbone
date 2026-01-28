@@ -1,6 +1,6 @@
 name: Backbone
 version: '1.0.0'
-main: net.integr.backbone.Backbone
+main: net.integr.backbone.BackboneServer
 api-version: '1.21'
 prefix: backbone
 authors: [ Integr ]
