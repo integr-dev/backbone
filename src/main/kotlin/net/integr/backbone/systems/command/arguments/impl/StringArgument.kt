@@ -11,7 +11,7 @@ class StringArgument(name: String, description: String) : Argument<String>(name,
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val isQuoted = current.value.startsWith("\"")
 
-        val arg = if (isQuoted) current.getNextContaining('"') else current.getNextSingle()
+        val arg = if (isQuoted) current.getNextGreedyWithBoundChar('"') else current.getNextSingle()
         val last = if (isQuoted) arg.getLastSplitBySpace() + "\"" else arg.text
 
         val hasClosingQuote = isQuoted && arg.found
@@ -25,7 +25,7 @@ class StringArgument(name: String, description: String) : Argument<String>(name,
 
     override fun parse(current: ArgumentInput): ParseResult<String> {
         val isQuoted = current.value.startsWith("\"")
-        val arg = if (isQuoted) current.getNextContaining('"') else current.getNextSingle()
+        val arg = if (isQuoted) current.getNextGreedyWithBoundChar('"') else current.getNextSingle()
 
         val text = if (isQuoted) {
             if (!arg.found) throw IllegalArgumentException("Argument '$name' is missing a closing quotation mark.")

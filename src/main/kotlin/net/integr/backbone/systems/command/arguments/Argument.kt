@@ -20,7 +20,7 @@ abstract class Argument<T : Any>(val name: String, val description: String) {
             return SubInputWithResult(str, str.length, str.length == value.length)
         }
 
-        fun getNextContaining(token: Char): SubInputWithResult {
+        fun getNextGreedyWithBoundChar(token: Char): SubInputWithResult {
             val str = value.substring(1).substringBefore(token)
             val hasResult = str.length + 2 <= value.length
             val actString = token + str + if (hasResult) token else ""
