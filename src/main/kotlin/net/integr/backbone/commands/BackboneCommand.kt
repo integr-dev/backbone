@@ -7,12 +7,16 @@ import net.integr.backbone.systems.command.arguments.impl.enumArgument
 import net.integr.backbone.systems.command.arguments.impl.integerArgument
 import net.integr.backbone.systems.command.arguments.impl.playerArgument
 import net.integr.backbone.systems.command.arguments.impl.stringArgument
+import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.entity.Player
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     enum class MyEnum {
         ONE, TWO, THREE
     }
+
+    val pool = ResourcePool.fromStorage("backbone")
+    val db = pool.database("database.db")
 
     override fun onBuild() {
         subCommands(Reload)
@@ -32,6 +36,29 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
         ctx.respond("Backbone command executed with name: '$name' and count: '$count'")
         ctx.respond(isA.toString())
+
+        db.useConnection { connection, savepoint ->
+            val changed = usePreparedStatement("INSERT INTO test (id, name) VALUES (?id, ?name);") { statement ->
+                statement.setInt(0, 2)
+                statement.setString(1, "test")
+                val changed = statement.executeUpdate()
+
+                return@usePreparedStatement changed
+            }
+
+            if (changed == 0) {
+                connection.rollback(savepoint)
+                ctx.respond("Rollback")
+                return@useConnection
+            }
+
+            useStatement { statement ->
+                val res = statement.executeQuery("SELECT * FROM test;")
+                while (res.next()) {
+                    ctx.respond(res.getString("name"))
+                }
+            }
+        }
     }
 
     object Reload : Command("reload", "Reloads the Backbone configuration") {
