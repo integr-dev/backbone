@@ -23,7 +23,7 @@ class EnumArgument<T : Enum<T>>(name: String, description: String, val type: Cla
     override fun parse(current: ArgumentInput): ParseResult<T> {
         val arg = current.getNextSingle()
         val value = type.enumConstants.firstOrNull { it.name.equals(arg.text, true) }
-            ?: throw IllegalArgumentException("Argument '$name' must be a valid enum value.")
+            ?: throw IllegalArgumentException("Argument '$name' must be one of: ${values.joinToString(", ")}.")
 
         return ParseResult(value, arg.end)
     }

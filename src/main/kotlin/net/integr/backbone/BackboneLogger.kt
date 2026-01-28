@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.logger
+package net.integr.backbone
 
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.logging.Level

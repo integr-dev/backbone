@@ -3,23 +3,23 @@ package net.integr.backbone.commands
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.command.arguments.impl.booleanArgument
+import net.integr.backbone.systems.command.arguments.impl.enumArgument
 import net.integr.backbone.systems.command.arguments.impl.integerArgument
 import net.integr.backbone.systems.command.arguments.impl.playerArgument
 import net.integr.backbone.systems.command.arguments.impl.stringArgument
 import org.bukkit.entity.Player
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
+    enum class MyEnum {
+        ONE, TWO, THREE
+    }
+
     override fun onBuild() {
         subCommands(Reload)
 
         stringArgument("name", "Name of the object")
         integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
-        integerArgument("count", "Count of the object")
+        enumArgument<MyEnum>("enum", "Enum of the object")
         booleanArgument("is-a", "If the object is a")
     }
 
