@@ -15,14 +15,24 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT")
+    implementation("org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.mockito:mockito-core:5.2.0")
+    testImplementation("org.mockito:mockito-inline:5.2.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.2.0")
+
 }
 
 tasks {
     runServer {
         minecraftVersion("1.21.11")
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    environment("EXEC_CONTEXT", "test")
 }
 
 val targetJavaVersion = 21

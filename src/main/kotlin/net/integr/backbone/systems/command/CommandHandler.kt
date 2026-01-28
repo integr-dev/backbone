@@ -7,7 +7,7 @@ import org.bukkit.command.CommandMap
 import java.lang.reflect.Field
 
 object CommandHandler {
-    val logger = Backbone.Companion.LOGGER.derive("command-handler")
+    val logger = Backbone.LOGGER.derive("command-handler")
     val feedbackFormat = CommandFeedbackFormat("backbone", "#8db882")
 
     private val map: CommandMap by lazy {

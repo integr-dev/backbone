@@ -51,7 +51,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         }
     }
 
-    fun handleCompletion(sender: CommandSender, argChain: ArgChain): List<String> {
+    fun handleCompletion(argChain: ArgChain): List<String> {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -60,7 +60,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
 
         if (subcommand != null) {
             argChain.moveNext()
-            return subcommand.handleCompletion(sender, argChain)
+            return subcommand.handleCompletion(argChain)
         } else {
             // No matching subcommand found, move on to provide completions for this command
             val possibleSubCommands = subCommandNames.filter { it.startsWith(curr ?: "", ignoreCase = true) }.toMutableList()
@@ -111,7 +111,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     }
 
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<out String>): List<String> {
-        return handleCompletion(sender, ArgChain(args.toList()))
+        return handleCompletion(ArgChain(args.toList()))
     }
 
     protected abstract fun onBuild()

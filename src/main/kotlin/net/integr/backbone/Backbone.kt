@@ -1,28 +1,23 @@
 package net.integr.backbone
 
-import net.integr.backbone.commands.BackboneCommand
-import net.integr.backbone.systems.command.CommandHandler
+import net.integr.backbone.handler.Handler
+import net.integr.backbone.handler.ServerHandler
+import net.integr.backbone.handler.TestHandler
 import net.integr.backbone.systems.logger.BackboneLogger
 import org.bukkit.plugin.java.JavaPlugin
 
-class Backbone : JavaPlugin() {
-    val bbl = BackboneLogger("backbone", this)
+object Backbone {
+    private val ctx = System.getenv("EXEC_CONTEXT")
 
-    override fun onEnable() {
-        bbl.info("Starting up Backbone")
-        CommandHandler.register(BackboneCommand)
+    private val handler: Handler = when (ctx) {
+        "test" -> TestHandler()
+        else -> ServerHandler()
     }
 
-    override fun onDisable() {
-        bbl.info("Shutting down Backbone")
-    }
+    val PLUGIN: JavaPlugin
+        get() = handler.plugin!!
 
-    companion object {
-        val INSTANCE: Backbone by lazy {
-            getPlugin<Backbone>(Backbone::class.java)
-        }
-
-        val LOGGER : BackboneLogger
-            get() = INSTANCE.bbl
-    }
+    val LOGGER: BackboneLogger
+        get() = handler.bbl
 }
+

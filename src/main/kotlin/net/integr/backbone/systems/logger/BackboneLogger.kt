@@ -1,12 +1,12 @@
 package net.integr.backbone.systems.logger
 
-import net.integr.backbone.Backbone
+import org.bukkit.plugin.java.JavaPlugin
 import java.util.logging.Level
 import java.util.logging.Logger
 
-class BackboneLogger(private val name: String, private val plugin: Backbone) : Logger(name, null) {
+class BackboneLogger(private val name: String, private val plugin: JavaPlugin?) : Logger(name, null) {
     init {
-        setParent(plugin.server.logger)
+        if (plugin != null) setParent(plugin.server.logger)
         setLevel(Level.ALL)
     }
 
