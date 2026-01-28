@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.command
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.command.arguments.ArgChain
+import net.integr.backbone.systems.command.arguments.ArgumentChain
 import net.integr.backbone.systems.command.arguments.Argument
 import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
@@ -32,7 +32,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         arguments.add(argument)
     }
 
-    fun handleExecution(sender: CommandSender, argChain: ArgChain) {
+    fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -51,7 +51,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         }
     }
 
-    fun handleCompletion(argChain: ArgChain): List<String> {
+    fun handleCompletion(argChain: ArgumentChain): List<String> {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -82,7 +82,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         }
     }
 
-    fun parseArgs(argChain: ArgChain): Map<String, Any> { // Any - we just want the values of the args here, casting happens later
+    fun parseArgs(argChain: ArgumentChain): Map<String, Any> { // Any - we just want the values of the args here, casting happens later
         val parsedArgs = mutableMapOf<String, Any>()
         var argumentString = argChain.remainingFullString()
 
@@ -98,7 +98,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     }
 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
-        val chain = ArgChain(args.toList())
+        val chain = ArgumentChain(args.toList())
         try {
             handleExecution(sender, chain)
         } catch (e: Exception) {
@@ -111,7 +111,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     }
 
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<out String>): List<String> {
-        return handleCompletion(ArgChain(args.toList()))
+        return handleCompletion(ArgumentChain(args.toList()))
     }
 
     protected abstract fun onBuild()

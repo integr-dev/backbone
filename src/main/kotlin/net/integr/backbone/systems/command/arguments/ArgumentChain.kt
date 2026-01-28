@@ -1,6 +1,6 @@
 package net.integr.backbone.systems.command.arguments
 
-class ArgChain(args: List<String>) {
+class ArgumentChain(args: List<String>) {
     private class Node(val value: String, var next: Node? = null)
 
     private var head: Node? = if (args.isNotEmpty()) Node(args[0]) else null

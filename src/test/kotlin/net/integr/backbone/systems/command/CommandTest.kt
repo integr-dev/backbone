@@ -1,6 +1,6 @@
 package net.integr.backbone.systems.command
 
-import net.integr.backbone.systems.command.arguments.ArgChain
+import net.integr.backbone.systems.command.arguments.ArgumentChain
 import net.integr.backbone.systems.command.arguments.impl.StringArgument
 import org.bukkit.command.CommandSender
 import org.junit.jupiter.api.Assertions.*
@@ -46,7 +46,7 @@ class CommandTest {
         command.build()
 
         val sender = mock(CommandSender::class.java)
-        val argChain = ArgChain(listOf("sub", "arg1", "arg2"))
+        val argChain = ArgumentChain(listOf("sub", "arg1", "arg2"))
 
         command.handleExecution(sender, argChain)
 
@@ -60,7 +60,7 @@ class CommandTest {
         command.argument(StringArgument("arg1", "arg1"))
         command.build()
 
-        val argChain = ArgChain(listOf("\"hello"))
+        val argChain = ArgumentChain(listOf("\"hello"))
 
         val completions = command.handleCompletion(argChain)
 
@@ -73,7 +73,7 @@ class CommandTest {
         command.argument(StringArgument("arg1", "arg1"))
         command.build()
 
-        val argChain = ArgChain(listOf("hello"))
+        val argChain = ArgumentChain(listOf("hello"))
 
         val args = command.parseArgs(argChain)
 
