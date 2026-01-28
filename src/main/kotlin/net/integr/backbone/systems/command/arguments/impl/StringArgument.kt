@@ -34,6 +34,8 @@ class StringArgument(name: String, description: String) : Argument<String>(name,
             arg.text
         }
 
+        if (text.isBlank()) throw IllegalArgumentException("Argument '$name' cannot be blank.")
+
         return ParseResult(text, arg.end)
     }
 }
