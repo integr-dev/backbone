@@ -1,8 +1,13 @@
 package net.integr.backbone.systems.command.arguments.impl
 
+import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.arguments.Argument
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
+
+fun Command.playerArgument(name: String, description: String) {
+    argument(PlayerArgument(name, description))
+}
 
 class PlayerArgument(name: String, description: String) : Argument<Player>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {

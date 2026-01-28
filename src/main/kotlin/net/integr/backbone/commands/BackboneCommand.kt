@@ -2,25 +2,25 @@ package net.integr.backbone.commands
 
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
-import net.integr.backbone.systems.command.arguments.impl.BooleanArgument
-import net.integr.backbone.systems.command.arguments.impl.IntegerArgument
-import net.integr.backbone.systems.command.arguments.impl.PlayerArgument
-import net.integr.backbone.systems.command.arguments.impl.StringArgument
+import net.integr.backbone.systems.command.arguments.impl.booleanArgument
+import net.integr.backbone.systems.command.arguments.impl.integerArgument
+import net.integr.backbone.systems.command.arguments.impl.playerArgument
+import net.integr.backbone.systems.command.arguments.impl.stringArgument
 import org.bukkit.entity.Player
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     override fun onBuild() {
-        sub(Reload)
+        subCommands(Reload)
 
-        argument(StringArgument("name", "Name of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(IntegerArgument("count", "Count of the object"))
-        argument(BooleanArgument("is-a", "If the object is a"))
+        stringArgument("name", "Name of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        integerArgument("count", "Count of the object")
+        booleanArgument("is-a", "If the object is a")
     }
 
     override fun exec(ctx: Execution) {
@@ -36,9 +36,9 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
     object Reload : Command("reload", "Reloads the Backbone configuration") {
         override fun onBuild() {
-            sub(ClearCache)
+            subCommands(ClearCache)
 
-            argument(IntegerArgument("level", "Level of reload"))
+            integerArgument("level", "Level of reload")
         }
 
         override fun exec(ctx: Execution) {
@@ -51,8 +51,8 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
         object ClearCache : Command("clear-cache", "Clears the Backbone cache") {
             override fun onBuild() {
-                argument(StringArgument("cache-type", "Type of cache to clear"))
-                argument(PlayerArgument("player", "Player whose cache to clear"))
+                stringArgument("cache-type", "Type of cache to clear")
+                playerArgument("player", "Player whose cache to clear")
             }
 
             override fun exec(ctx: Execution) {

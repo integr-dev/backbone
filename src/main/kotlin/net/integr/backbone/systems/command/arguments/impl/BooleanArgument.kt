@@ -1,6 +1,11 @@
 package net.integr.backbone.systems.command.arguments.impl
 
+import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.arguments.Argument
+
+fun Command.booleanArgument(name: String, description: String) {
+    argument(BooleanArgument(name, description))
+}
 
 class BooleanArgument(name: String, description: String) : Argument<Boolean>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
@@ -15,7 +20,7 @@ class BooleanArgument(name: String, description: String) : Argument<Boolean>(nam
 
     override fun parse(current: ArgumentInput): ParseResult<Boolean> {
         val arg = current.getNextSingle()
-        val bool = arg.text.lowercase().toBooleanStrictOrNull() ?: throw IllegalArgumentException("Argument '$name' must be a valid boolean.")
-        return ParseResult(bool, arg.end)
+        val value = arg.text.lowercase().toBooleanStrictOrNull() ?: throw IllegalArgumentException("Argument '$name' must be a valid boolean.")
+        return ParseResult(value, arg.end)
     }
 }

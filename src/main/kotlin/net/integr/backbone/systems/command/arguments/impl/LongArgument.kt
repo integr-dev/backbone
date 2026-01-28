@@ -1,6 +1,11 @@
 package net.integr.backbone.systems.command.arguments.impl
 
+import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.arguments.Argument
+
+fun Command.longArgument(name: String, description: String) {
+    argument(LongArgument(name, description))
+}
 
 class LongArgument(name: String, description: String) : Argument<Long>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {

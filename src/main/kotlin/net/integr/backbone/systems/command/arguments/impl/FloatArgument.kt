@@ -1,6 +1,11 @@
 package net.integr.backbone.systems.command.arguments.impl
 
+import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.arguments.Argument
+
+fun Command.floatArgument(name: String, description: String) {
+    argument(FloatArgument(name, description))
+}
 
 class FloatArgument(name: String, description: String) : Argument<Float>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {

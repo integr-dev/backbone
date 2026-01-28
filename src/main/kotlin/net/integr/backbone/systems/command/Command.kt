@@ -15,7 +15,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
 
     private var subCommandNames: List<String> = listOf()
 
-    fun sub(vararg commands: Command) {
+    fun subCommands(vararg commands: Command) {
         commands.forEach {
             it.build()
         }

@@ -29,7 +29,7 @@ class CommandTest {
     fun testBuild() {
         val command = TestCommand("test", "Test command")
         val subCommand = TestCommand("sub", "Sub command")
-        command.sub(subCommand)
+        command.subCommands(subCommand)
 
         command.build()
 
@@ -42,7 +42,7 @@ class CommandTest {
     fun testHandleExecution() {
         val command = TestCommand("test", "Test command")
         val subCommand = TestCommand("sub", "Sub command")
-        command.sub(subCommand)
+        command.subCommands(subCommand)
         command.build()
 
         val sender = mock(CommandSender::class.java)
