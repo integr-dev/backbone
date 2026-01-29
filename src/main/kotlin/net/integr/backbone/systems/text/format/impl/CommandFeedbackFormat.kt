@@ -10,4 +10,8 @@ class CommandFeedbackFormat(handler: String, val handlerColor: String) : TextFor
     override fun format(str: String): String {
         return TextColor.parse( "&$handlerColor$handlerName &#2b2b2a» &#a9ada8$str")
     }
+
+    fun formatErr(str: String): String {
+        return TextColor.parse( "&$handlerColor$handlerName &#2b2b2a» &#f5424b$str")
+    }
 }

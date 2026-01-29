@@ -3,10 +3,13 @@ package net.integr.backbone.systems.storage.config
 import com.charleskorn.kaml.Yaml
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import net.integr.backbone.Backbone
 import net.integr.backbone.systems.storage.ResourceLocation
 import kotlin.reflect.KType
 
 class ConfigHandler<T : Any>(private val file: ResourceLocation, private val klass: KType) {
+    private val logger = Backbone.LOGGER.derive("config-handler")
+
     private var cachedState: T? = null
 
     @Suppress("UNCHECKED_CAST")
@@ -15,6 +18,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
     }
 
     fun writeState(obj: T) {
+        logger.info("Writing config state to ${file.location.absolutePath}")
         cachedState = obj
         val str = Yaml.default.encodeToString(serializer(), obj)
         file.location.writeText(str)
