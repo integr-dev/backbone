@@ -1,10 +1,11 @@
 package net.integr.backbone.systems.command
 
+import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class Execution(val sender: CommandSender, val args: Map<String, Any>, val format: CommandFeedbackFormat) {
+class Execution(val sender: CommandSender, val args: Map<String, Any>, private val format: CommandFeedbackFormat) {
     fun <T> get(key: String): T? {
         @Suppress("UNCHECKED_CAST")
         return args[key] as T?
@@ -28,5 +29,15 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, val forma
 
     fun fail(message: String) {
         throw CommandFailedException(message)
+    }
+
+    fun requirePermission(perm: PermissionNode) {
+        if (!sender.hasPermission(perm.id)) {
+            fail("You do not have permission to execute this command.")
+        }
+    }
+
+    fun hasPermission(perm: PermissionNode): Boolean {
+        return sender.hasPermission(perm.id)
     }
 }

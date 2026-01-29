@@ -79,6 +79,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
         override fun exec(ctx: Execution) {
             ctx.failOnPlayer()
+            ctx.requirePermission(Backbone.ROOT_PERMISSION.derive("reload"))
             val level = ctx.get<Int>("level") ?: 2
             logger.info("Reloading Backbone with level $level")
 
