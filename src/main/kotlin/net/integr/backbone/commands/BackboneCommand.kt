@@ -4,12 +4,9 @@ import kotlinx.serialization.Serializable
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
-import net.integr.backbone.systems.command.arguments.impl.booleanArgument
 import net.integr.backbone.systems.command.arguments.impl.enumArgument
 import net.integr.backbone.systems.command.arguments.impl.integerArgument
-import net.integr.backbone.systems.command.arguments.impl.playerArgument
 import net.integr.backbone.systems.command.arguments.impl.stringArgument
-import org.bukkit.entity.Player
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     enum class MyEnum {

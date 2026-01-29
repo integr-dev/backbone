@@ -103,18 +103,20 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         try {
             handleExecution(sender, chain)
         } catch (e: CommandFailedException) {
+            // Command has been failed manually
             logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
             sender.sendMessage(format.format(e.message ?: "An error occurred while executing the command."))
             return false
         } catch (e: CommandArgumentException) {
+            // User has provided invalid arguments
             logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
             sender.sendMessage(format.format(e.message ?: "An error occurred while executing the command."))
             return false
         } catch (e: Exception) {
+            // Unexpected error such as database failure
             logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
             sender.sendMessage(format.format("An error occurred while executing the command. Please contact administration."))
             e.printStackTrace()
-
             return false
         }
 
