@@ -36,15 +36,4 @@ class ArgumentChain(args: List<String>) {
 
         return values.joinToString(" ")
     }
-
-    override fun toString(): String {
-        val values = mutableListOf<String>()
-        var current = head
-        while (current != null) {
-            values.add(current.value)
-            current = current.next
-        }
-
-        return "ArgChain(${values.joinToString(", ")})"
-    }
 }
