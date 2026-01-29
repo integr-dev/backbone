@@ -57,7 +57,7 @@ class CommandTest {
     @Test
     fun testHandleCompletion() {
         val command = TestCommand("test", "Test command")
-        command.argument(StringArgument("arg1", "arg1"))
+        command.arguments(StringArgument("arg1", "arg1"))
         command.build()
 
         val argChain = ArgumentChain(listOf("\"hello"))
@@ -70,7 +70,7 @@ class CommandTest {
     @Test
     fun testParseArgs() {
         val command = TestCommand("test", "Test command")
-        command.argument(StringArgument("arg1", "arg1"))
+        command.arguments(StringArgument("arg1", "arg1"))
         command.build()
 
         val argChain = ArgumentChain(listOf("hello"))

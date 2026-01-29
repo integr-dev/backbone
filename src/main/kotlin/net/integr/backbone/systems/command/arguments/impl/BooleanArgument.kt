@@ -1,11 +1,10 @@
 package net.integr.backbone.systems.command.arguments.impl
 
-import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
-fun Command.booleanArgument(name: String, description: String) {
-    argument(BooleanArgument(name, description))
+fun booleanArgument(name: String, description: String): Argument<Boolean> {
+    return BooleanArgument(name, description)
 }
 
 class BooleanArgument(name: String, description: String) : Argument<Boolean>(name, description) {
@@ -13,9 +12,9 @@ class BooleanArgument(name: String, description: String) : Argument<Boolean>(nam
         val arg = current.getNextSingle()
 
         return if (arg.text.isBlank()) {
-            CompletionResult(listOf("<$name:bool>", "true", "false"), arg.end)
+            CompletionResult(mutableListOf("<$name:bool>", "true", "false"), arg.end)
         } else {
-            CompletionResult(listOf("true", "false"), arg.end)
+            CompletionResult(mutableListOf("true", "false"), arg.end)
         }
     }
 

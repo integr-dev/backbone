@@ -11,7 +11,7 @@ abstract class Argument<T : Any>(val name: String, val description: String) {
 
     abstract fun parse(current: ArgumentInput): ParseResult<T>
 
-    class CompletionResult(val completions: List<String>, val end: Int)
+    class CompletionResult(val completions: MutableList<String>, val end: Int)
 
     class ParseResult<T : Any>(val value: T, val end: Int)
 

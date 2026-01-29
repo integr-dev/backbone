@@ -1,11 +1,10 @@
 package net.integr.backbone.systems.command.arguments.impl
 
-import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
-fun Command.stringArgument(name: String, description: String) {
-    argument(StringArgument(name, description))
+fun stringArgument(name: String, description: String): Argument<String> {
+    return StringArgument(name, description)
 }
 
 class StringArgument(name: String, description: String) : Argument<String>(name, description) {
@@ -18,9 +17,9 @@ class StringArgument(name: String, description: String) : Argument<String>(name,
         val hasClosingQuote = isQuoted && arg.found
 
         return if (isQuoted && !hasClosingQuote) {
-            CompletionResult(listOf(last), arg.end)
+            CompletionResult(mutableListOf(last), arg.end)
         } else {
-            CompletionResult(if (arg.text.isBlank()) listOf("<$name:string>") else emptyList(), arg.end)
+            CompletionResult(if (arg.text.isBlank()) mutableListOf("<$name:string>") else mutableListOf(), arg.end)
         }
     }
 

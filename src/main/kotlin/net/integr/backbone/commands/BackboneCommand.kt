@@ -4,8 +4,11 @@ import kotlinx.serialization.Serializable
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
+import net.integr.backbone.systems.command.arguments.impl.ValidatedArgument
+import net.integr.backbone.systems.command.arguments.impl.completedArgument
 import net.integr.backbone.systems.command.arguments.impl.enumArgument
 import net.integr.backbone.systems.command.arguments.impl.integerArgument
+import net.integr.backbone.systems.command.arguments.impl.validatedArgument
 import net.integr.backbone.systems.command.arguments.impl.stringArgument
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
@@ -22,8 +25,15 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
     override fun onBuild() {
         subCommands(Reload)
 
-        stringArgument("name", "Name of the object")
-        integerArgument("count", "Count of the object")
+        arguments(
+            stringArgument("name", "Name of the object"),
+            integerArgument("count", "Count of the object"),
+            validatedArgument(completedArgument(stringArgument("my-str", "abc"), listOf("abc", "def", "ghi"))) { el ->
+                if (el.length > 2) return@validatedArgument ValidatedArgument.ValidationResult.fail("Must be less than 2 characters long")
+                else return@validatedArgument ValidatedArgument.ValidationResult.ok()
+            }
+        )
+
     }
 
     override fun exec(ctx: Execution) {
@@ -62,7 +72,9 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         override fun onBuild() {
             subCommands(ClearCache)
 
-            integerArgument("level", "Level of reload")
+            arguments(
+                integerArgument("level", "Level of reload")
+            )
         }
 
         override fun exec(ctx: Execution) {
@@ -75,8 +87,10 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
         object ClearCache : Command("clear-cache", "Clears the Backbone cache") {
             override fun onBuild() {
-                stringArgument("cache-type", "Type of cache to clear")
-                enumArgument<MyEnum>("enum", "Enum of the object")
+                arguments(
+                    stringArgument("cache-type", "Type of cache to clear"),
+                    enumArgument<MyEnum>("enum", "Enum of the object")
+                )
             }
 
             override fun exec(ctx: Execution) {

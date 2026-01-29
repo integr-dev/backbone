@@ -20,7 +20,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
         file.location.writeText(str)
     }
 
-    fun getAndUpdateState(): T {
+    fun updateAndGetState(): T {
         val str = file.location.readText()
         val state = Yaml.default.decodeFromString(serializer(), str)
         cachedState = state
