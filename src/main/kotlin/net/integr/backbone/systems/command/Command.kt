@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
 
 abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.feedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
-    val logger = Backbone.LOGGER.derive("command.$name")
+    protected val logger = Backbone.LOGGER.derive("command")
 
     private val subCommands = mutableListOf<Command>()
     private val arguments = mutableListOf<Argument<*>>()
@@ -99,11 +99,22 @@ abstract class Command(name: String, description: String, aliases: List<String> 
 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
         val chain = ArgumentChain(args.toList())
+
         try {
             handleExecution(sender, chain)
-        } catch (e: Exception) {
+        } catch (e: CommandFailedException) {
             logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
             sender.sendMessage(format.format(e.message ?: "An error occurred while executing the command."))
+            return false
+        } catch (e: CommandArgumentException) {
+            logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
+            sender.sendMessage(format.format(e.message ?: "An error occurred while executing the command."))
+            return false
+        } catch (e: Exception) {
+            logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
+            sender.sendMessage(format.format("An error occurred while executing the command. Please contact administration."))
+            e.printStackTrace()
+
             return false
         }
 

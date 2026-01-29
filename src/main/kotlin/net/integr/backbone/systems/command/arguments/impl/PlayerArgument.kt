@@ -1,6 +1,7 @@
 package net.integr.backbone.systems.command.arguments.impl
 
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -25,7 +26,7 @@ class PlayerArgument(name: String, description: String) : Argument<Player>(name,
         val arg = current.getNextSingle()
 
         val foundPlayer = Bukkit.getPlayer(arg.text)
-            ?: throw IllegalArgumentException("Argument '$name' must be a valid online player.")
+            ?: throw CommandArgumentException("Argument '$name' must be a valid online player.")
 
         return ParseResult(foundPlayer, arg.end)
     }

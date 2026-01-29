@@ -1,6 +1,7 @@
 package net.integr.backbone.systems.command.arguments.impl
 
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
 fun Command.integerArgument(name: String, description: String) {
@@ -16,7 +17,7 @@ class IntegerArgument(name: String, description: String) : Argument<Int>(name, d
 
     override fun parse(current: ArgumentInput): ParseResult<Int> {
         val arg = current.getNextSingle()
-        val value = arg.text.toIntOrNull() ?: throw IllegalArgumentException("Argument '$name' must be a valid integer.")
+        val value = arg.text.toIntOrNull() ?: throw CommandArgumentException("Argument '$name' must be a valid integer.")
         return ParseResult(value, arg.end)
     }
 }

@@ -1,6 +1,7 @@
 package net.integr.backbone.systems.command.arguments.impl
 
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
 fun Command.stringArgument(name: String, description: String) {
@@ -28,13 +29,13 @@ class StringArgument(name: String, description: String) : Argument<String>(name,
         val arg = if (isQuoted) current.getNextGreedyWithBoundChar('"') else current.getNextSingle()
 
         val text = if (isQuoted) {
-            if (!arg.found) throw IllegalArgumentException("Argument '$name' is missing a closing quotation mark.")
+            if (!arg.found) throw CommandArgumentException("Argument '$name' is missing a closing quotation mark.")
             arg.text.substring(1, arg.text.length - 1)
         } else {
             arg.text
         }
 
-        if (text.isBlank()) throw IllegalArgumentException("Argument '$name' cannot be blank.")
+        if (text.isBlank()) throw CommandArgumentException("Argument '$name' cannot be blank.")
 
         return ParseResult(text, arg.end)
     }

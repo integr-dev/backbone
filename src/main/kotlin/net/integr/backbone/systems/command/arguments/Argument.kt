@@ -1,6 +1,12 @@
 package net.integr.backbone.systems.command.arguments
 
+import net.integr.backbone.systems.command.CommandFailedException
+
 abstract class Argument<T : Any>(val name: String, val description: String) {
+    fun fail(message: String) {
+        throw CommandFailedException(message)
+    }
+
     abstract fun getCompletions(current: ArgumentInput): CompletionResult
 
     abstract fun parse(current: ArgumentInput): ParseResult<T>

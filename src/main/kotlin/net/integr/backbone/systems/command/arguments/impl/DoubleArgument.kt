@@ -1,6 +1,7 @@
 package net.integr.backbone.systems.command.arguments.impl
 
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
 fun Command.doubleArgument(name: String, description: String) {
@@ -16,7 +17,7 @@ class DoubleArgument(name: String, description: String) : Argument<Double>(name,
 
     override fun parse(current: ArgumentInput): ParseResult<Double> {
         val arg = current.getNextSingle()
-        val value = arg.text.toDoubleOrNull() ?: throw IllegalArgumentException("Argument '$name' must be a valid double.")
+        val value = arg.text.toDoubleOrNull() ?: throw CommandArgumentException("Argument '$name' must be a valid double.")
         return ParseResult(value, arg.end)
     }
 }

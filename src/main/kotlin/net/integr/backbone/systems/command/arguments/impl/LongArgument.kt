@@ -1,6 +1,7 @@
 package net.integr.backbone.systems.command.arguments.impl
 
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.arguments.Argument
 
 fun Command.longArgument(name: String, description: String) {
@@ -16,7 +17,7 @@ class LongArgument(name: String, description: String) : Argument<Long>(name, des
 
     override fun parse(current: ArgumentInput): ParseResult<Long> {
         val arg = current.getNextSingle()
-        val value = arg.text.toLongOrNull() ?: throw IllegalArgumentException("Argument '$name' must be a valid long.")
+        val value = arg.text.toLongOrNull() ?: throw CommandArgumentException("Argument '$name' must be a valid long.")
         return ParseResult(value, arg.end)
     }
 }
