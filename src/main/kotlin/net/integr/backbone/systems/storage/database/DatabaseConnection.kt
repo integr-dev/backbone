@@ -29,12 +29,12 @@ class DatabaseConnection(db: ResourceLocation) : AutoCloseable {
         }
     }
 
-    fun useConnection(block: StatementCreator.(connection: Connection, savepoint: Savepoint) -> Unit) {
+    fun <T> useConnection(block: StatementCreator.(connection: Connection, savepoint: Savepoint) -> T?): T? {
         val conn = getOrConnect()
         val statementCreator = StatementCreator(conn)
         val savepoint = conn.setSavepoint()
         try {
-            statementCreator.block(conn, savepoint)
+            return statementCreator.block(conn, savepoint)
         } finally {
             conn.releaseSavepoint(savepoint)
             releaseOrDisconnect()

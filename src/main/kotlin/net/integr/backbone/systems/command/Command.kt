@@ -28,8 +28,8 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         subCommandNames = subCommands.map { it.name } + subCommands.flatMap { it.aliases }
     }
 
-    fun arguments(vararg argument: Argument<*>) {
-        arguments.addAll(argument)
+    fun arguments(vararg arguments: Argument<*>) {
+        this.arguments.addAll(arguments)
     }
 
     fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
@@ -127,6 +127,6 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         return handleCompletion(ArgumentChain(args.toList()))
     }
 
-    protected abstract fun onBuild()
+    protected open fun onBuild() {}
     protected abstract fun exec(ctx: Execution)
 }

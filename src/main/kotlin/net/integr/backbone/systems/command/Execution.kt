@@ -21,10 +21,32 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
         }
     }
 
+    fun requirePlayer() {
+        if (sender !is Player) {
+            fail("This command can only be executed by a player.")
+        }
+    }
+
     fun failOnConsole() {
         if (sender !is Player) {
             fail("This command can only be executed by a player.")
         }
+    }
+
+    fun requireConsole() {
+        if (sender is Player) {
+            fail("This command can only be executed from the console.")
+        }
+    }
+
+    fun getPlayer(): Player {
+        requirePlayer()
+        return sender as Player
+    }
+
+    fun getConsole(): CommandSender {
+        requireConsole()
+        return sender
     }
 
     fun fail(message: String) {

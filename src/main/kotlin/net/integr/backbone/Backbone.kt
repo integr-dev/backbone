@@ -2,6 +2,8 @@ package net.integr.backbone
 
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.storage.ResourcePool
+import org.bukkit.Bukkit
+import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
@@ -19,6 +21,14 @@ object Backbone {
 
     val LOGGER: BackboneLogger by lazy {
         BackboneLogger("backbone", PLUGIN)
+    }
+
+    val SCHEDULER by lazy {
+        Bukkit.getScheduler()
+    }
+
+    fun registerListener(listener: Listener) {
+        PLUGIN!!.server.pluginManager.registerEvents(listener, PLUGIN!!)
     }
 }
 
