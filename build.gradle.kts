@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.3.20-Beta1"
     id("com.gradleup.shadow") version "8.3.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    kotlin("plugin.serialization") version "1.4.20"
 }
 
 group = "net.integr"
@@ -17,6 +18,8 @@ repositories {
 dependencies {
     implementation("org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("com.charleskorn.kaml:kaml:0.104.0")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")

@@ -1,13 +1,16 @@
 package net.integr.backbone
 
-import net.integr.backbone.BackboneLogger
+import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
-    private val ctx = System.getenv("EXEC_CONTEXT")
+    private val executionContext = System.getenv("EXEC_CONTEXT")
+
+    val STORAGE_POOL = ResourcePool.fromStorage("backbone")
+    val CONFIG_POOL = ResourcePool.fromConfig("backbone")
 
     val PLUGIN: JavaPlugin? by lazy {
-        if (ctx != "test") JavaPlugin.getPlugin(BackboneServer::class.java)
+        if (executionContext != "test") JavaPlugin.getPlugin(BackboneServer::class.java)
         else null
     }
 

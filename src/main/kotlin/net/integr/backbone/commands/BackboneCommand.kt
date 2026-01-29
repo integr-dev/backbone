@@ -1,5 +1,7 @@
 package net.integr.backbone.commands
 
+import kotlinx.serialization.Serializable
+import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.command.arguments.impl.booleanArgument
@@ -7,7 +9,6 @@ import net.integr.backbone.systems.command.arguments.impl.enumArgument
 import net.integr.backbone.systems.command.arguments.impl.integerArgument
 import net.integr.backbone.systems.command.arguments.impl.playerArgument
 import net.integr.backbone.systems.command.arguments.impl.stringArgument
-import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.entity.Player
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
@@ -15,8 +16,11 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         ONE, TWO, THREE
     }
 
-    val pool = ResourcePool.fromStorage("backbone")
-    val db = pool.database("database.db")
+    @Serializable
+    data class MyConfig(val name: String, val age: String)
+
+    val db = Backbone.STORAGE_POOL.database("database.db")
+    val cfg = Backbone.CONFIG_POOL.config<MyConfig>("config.yaml")
 
     override fun onBuild() {
         subCommands(Reload)
@@ -79,13 +83,13 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         object ClearCache : Command("clear-cache", "Clears the Backbone cache") {
             override fun onBuild() {
                 stringArgument("cache-type", "Type of cache to clear")
-                playerArgument("player", "Player whose cache to clear")
             }
 
             override fun exec(ctx: Execution) {
                 logger.info("Clearing Backbone cache")
-                ctx.respond("Player: ${ctx.get<Player>("player")?.name}, Cache Type: ${ctx.get<String>("cache-type")}")
                 ctx.respond("Backbone cache cleared")
+
+                cfg.writeState(MyConfig("test", "test"))
             }
         }
     }

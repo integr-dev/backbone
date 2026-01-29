@@ -1,8 +1,10 @@
 package net.integr.backbone.systems.storage
 
+import net.integr.backbone.systems.storage.config.ConfigHandler
 import net.integr.backbone.systems.storage.database.DatabaseConnection
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
+import kotlin.reflect.typeOf
 
 class ResourcePool(origin: Path, id: String) {
     val location: Path = origin.resolve(id)
@@ -23,6 +25,12 @@ class ResourcePool(origin: Path, id: String) {
         val location = allocate(id)
         location.create()
         return DatabaseConnection(location)
+    }
+
+    inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
+        val location = allocate(id)
+        location.create()
+        return ConfigHandler(location, typeOf<T>())
     }
 
     companion object {
