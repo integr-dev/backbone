@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.command.arguments
+package net.integr.backbone.systems.command.argument
 
 import net.integr.backbone.systems.command.CommandFailedException
 

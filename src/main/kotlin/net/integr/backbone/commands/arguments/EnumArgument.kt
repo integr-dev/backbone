@@ -1,7 +1,7 @@
-package net.integr.backbone.systems.command.arguments.impl
+package net.integr.backbone.commands.arguments
 
 import net.integr.backbone.systems.command.CommandArgumentException
-import net.integr.backbone.systems.command.arguments.Argument
+import net.integr.backbone.systems.command.argument.Argument
 
 inline fun <reified T : Enum<T>> enumArgument(name: String, description: String): Argument<T> {
     return EnumArgument(name, description, T::class.java)

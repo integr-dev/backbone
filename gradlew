@@ -159,7 +159,7 @@ if ! "$cygwin" && ! "$darwin" && ! "$nonstop" ; then
     esac
 fi
 
-# Collect all arguments for the java command, stacking in reverse order:
+# Collect all argument for the java command, stacking in reverse order:
 #   * args from the command line
 #   * the main class name
 #   * -classpath
@@ -174,7 +174,7 @@ if "$cygwin" || "$msys" ; then
 
     JAVACMD=$( cygpath --unix "$JAVACMD" )
 
-    # Now convert the arguments - kludge to limit ourselves to /bin/sh
+    # Now convert the argument - kludge to limit ourselves to /bin/sh
     for arg do
         if
             case $arg in                                #(
@@ -202,7 +202,7 @@ fi
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
 
-# Collect all arguments for the java command:
+# Collect all argument for the java command:
 #   * DEFAULT_JVM_OPTS, JAVA_OPTS, JAVA_OPTS, and optsEnvironmentVar are not allowed to contain shell fragments,
 #     and any embedded shellness will be escaped.
 #   * For example: A user cannot expect ${Hostname} to be expanded, as it is an environment variable and will be
@@ -232,7 +232,7 @@ fi
 # but POSIX shell has neither arrays nor command substitution, so instead we
 # post-process each arg (as a line of input to sed) to backslash-escape any
 # character that might be a shell metacharacter, then use eval to reverse
-# that process (while maintaining the separation between arguments), and wrap
+# that process (while maintaining the separation between argument), and wrap
 # the whole thing up as a single "set" statement.
 #
 # This will of course break if any of these variables contains a newline or

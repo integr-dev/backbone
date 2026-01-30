@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.eventbus
+package net.integr.backbone.systems.event
 
 class Event<T>(val payload: T) {
     var cancelled: Boolean = false

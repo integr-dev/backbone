@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.command
 
-import net.integr.backbone.systems.command.arguments.ArgumentChain
-import net.integr.backbone.systems.command.arguments.impl.StringArgument
+import net.integr.backbone.systems.command.argument.ArgumentChain
+import net.integr.backbone.commands.arguments.StringArgument
 import org.bukkit.command.CommandSender
 import org.junit.jupiter.api.Assertions.*
 import org.mockito.Mockito.mock

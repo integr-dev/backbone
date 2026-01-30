@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.command.arguments
+package net.integr.backbone.systems.command.argument
 
 class ArgumentChain(args: List<String>) {
     private class Node(val value: String, var next: Node? = null)

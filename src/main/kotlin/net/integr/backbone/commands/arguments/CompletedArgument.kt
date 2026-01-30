@@ -1,6 +1,6 @@
-package net.integr.backbone.systems.command.arguments.impl
+package net.integr.backbone.commands.arguments
 
-import net.integr.backbone.systems.command.arguments.Argument
+import net.integr.backbone.systems.command.argument.Argument
 
 fun <T : Any> completedArgument(argument: Argument<T>, options: List<String>): Argument<T> {
     return CompletedArgument(argument, options)

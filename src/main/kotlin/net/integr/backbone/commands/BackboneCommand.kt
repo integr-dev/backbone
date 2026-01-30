@@ -6,11 +6,11 @@ import net.integr.backbone.guis.TestGui
 import net.integr.backbone.systems.async.AsyncHandler
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
-import net.integr.backbone.systems.command.arguments.impl.completedArgument
-import net.integr.backbone.systems.command.arguments.impl.enumArgument
-import net.integr.backbone.systems.command.arguments.impl.integerArgument
-import net.integr.backbone.systems.command.arguments.impl.validatedArgument
-import net.integr.backbone.systems.command.arguments.impl.stringArgument
+import net.integr.backbone.commands.arguments.completedArgument
+import net.integr.backbone.commands.arguments.enumArgument
+import net.integr.backbone.commands.arguments.integerArgument
+import net.integr.backbone.commands.arguments.validatedArgument
+import net.integr.backbone.commands.arguments.stringArgument
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     enum class MyEnum {

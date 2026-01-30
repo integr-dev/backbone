@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.eventbus
+package net.integr.backbone.systems.event
 
 import kotlin.reflect.KClass
 

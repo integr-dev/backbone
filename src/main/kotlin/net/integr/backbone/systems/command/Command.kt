@@ -1,8 +1,8 @@
 package net.integr.backbone.systems.command
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.command.arguments.ArgumentChain
-import net.integr.backbone.systems.command.arguments.Argument
+import net.integr.backbone.systems.command.argument.ArgumentChain
+import net.integr.backbone.systems.command.argument.Argument
 import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
@@ -108,7 +108,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
             return false
         } catch (e: CommandArgumentException) {
-            // User has provided invalid arguments
+            // User has provided invalid argument
             logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
             sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
             return false

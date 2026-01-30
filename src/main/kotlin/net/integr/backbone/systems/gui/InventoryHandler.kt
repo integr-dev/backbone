@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.gui
 
 import net.integr.backbone.events.DualTickEvent
-import net.integr.backbone.systems.eventbus.listener
+import net.integr.backbone.systems.event.listener
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener

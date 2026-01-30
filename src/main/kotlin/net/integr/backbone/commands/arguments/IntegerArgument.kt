@@ -1,7 +1,7 @@
-package net.integr.backbone.systems.command.arguments.impl
+package net.integr.backbone.commands.arguments
 
 import net.integr.backbone.systems.command.CommandArgumentException
-import net.integr.backbone.systems.command.arguments.Argument
+import net.integr.backbone.systems.command.argument.Argument
 
 fun integerArgument(name: String, description: String): Argument<Int> {
     return IntegerArgument(name, description)

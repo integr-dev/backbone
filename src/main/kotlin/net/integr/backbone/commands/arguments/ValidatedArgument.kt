@@ -1,7 +1,7 @@
-package net.integr.backbone.systems.command.arguments.impl
+package net.integr.backbone.commands.arguments
 
 import net.integr.backbone.systems.command.CommandArgumentException
-import net.integr.backbone.systems.command.arguments.Argument
+import net.integr.backbone.systems.command.argument.Argument
 
 fun <T : Any> validatedArgument(argument: Argument<T>, block: ValidatedArgument.ValidationResult.Companion.(T) -> ValidatedArgument.ValidationResult): Argument<T> {
     return ValidatedArgument(argument, block)
