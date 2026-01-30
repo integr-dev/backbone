@@ -1,8 +1,8 @@
-package net.integr.backbone.systems.text.format.impl
+package net.integr.backbone.text.formats
 
 import net.integr.backbone.systems.text.TextColor
-import net.integr.backbone.systems.text.alphabet.impl.BoldSmallAlphabet
-import net.integr.backbone.systems.text.format.TextFormat
+import net.integr.backbone.text.alphabets.BoldSmallAlphabet
+import net.integr.backbone.systems.text.TextFormat
 
 class CommandFeedbackFormat(handler: String, val handlerColor: String) : TextFormat {
     private val handlerName = BoldSmallAlphabet.encode(handler)

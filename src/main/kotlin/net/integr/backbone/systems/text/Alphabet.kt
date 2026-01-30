@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.text.alphabet
+package net.integr.backbone.systems.text
 
 interface Alphabet {
     fun encode(str: String): String

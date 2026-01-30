@@ -1,6 +1,7 @@
-package net.integr.backbone.systems.text.alphabet.impl
+package net.integr.backbone.text.alphabets
 
-import net.integr.backbone.systems.text.alphabet.Alphabet
+import net.integr.backbone.systems.text.Alphabet
+import kotlin.text.iterator
 
 object BoldSmallAlphabet : Alphabet {
     const val ALPHABET = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢ"
@@ -9,7 +10,7 @@ object BoldSmallAlphabet : Alphabet {
         val sb = StringBuilder()
 
         for (char in str) {
-            val index = Alphabet.DEFAULT_ALPHABET.indexOf(char)
+            val index = Alphabet.Companion.DEFAULT_ALPHABET.indexOf(char)
             if (index != -1) {
                 sb.append(ALPHABET[index])
             } else {

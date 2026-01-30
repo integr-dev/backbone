@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.command
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
+import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
 import java.lang.reflect.Field

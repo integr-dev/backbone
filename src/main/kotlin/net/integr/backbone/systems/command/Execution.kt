@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.command
 
 import net.integr.backbone.systems.permission.PermissionNode
-import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
+import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 

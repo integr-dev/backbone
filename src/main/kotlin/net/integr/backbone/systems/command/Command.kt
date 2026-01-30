@@ -3,7 +3,7 @@ package net.integr.backbone.systems.command
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.systems.command.argument.Argument
-import net.integr.backbone.systems.text.format.impl.CommandFeedbackFormat
+import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
 
