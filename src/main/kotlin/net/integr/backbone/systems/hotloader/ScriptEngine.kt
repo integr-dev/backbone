@@ -1,47 +1,95 @@
 package net.integr.backbone.systems.hotloader
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import java.io.File
 import kotlin.io.path.name
 import kotlin.script.experimental.api.ResultValue
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
-import kotlin.script.experimental.api.providedProperties
 import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 
 object ScriptEngine {
-    class ScriptState(var enabled: Boolean, var lifecycle: ManagedLifecycle)
 
     val logger = Backbone.LOGGER.derive("script-engine")
+
     val scripts = mutableMapOf<String, ScriptState>()
 
     // Create the host once to reuse its internal compiler warm-up
     private val scriptingHost = BasicJvmScriptingHost()
 
-    fun loadScripts(): Boolean {
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    suspend fun loadScripts(): Boolean {
         unloadScripts()
         val files = Backbone.SCRIPT_POOL.listFiles()
 
         var errs = false
 
-        for (file in files) {
-            try {
-                val script = loadScript(file.toFile())
-                script.onLoad()
+        val jobs = mutableListOf<Job>()
 
-                scripts[file.name] = ScriptState(true, script)
-                logger.info("Loaded script: $file")
-            } catch (e: Exception) {
-                logger.severe("Failed to load script: $file")
-                e.printStackTrace()
-                errs = true
+        for (file in files) {
+            jobs += coroutineScope.launch {
+                try {
+                    val script = loadScript(file.toFile())
+                    script.onLoad()
+
+                    scripts[file.name] = ScriptState(true, script)
+                    logger.info("Loaded script: $file")
+                } catch (e: Exception) {
+                    logger.severe("Failed to load script: $file")
+                    e.printStackTrace()
+                    errs = true
+                }
             }
         }
 
+        jobs.forEach { it.join() }
+
         return errs
+    }
+
+    fun unloadScripts() {
+        for ((name, script) in scripts) {
+            try {
+                script.lifecycle.onUnload()
+                logger.info("Disabled script: $name")
+            } catch (e: Exception) {
+                logger.severe("Failed to disable script: $name")
+                e.printStackTrace()
+            }
+        }
+
+        scripts.clear()
+    }
+
+    fun loadScript(file: File): ManagedLifecycle {
+        // 1. Setup Compilation: Inherit classpath and define 'plugin' variable
+        val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
+        val evaluationConfig = ScriptEvaluationConfiguration {}
+
+        // 2. Execute
+        val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
+
+        // 3. Process Results
+        result.reports.forEach { report ->
+            if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
+                logger.warning("[${report.severity}] ${report.message} (${report.location})")
+            }
+        }
+
+        val evalValue = result.valueOrNull()?.returnValue
+        if (evalValue is ResultValue.Value && evalValue.value is ManagedLifecycle) {
+            return evalValue.value as ManagedLifecycle
+        } else {
+            throw IllegalStateException("Script did not return a ManagedLifecycle object. Found: $evalValue")
+        }
     }
 
     fun getScriptNames() = scripts.map { it.key.substringBefore(".bb.kts") }
@@ -98,40 +146,5 @@ object ScriptEngine {
         }
     }
 
-    fun unloadScripts() {
-        for ((name, script) in scripts) {
-            try {
-                script.lifecycle.onUnload()
-                logger.info("Disabled script: $name")
-            } catch (e: Exception) {
-                logger.severe("Failed to disable script: $name")
-                e.printStackTrace()
-            }
-        }
-
-        scripts.clear()
-    }
-
-    fun loadScript(file: File): ManagedLifecycle {
-        // 1. Setup Compilation: Inherit classpath and define 'plugin' variable
-        val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
-        val evaluationConfig = ScriptEvaluationConfiguration {}
-
-        // 2. Execute
-        val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
-
-        // 3. Process Results
-        result.reports.forEach { report ->
-            if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
-                logger.warning("[${report.severity}] ${report.message} (${report.location})")
-            }
-        }
-
-        val evalValue = result.valueOrNull()?.returnValue
-        if (evalValue is ResultValue.Value && evalValue.value is ManagedLifecycle) {
-            return evalValue.value as ManagedLifecycle
-        } else {
-            throw IllegalStateException("Script did not return a ManagedLifecycle object. Found: $evalValue")
-        }
-    }
+    class ScriptState(var enabled: Boolean, var lifecycle: ManagedLifecycle)
 }
