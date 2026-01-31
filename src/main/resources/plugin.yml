@@ -4,5 +4,13 @@ main: net.integr.backbone.BackboneServer
 api-version: '1.21'
 prefix: backbone
 authors: [ Integr ]
-description: Hot reloading, command parsing,
+description: |
+  Backbone provides a robust and flexible framework for developing Minecraft plugins.
+  Features include but are not limited to:
+  - Hot reloading of .bb.kts scripts during runtime.
+  - Extensive command parsing with validation, arguments and async execution.
+  - Event system for using custom events between your scripts and the backbone backend.
+  - Database connector and utility to easily create a SQLite connection on your server.
+  - Config utility with serialization to yaml.
+  - Inventory Gui Utility to create guis and differentiate between them with ease and without checking inventory title.
 website: tdb
