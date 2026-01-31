@@ -11,21 +11,16 @@
  * limitations under the License.
  */
 
+@file:Suppress("unused")
+
 package net.integr.backbone.systems.event
 
-open class Event {
-    private var callback: Any? = null
-    private var isCancelled: Boolean = false
-
-    fun setCallback(v: Any?) {
-        callback = v
-    }
-
-    fun cancel() {
-        isCancelled = true
-    }
-
-    fun getCallback(): Any? = callback
-
-    fun isCancelled() = isCancelled
+enum class EventPriority {
+    THREE_BEFORE,
+    TWO_BEFORE,
+    BEFORE,
+    NORMAL,
+    AFTER,
+    TWO_AFTER,
+    THREE_AFTER
 }

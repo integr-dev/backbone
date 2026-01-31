@@ -13,19 +13,6 @@
 
 package net.integr.backbone.systems.event
 
-open class Event {
-    private var callback: Any? = null
-    private var isCancelled: Boolean = false
 
-    fun setCallback(v: Any?) {
-        callback = v
-    }
-
-    fun cancel() {
-        isCancelled = true
-    }
-
-    fun getCallback(): Any? = callback
-
-    fun isCancelled() = isCancelled
-}
+@Target(AnnotationTarget.FUNCTION)
+annotation class BackboneEventHandler(val priority: EventPriority = EventPriority.NORMAL)

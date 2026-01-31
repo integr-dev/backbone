@@ -1,5 +1,6 @@
 package net.integr.backbone.systems.command
 
+import kotlinx.coroutines.runBlocking
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.commands.arguments.StringArgument
 import org.bukkit.command.CommandSender
@@ -19,7 +20,7 @@ class CommandTest {
             onBuildCalled = true
         }
 
-        override fun exec(ctx: Execution) {
+        override suspend fun exec(ctx: Execution) {
             execCalled = true
             lastExecution = ctx
         }
@@ -48,7 +49,9 @@ class CommandTest {
         val sender = mock(CommandSender::class.java)
         val argChain = ArgumentChain(listOf("sub", "arg1", "arg2"))
 
-        command.handleExecution(sender, argChain)
+        runBlocking {
+            command.handleExecution(sender, argChain)
+        }
 
         assertTrue(subCommand.execCalled)
         assertEquals(subCommand.lastExecution.sender, sender)

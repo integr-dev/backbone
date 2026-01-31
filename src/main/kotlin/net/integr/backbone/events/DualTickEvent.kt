@@ -1,3 +1,5 @@
 package net.integr.backbone.events
 
-object DualTickEvent
+import net.integr.backbone.systems.event.Event
+
+object DualTickEvent : Event()

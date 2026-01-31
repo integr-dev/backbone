@@ -6,8 +6,7 @@ import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.DualTickEvent
 import net.integr.backbone.systems.command.CommandHandler
-import net.integr.backbone.systems.event.Event
-import net.integr.backbone.systems.event.fire
+import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.InventoryHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import org.bukkit.plugin.java.JavaPlugin
@@ -27,8 +26,8 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.registerListener(InventoryHandler)
 
-        Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN!!, Runnable {
-            fire(Event.singleton(DualTickEvent))
+        Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN, Runnable {
+            EventBus.post(DualTickEvent)
         }, 0L, 2L)
     }
 

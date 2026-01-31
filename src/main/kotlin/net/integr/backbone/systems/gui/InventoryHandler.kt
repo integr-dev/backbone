@@ -1,7 +1,7 @@
 package net.integr.backbone.systems.gui
 
 import net.integr.backbone.events.DualTickEvent
-import net.integr.backbone.systems.event.listener
+import net.integr.backbone.systems.event.BackboneEventHandler
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -9,14 +9,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 
 object InventoryHandler : Listener {
-    init {
-        listener<DualTickEvent> {
-            for ((_, guiState) in openInventories) {
-                guiState.origin.tick(guiState.getInventory())
-            }
-        }
-    }
-
     val openInventories: MutableMap<Player, GuiState> = mutableMapOf()
 
     @EventHandler
@@ -32,6 +24,13 @@ object InventoryHandler : Listener {
         val playersInv = openInventories[event.whoClicked as Player] ?: return
         if (playersInv.getInventory() == event.inventory) {
             playersInv.origin.clicked(event)
+        }
+    }
+
+    @BackboneEventHandler
+    fun onDualTick(event: DualTickEvent) {
+        for ((_, guiState) in openInventories) {
+            guiState.origin.tick(guiState.getInventory())
         }
     }
 }

@@ -1,9 +1,6 @@
 package net.integr.backbone.systems.hotloader
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.command.CommandFailedException
-import org.bukkit.event.HandlerList
-import sun.misc.Unsafe
 import java.io.File
 import kotlin.io.path.name
 import kotlin.script.experimental.api.ResultValue
@@ -33,7 +30,6 @@ object ScriptEngine {
         for (file in files) {
             try {
                 val script = loadScript(file.toFile())
-                Backbone.registerListener(script)
                 script.onLoad()
 
                 scripts[file.name] = ScriptState(true, script)
@@ -72,7 +68,6 @@ object ScriptEngine {
         }
 
         try {
-            HandlerList.unregisterAll(script)
             script.onUnload()
             state.enabled = false
             logger.info("Disabled script: $name")
@@ -93,7 +88,6 @@ object ScriptEngine {
         }
 
         try {
-            Backbone.registerListener(script)
             script.onLoad()
             state.enabled = true
             logger.info("Enabled script: $name")
@@ -107,7 +101,6 @@ object ScriptEngine {
     fun unloadScripts() {
         for ((name, script) in scripts) {
             try {
-                HandlerList.unregisterAll(script.lifecycle)
                 script.lifecycle.onUnload()
                 logger.info("Disabled script: $name")
             } catch (e: Exception) {
@@ -122,16 +115,12 @@ object ScriptEngine {
     fun loadScript(file: File): ManagedLifecycle {
         // 1. Setup Compilation: Inherit classpath and define 'plugin' variable
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
+        val evaluationConfig = ScriptEvaluationConfiguration {}
 
-        // 2. Setup Evaluation: Pass the actual instance of your plugin
-        val evaluationConfig = ScriptEvaluationConfiguration {
-            providedProperties("bb" to Backbone)
-        }
-
-        // 3. Execute
+        // 2. Execute
         val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
 
-        // 4. Process Results
+        // 3. Process Results
         result.reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning("[${report.severity}] ${report.message} (${report.location})")

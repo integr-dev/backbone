@@ -13,8 +13,6 @@ object ScriptConfiguration : ScriptCompilationConfiguration({
     jvm {
         dependenciesFromClassloader(classLoader = Backbone::class.java.classLoader, wholeClasspath = true)
     }
-
-    providedProperties("bb" to Backbone::class)
 })
 
 @KotlinScript(
