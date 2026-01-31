@@ -1,5 +1,7 @@
 package net.integr.backbone.systems.command
 
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.systems.command.argument.Argument
@@ -32,7 +34,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         this.arguments.addAll(arguments)
     }
 
-    fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
+    suspend fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -46,7 +48,10 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             // No matching subcommand found, move on to parse args for this command
             val args = parseArgs(argChain)
             val ctx = Execution(sender, args, format)
+
+            // Async
             exec(ctx)
+
             return
         }
     }
@@ -100,24 +105,23 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
         val chain = ArgumentChain(args.toList())
 
-        try {
-            handleExecution(sender, chain)
-        } catch (e: CommandFailedException) {
-            // Command has been failed manually
-            logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
-            sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
-            return false
-        } catch (e: CommandArgumentException) {
-            // User has provided invalid argument
-            logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
-            sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
-            return false
-        } catch (e: Exception) {
-            // Unexpected error such as database failure
-            logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
-            sender.sendMessage(format.formatErr("An error occurred while executing the command. Please contact administration."))
-            e.printStackTrace()
-            return false
+        CommandHandler.coroutineScope.launch {
+            try {
+                handleExecution(sender, chain)
+            } catch (e: CommandFailedException) {
+                // Command has been failed manually
+                logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
+                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+            } catch (e: CommandArgumentException) {
+                // User has provided invalid argument
+                logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
+                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+            } catch (e: Exception) {
+                // Unexpected error such as database failure
+                logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
+                sender.sendMessage(format.formatErr("An error occurred while executing the command. Please contact administration."))
+                e.printStackTrace()
+            }
         }
 
         return true
@@ -128,5 +132,5 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     }
 
     protected open fun onBuild() {}
-    protected abstract fun exec(ctx: Execution)
+    protected abstract suspend fun exec(ctx: Execution)
 }

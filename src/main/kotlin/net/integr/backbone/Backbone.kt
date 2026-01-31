@@ -11,8 +11,13 @@ object Backbone {
 
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")
     val CONFIG_POOL = ResourcePool.fromConfig("backbone")
+    val SCRIPT_POOL = ResourcePool.getScripts()
 
     val ROOT_PERMISSION = PermissionNode("backbone")
+
+    val VERSION by lazy {
+        PLUGIN!!.description.version
+    }
 
     val PLUGIN: JavaPlugin? by lazy {
         if (executionContext != "test") JavaPlugin.getPlugin(BackboneServer::class.java)

@@ -27,6 +27,10 @@ class ResourcePool(origin: Path, id: String) {
         return DatabaseConnection(location)
     }
 
+    fun listFiles(): List<Path> {
+        return location.toFile().listFiles()?.map { it.toPath() } ?: emptyList()
+    }
+
     inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
@@ -44,6 +48,10 @@ class ResourcePool(origin: Path, id: String) {
 
         fun fromConfig(id: String): ResourcePool {
             return ResourcePool(Path.of("./config"), id)
+        }
+
+        fun getScripts(): ResourcePool {
+            return ResourcePool(Path.of("./"), "scripts")
         }
     }
 }

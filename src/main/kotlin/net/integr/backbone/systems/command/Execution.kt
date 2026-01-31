@@ -6,9 +6,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 class Execution(val sender: CommandSender, val args: Map<String, Any>, private val format: CommandFeedbackFormat) {
-    fun <T> get(key: String): T? {
+    fun <T> get(key: String): T {
         @Suppress("UNCHECKED_CAST")
-        return args[key] as T?
+        return args[key] as T
     }
 
     fun respond(message: String) {
@@ -49,7 +49,7 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
         return sender
     }
 
-    fun fail(message: String) {
+    fun fail(message: String): Boolean {
         throw CommandFailedException(message)
     }
 

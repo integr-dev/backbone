@@ -1,14 +1,20 @@
 package net.integr.backbone.systems.command
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import net.integr.backbone.Backbone
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
 import java.lang.reflect.Field
+import java.util.*
+
 
 object CommandHandler {
     val logger = Backbone.LOGGER.derive("command-handler")
     val feedbackFormat = CommandFeedbackFormat("backbone", "#8db882")
+
+    val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val map: CommandMap by lazy {
         logger.info("Got command map via reflection")
@@ -18,8 +24,32 @@ object CommandHandler {
     }
 
 
-    fun register(command: Command) {
+    fun register(command: Command, prefix: String = "backbone") {
         command.build()
-        map.register(command.name, command)
+        map.register(prefix, command)
+        Bukkit.getOnlinePlayers().forEach {
+            it.updateCommands()
+        }
+    }
+
+    fun unRegister(command: Command, prefix: String = "backbone") {
+        unregisterCommand(command.name, prefix)
+
+        Bukkit.getOnlinePlayers().forEach {
+            it.updateCommands()
+        }
+    }
+
+    fun unregisterCommand(commandName: String, prefix: String = "backbone") {
+        try {
+            val knownCommandsField = map.javaClass.getSuperclass().getDeclaredField("knownCommands")
+            knownCommandsField.setAccessible(true)
+            val knownCommands = knownCommandsField.get(map) as MutableMap<*, *>
+
+            knownCommands.remove(commandName)
+            knownCommands.remove("$prefix:$commandName")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
