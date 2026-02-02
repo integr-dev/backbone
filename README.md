@@ -1,36 +1,33 @@
 # Backbone
-Backbone is a powerful and flexible framework for Spigot-based Minecraft servers, designed to supercharge plugin development. Its core philosophy is to enable developers to write, test, and update code on a live server without requiring restarts, dramatically accelerating the development lifecycle.
 
-Whether you're a server administrator looking to add custom features with simple scripts or a seasoned developer building complex plugins, Backbone provides the tools you need to be more productive and creative.
+
+Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically accelerating the development lifecycle.
+
+Whether you're a server administrator looking to add custom features with simple scripts or a developer prototyping new ideas, Backbone provides the tools you need to be more productive and creative.
 
 ## Features
 
 - **Hot-Loadable Scripts:** Write and reload Kotlin scripts without restarting the server, enabling rapid development and iteration.
-- **Event System:** A custom event bus that complements Bukkit's event system, offering more control and flexibility.
-- **Command Framework:** A simple yet powerful command system with built-in argument parsing and error handling.
+- **Event System:** A custom event bus that complements Bukkit's event system, offering more control and flexibility within your scripts.
+- **Command Framework:** A simple yet powerful command system to create custom commands directly from your scripts.
 - **Storage Abstraction:** Easily manage data with a flexible storage system that supports SQLite databases and typed configuration files.
-- **GUI Framework:** A declarative GUI framework for creating complex and interactive inventories.
+- **GUI Framework:** A declarative GUI framework for creating complex and interactive inventories from your scripts.
 - **Text Formatting:** A flexible text formatting system with support for custom alphabets and color codes.
 
 ## Getting Started
 
-Getting started with Backbone is easy, whether you're a server owner or a developer.
-
-### For Server Owners
+Getting started with Backbone is simple. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
 
 1.  **Download:** Grab the latest version of Backbone from the [releases page](https://github.com/integr-dev/backbone/releases).
 2.  **Install:** Place the downloaded `.jar` file into your server's `plugins` directory.
-3.  **Start:** Start your server. Backbone will generate its necessary folders.
-4.  **Scripting:** You can now start writing `.bb.kts` script files in the `scripts/` directory. See the [Hot-Loadable Scripts](#hot-loadable-scripts) section for examples.
+3.  **Start:** Start your server. Backbone will generate its necessary folders in your server's root directory.
+4.  **Scripting:** You can now start writing your own custom logic in `.bb.kts` script files inside the `scripts/` directory at the root of your server. See the examples below to get started!
 
-### For Developers
-
-If you want to use backbone to develop your server, there is mostly no need to use the backbone jar as a dependency
-since the scripting engine exists and has full java classpath support.
-
-If you want to use backbone as a dependency anyway, please use a local lib with the built jar
+For advanced users who wish to build a plugin that depends on Backbone, you can add it as a dependency. However, for most use cases, the scripting engine provides all the power you need.
 
 ## Examples
+
+All examples are designed to be placed in their own `.bb.kts` files inside the `scripts/` directory.
 
 ### Hot-Loadable Scripts
 
@@ -38,7 +35,7 @@ Backbone's most powerful feature is its hot-loadable script engine. This allows 
 
 #### Script Location and Aggregation
 
-All script files should be placed in the `scripts/` directory. The script engine will automatically discover and compile any `.bb.kts` files in this location when scripts are loaded.
+All script files should be placed in the `scripts/` directory in your server's root. The script engine will automatically discover and compile any `.bb.kts` files in this location when scripts are loaded.
 
 #### Script Structure
 
@@ -62,13 +59,11 @@ object : ManagedLifecycle() {
     var otherCounter = 0 
 
     // Called when the script is loaded or enabled.
-    // Use this to register listeners, commands, etc.
     override fun onLoad() {
         Backbone.registerListener(this) 
     }
 
     // Called when the script is unloaded, disabled, or reloaded.
-    // Use this to unregister listeners and clean up resources.
     override fun onUnload() {
         Backbone.unregisterListener(this)
     }
@@ -102,17 +97,17 @@ Backbone provides a simple and powerful way to manage your plugin's data and con
 
 #### Resource Pools
 
-A `ResourcePool` is a namespaced container for your plugin's resources. It's recommended to create a separate pool for your plugin to avoid conflicts.
+A `ResourcePool` is a namespaced container for your resources. It's recommended to create a separate pool for your script or feature set to avoid conflicts.
 
 ```kotlin
-// Create a resource pool for your plugin's storage
-val myPluginStorage = ResourcePool.fromStorage("myplugin")
+// Create a resource pool for your script's storage
+val myScriptStorage = ResourcePool.fromStorage("mystorage")
 
-// Create a resource pool for your plugin's configuration
-val myPluginConfig = ResourcePool.fromConfig("myplugin")
+// Create a resource pool for your script's configuration
+val myScriptConfig = ResourcePool.fromConfig("myconfig")
 ```
 
-This will create directories at `storage/myplugin/` and `config/myplugin/` respectively.
+This will create directories at `storage/mystorage/` and `config/myconfig/` in your server's root directory.
 
 #### Configuration
 
@@ -129,7 +124,7 @@ Then, use the `config()` function on your resource pool to get a handler for it:
 
 ```kotlin
 // Get a handler for a config file named 'settings.json'
-val configHandler = myPluginConfig.config<MyConfig>("settings.json")
+val configHandler = myScriptConfig.config<MyConfig>("settings.json")
 
 // Get the current config, or the default if it doesn't exist
 val currentConfig = configHandler.get()
@@ -141,23 +136,16 @@ configHandler.set(currentConfig.copy(settingB = 20))
 
 #### Databases
 
-Backbone provides a simple and efficient way to work with SQLite databases. The `DatabaseConnection` class manages the connection lifecycle, and the `StatementCreator` provides safe and convenient methods for executing queries.
+Backbone provides a simple and efficient way to work with SQLite databases from within your scripts.
 
 ```kotlin
 // Get a connection to a database file named 'playerdata.db'
-val dbConnection = myPluginStorage.database("playerdata.db")
+val dbConnection = myScriptStorage.database("playerdata.db")
 
 // The useConnection block handles connection setup and teardown automatically.
 dbConnection.useConnection { 
     // The 'this' context is a StatementCreator instance.
-
-    // Execute a simple statement to create a table if it doesn't exist.
-    execute("""
-        CREATE TABLE IF NOT EXISTS players (
-            uuid TEXT PRIMARY KEY,
-            name TEXT NOT NULL
-        );
-    """)
+    execute("CREATE TABLE IF NOT EXISTS players (uuid TEXT PRIMARY KEY, name TEXT NOT NULL);")
 
     // Use a prepared statement to safely insert data.
     preparedStatement("INSERT INTO players (uuid, name) VALUES (?, ?)") {
@@ -166,11 +154,7 @@ dbConnection.useConnection {
         executeUpdate()
     }
 
-    // Use a query to retrieve data and map it to a custom object.
-    val playerName = query("SELECT name FROM players WHERE uuid = 'some-uuid'") { resultSet ->
-        resultSet.getString("name")
-    }
-
+    val playerName = query("SELECT name FROM players WHERE uuid = 'some-uuid'") { it.getString("name") }
     println("Found player: $playerName")
 }
 ```
@@ -179,7 +163,7 @@ The `useConnection` block ensures that the database connection is properly acqui
 
 ### Custom Events
 
-Backbone's event system allows you to create and listen for custom events, giving you more control over your plugin's behavior.
+Backbone's event system allows you to create and listen for custom events, giving you more control over your script's behavior.
 
 
 ```kotlin
@@ -241,8 +225,15 @@ object MyCommand : Command("mycommand", "My first command") {
     }
 }
 
-// Register the command
-CommandHandler.register(MyCommand)
+// In your ManagedLifecycle's onLoad:
+override fun onLoad() {
+    CommandHandler.register(MyCommand)
+}
+
+// In your ManagedLifecycle's onUnload:
+override fun onUnload() {
+    CommandHandler.unregister(MyCommand)
+}
 ```
 
 ### Custom Arguments
@@ -277,11 +268,11 @@ arguments(
 
 ### Custom Formatting and Utilities
 
-Backbone includes a flexible text formatting system that allows you to customize the look and feel of your plugin's output.
+Backbone includes a flexible text formatting system that allows you to customize the look and feel of your script's output.
 
 #### Command Feedback Format
 
-You can create a custom `CommandFeedbackFormat` to change how command responses are displayed. This is useful for creating a consistent brand for your server or plugin.
+You can create a custom `CommandFeedbackFormat` to change how command responses are displayed.
 
 ```kotlin
 val myFormat = CommandFeedbackFormat("MyPlugin", "#55555")
@@ -356,6 +347,6 @@ object TestGui : Gui("Test Gui" , 27) {
     }
 }
 
-// Open the GUI for a player
-TestGui().open(player)
+// In a command or event within your script:
+TestGui.open(player)
 ```
