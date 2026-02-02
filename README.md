@@ -21,7 +21,7 @@ Getting started with Backbone is easy, whether you're a server owner or a develo
 1.  **Download:** Grab the latest version of Backbone from the [releases page](https://github.com/integr-dev/backbone/releases).
 2.  **Install:** Place the downloaded `.jar` file into your server's `plugins` directory.
 3.  **Start:** Start your server. Backbone will generate its necessary folders.
-4.  **Scripting:** You can now start writing `.bb.kts` script files in the `plugins/Backbone/scripts/` directory. See the [Hot-Loadable Scripts](#hot-loadable-scripts) section for examples.
+4.  **Scripting:** You can now start writing `.bb.kts` script files in the `scripts/` directory. See the [Hot-Loadable Scripts](#hot-loadable-scripts) section for examples.
 
 ### For Developers
 
@@ -38,7 +38,7 @@ Backbone's most powerful feature is its hot-loadable script engine. This allows 
 
 #### Script Location and Aggregation
 
-All script files should be placed in the `plugins/Backbone/scripts/` directory. The script engine will automatically discover and compile any `.bb.kts` files in this location when scripts are loaded.
+All script files should be placed in the `scripts/` directory. The script engine will automatically discover and compile any `.bb.kts` files in this location when scripts are loaded.
 
 #### Script Structure
 
@@ -112,7 +112,7 @@ val myPluginStorage = ResourcePool.fromStorage("myplugin")
 val myPluginConfig = ResourcePool.fromConfig("myplugin")
 ```
 
-This will create directories at `plugins/Backbone/storage/myplugin/` and `plugins/Backbone/config/myplugin/` respectively.
+This will create directories at `storage/myplugin/` and `config/myplugin/` respectively.
 
 #### Configuration
 
