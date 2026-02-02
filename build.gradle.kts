@@ -24,8 +24,9 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
     implementation(kotlin("scripting-jvm"))
+    implementation(kotlin("scripting-common"))
     implementation(kotlin("scripting-jvm-host"))
-    implementation(kotlin("scripting-jsr223"))
+    implementation(kotlin("scripting-dependencies"))
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito:mockito-core:5.2.0")

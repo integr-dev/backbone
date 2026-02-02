@@ -5,6 +5,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.hotloader.configuration.Script
+import net.integr.backbone.systems.hotloader.configuration.UtilityScript
+import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import java.io.File
 import kotlin.io.path.name
 import kotlin.script.experimental.api.ResultValue
@@ -14,6 +17,7 @@ import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
+import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 
 object ScriptEngine {
 
@@ -27,7 +31,9 @@ object ScriptEngine {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     suspend fun loadScripts(): Boolean {
-        val files = Backbone.SCRIPT_POOL.listFiles()
+        val files = Backbone.SCRIPT_POOL
+            .listFiles()
+
         logger.info("Loading ${files.size} scripts...")
 
         val jobs = mutableListOf<Job>()
@@ -38,15 +44,20 @@ object ScriptEngine {
         for (file in files) {
             jobs += coroutineScope.launch {
                 try {
-                    val oldLifecycle = scripts[file.name] // Grab the old script
-                    val script = compileScript(file.toFile()) // Compile the new script
+                    if (file.name.endsWith(".bb.kts")) {
+                        val oldLifecycle = scripts[file.name] // Grab the old script
+                        val script = compileScript(file.toFile()) // Compile the new script
 
-                    if (oldLifecycle != null) {
-                        script.updateStatesFrom(oldLifecycle.lifecycle) // Load sustained states from odl into the new script state
+                        if (oldLifecycle != null) {
+                            script.updateStatesFrom(oldLifecycle.lifecycle) // Load sustained states from odl into the new script state
+                        }
+
+                        newScripts[file.name] = ScriptState(false, script) // Push the parse script into the buffer
+                        logger.info("Loaded script: $file")
+                    } else {
+                        // Compile for import
+                        compileUtilityScript(file.toFile())
                     }
-
-                    newScripts[file.name] = ScriptState(false, script) // Push the parse script into the buffer
-                    logger.info("Loaded script: $file")
                 } catch (e: Exception) {
                     logger.severe("Failed to load script: $file")
                     e.printStackTrace()
@@ -100,9 +111,8 @@ object ScriptEngine {
     }
 
     fun compileScript(file: File): ManagedLifecycle {
-        val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
-        val evaluationConfig = ScriptEvaluationConfiguration {}
-
+        val compilationConfig = createJvmCompilationConfigurationFromTemplate<Script>()
+        val evaluationConfig = createJvmEvaluationConfigurationFromTemplate<Script>()
         val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
 
         result.reports.forEach { report ->
@@ -116,6 +126,18 @@ object ScriptEngine {
             return evalValue.value as ManagedLifecycle
         } else {
             throw IllegalStateException("Script did not return a ManagedLifecycle object. Found: $evalValue")
+        }
+    }
+
+    fun compileUtilityScript(file: File) {
+        val compilationConfig = createJvmCompilationConfigurationFromTemplate<UtilityScript>()
+        val evaluationConfig = createJvmEvaluationConfigurationFromTemplate<UtilityScript>()
+        val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
+
+        result.reports.forEach { report ->
+            if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
+                logger.warning("[${report.severity}] ${report.message} (${report.location})")
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-package net.integr.backbone.systems.hotloader
+package net.integr.backbone.systems.hotloader.lifecycle
 
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
