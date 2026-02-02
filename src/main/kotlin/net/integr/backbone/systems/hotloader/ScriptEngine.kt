@@ -59,7 +59,7 @@ object ScriptEngine {
 
         // Once all scripts are compiled, we do the swap
         val unloadErrs = unloadScripts()
-        errs = errs && unloadErrs
+        errs = errs || unloadErrs
 
         for ((name, state) in newScripts) {
             try {
