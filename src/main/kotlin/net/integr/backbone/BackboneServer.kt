@@ -29,9 +29,16 @@ class BackboneServer : JavaPlugin() {
         Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(DualTickEvent)
         }, 0L, 2L)
+
     }
 
     override fun onDisable() {
         Backbone.LOGGER.info("Shutting down Backbone")
+
+        runBlocking {
+            async(Dispatchers.IO) {
+                ScriptEngine.unloadScripts() // Cleanup
+            }
+        }
     }
 }

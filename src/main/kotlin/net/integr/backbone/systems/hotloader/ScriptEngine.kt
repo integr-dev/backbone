@@ -19,7 +19,7 @@ object ScriptEngine {
 
     val logger = Backbone.LOGGER.derive("script-engine")
 
-    val scripts = mutableMapOf<String, ScriptState>()
+    var scripts = mutableMapOf<String, ScriptState>()
 
     // Create the host once to reuse its internal compiler warm-up
     private val scriptingHost = BasicJvmScriptingHost()
@@ -27,20 +27,25 @@ object ScriptEngine {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     suspend fun loadScripts(): Boolean {
-        unloadScripts()
         val files = Backbone.SCRIPT_POOL.listFiles()
-
-        var errs = false
+        logger.info("Loading ${files.size} scripts...")
 
         val jobs = mutableListOf<Job>()
+        val newScripts = mutableMapOf<String, ScriptState>() // Prepare buffer for fast swap
+
+        var errs = false
 
         for (file in files) {
             jobs += coroutineScope.launch {
                 try {
-                    val script = loadScript(file.toFile())
-                    script.onLoad()
+                    val oldLifecycle = scripts[file.name] // Grab the old script
+                    val script = compileScript(file.toFile()) // Compile the new script
 
-                    scripts[file.name] = ScriptState(true, script)
+                    if (oldLifecycle != null) {
+                        script.updateStatesFrom(oldLifecycle.lifecycle) // Load sustained states from odl into the new script state
+                    }
+
+                    newScripts[file.name] = ScriptState(false, script) // Push the parse script into the buffer
                     logger.info("Loaded script: $file")
                 } catch (e: Exception) {
                     logger.severe("Failed to load script: $file")
@@ -52,24 +57,49 @@ object ScriptEngine {
 
         jobs.forEach { it.join() }
 
+        // Once all scripts are compiled, we do the swap
+        val unloadErrs = unloadScripts()
+        errs = errs && unloadErrs
+
+        for ((name, state) in newScripts) {
+            try {
+                state.lifecycle.onLoad()
+                state.enabled = true
+                logger.info("Enabled script: $name")
+            } catch (e: Exception) {
+                logger.severe("Failed to enable script: $name")
+                e.printStackTrace()
+                errs = true
+            }
+        }
+
+        scripts = newScripts
+
+        logger.info("Loaded ${scripts.size} scripts.")
+
         return errs
     }
 
-    fun unloadScripts() {
-        for ((name, script) in scripts) {
+    fun unloadScripts(): Boolean {
+        var errs = false
+
+        for ((name, state) in scripts) {
             try {
-                script.lifecycle.onUnload()
+                state.lifecycle.onUnload()
+                state.enabled = false
                 logger.info("Disabled script: $name")
             } catch (e: Exception) {
                 logger.severe("Failed to disable script: $name")
                 e.printStackTrace()
+                errs = true
             }
         }
 
         scripts.clear()
+        return errs
     }
 
-    fun loadScript(file: File): ManagedLifecycle {
+    fun compileScript(file: File): ManagedLifecycle {
         // 1. Setup Compilation: Inherit classpath and define 'plugin' variable
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
         val evaluationConfig = ScriptEvaluationConfiguration {}

@@ -19,7 +19,20 @@ object ScriptConfiguration : ScriptCompilationConfiguration({
     fileExtension = "bb.kts",
     compilationConfiguration = ScriptConfiguration::class
 )
-interface ManagedLifecycle : Listener {
-    fun onLoad()
-    fun onUnload()
+abstract class ManagedLifecycle : Listener {
+    private var sustainedStates: Set<LifecycleSustainedState<*>> = mutableSetOf()
+
+    abstract fun onLoad()
+    abstract fun onUnload()
+
+    fun trackState(state: LifecycleSustainedState<*>) {
+        sustainedStates += state
+    }
+
+    fun updateStatesFrom(lifecycle: ManagedLifecycle) {
+        for (state in lifecycle.sustainedStates) {
+            val newState = sustainedStates.firstOrNull() { it.id == state.id }
+            newState?.dangerouslySetState(state.dangerouslyGetState())
+        }
+    }
 }

@@ -1,7 +1,9 @@
 package net.integr.backbone
 
+import kotlinx.coroutines.Runnable
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.permission.PermissionNode
+import net.integr.backbone.systems.renderer.Renderer
 import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -42,6 +44,10 @@ object Backbone {
     fun unregisterListener(listener: Listener) {
         HandlerList.unregisterAll(listener)
         EventBus.unRegister(listener)
+    }
+
+    fun dispatchMain(block: () -> Unit) {
+        SCHEDULER.runTask(Backbone.PLUGIN, block)
     }
 }
 
