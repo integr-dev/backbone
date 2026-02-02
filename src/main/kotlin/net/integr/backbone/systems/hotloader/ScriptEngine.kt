@@ -63,7 +63,7 @@ object ScriptEngine {
 
         for ((name, state) in newScripts) {
             try {
-                state.lifecycle.onLoad()
+                state.lifecycle.onLoad() // Enable the script
                 state.enabled = true
                 logger.info("Enabled script: $name")
             } catch (e: Exception) {
@@ -73,7 +73,7 @@ object ScriptEngine {
             }
         }
 
-        scripts = newScripts
+        scripts = newScripts // Swap
 
         logger.info("Loaded ${scripts.size} scripts.")
 
@@ -100,14 +100,11 @@ object ScriptEngine {
     }
 
     fun compileScript(file: File): ManagedLifecycle {
-        // 1. Setup Compilation: Inherit classpath and define 'plugin' variable
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<ManagedLifecycle>()
         val evaluationConfig = ScriptEvaluationConfiguration {}
 
-        // 2. Execute
         val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
 
-        // 3. Process Results
         result.reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning("[${report.severity}] ${report.message} (${report.location})")
@@ -141,16 +138,16 @@ object ScriptEngine {
         val script = state.lifecycle
 
         if (!state.enabled) {
-            logger.warning("Script $name is already disabled.")
-            throw IllegalArgumentException("Script $name is already disabled.")
+            logger.warning("Script '$name' is already disabled.")
+            throw IllegalArgumentException("Script '$name' is already disabled.")
         }
 
         try {
             script.onUnload()
             state.enabled = false
-            logger.info("Disabled script: $name")
+            logger.info("Disabled script: '$name'")
         } catch (e: Exception) {
-            logger.severe("Failed to disable script: $name")
+            logger.severe("Failed to disable script: '$name'")
             e.printStackTrace()
             throw IllegalArgumentException("Exception occurred while disabling script.")
         }
@@ -161,16 +158,16 @@ object ScriptEngine {
         val script = state.lifecycle
 
         if (state.enabled) {
-            logger.warning("Script $name is already enabled.")
-            throw IllegalArgumentException("Script $name is already enabled.")
+            logger.warning("Script '$name' is already enabled.")
+            throw IllegalArgumentException("Script '$name' is already enabled.")
         }
 
         try {
             script.onLoad()
             state.enabled = true
-            logger.info("Enabled script: $name")
+            logger.info("Enabled script: '$name'")
         } catch (e: Exception) {
-            logger.severe("Failed to enable script: $name")
+            logger.severe("Failed to enable script: '$name'")
             e.printStackTrace()
             throw IllegalArgumentException("Exception occurred while enabling script.")
         }
