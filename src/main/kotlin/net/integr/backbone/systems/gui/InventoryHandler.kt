@@ -17,7 +17,7 @@ object InventoryHandler : Listener {
         val playersInv = openInventories[event.player as Player] ?: return
         if (playersInv.getInventory() == event.inventory) {
             openInventories.remove(event.player as Player)
-            playersInv.origin.close(event.inventory)
+            playersInv.origin.close(event)
         }
     }
 
