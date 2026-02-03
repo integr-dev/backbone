@@ -28,6 +28,8 @@ dependencies {
     implementation(kotlin("scripting-jvm-host"))
     implementation(kotlin("scripting-dependencies"))
 
+    implementation(kotlin("compiler-embeddable"))
+
     implementation("org.apache.ivy:ivy:2.5.2")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
