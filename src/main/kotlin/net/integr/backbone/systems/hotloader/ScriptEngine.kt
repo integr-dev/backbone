@@ -33,8 +33,9 @@ object ScriptEngine {
     suspend fun loadScripts(): Boolean {
         val files = Backbone.SCRIPT_POOL
             .listFiles()
+            .filter { it.name.endsWith(".bb.kts") }
 
-        logger.info("Loading ${files.size} scripts...")
+        logger.info("Preparing ${files.size} scripts...")
 
         val jobs = mutableListOf<Job>()
         val newScripts = mutableMapOf<String, ScriptState>() // Prepare buffer for fast swap
@@ -44,23 +45,18 @@ object ScriptEngine {
         for (file in files) {
             jobs += coroutineScope.launch {
                 try {
-                    if (file.name.endsWith(".bb.kts")) {
-                        val oldLifecycle = scripts[file.name] // Grab the old script
-                        val script = compileScript(file.toFile()) // Compile the new script
+                    val oldLifecycle = scripts[file.name] // Grab the old script
+                    val script = compileScript(file.toFile()) // Compile the new script
+                    logger.info("Compiled script: ${file.name}")
 
-                        if (oldLifecycle != null) {
-                            script.updateStatesFrom(oldLifecycle.lifecycle) // Load sustained states from odl into the new script state
-                        }
-
-                        newScripts[file.name] = ScriptState(false, script) // Push the parse script into the buffer
-                        logger.info("Loaded script: $file")
-                    } else {
-                        // Compile for import
-                        compileUtilityScript(file.toFile())
+                    if (oldLifecycle != null) {
+                        script.updateStatesFrom(oldLifecycle.lifecycle) // Load sustained states from odl into the new script state
+                        logger.info("Transferred state on script: ${file.name}")
                     }
+
+                    newScripts[file.name] = ScriptState(false, script) // Push the parse script into the buffer
                 } catch (e: Exception) {
-                    logger.severe("Failed to load script: $file")
-                    e.printStackTrace()
+                    logger.severe("Failed to prepare script: ${file.name} (${e.javaClass.simpleName})")
                     errs = true
                 }
             }
@@ -72,13 +68,15 @@ object ScriptEngine {
         val unloadErrs = unloadScripts()
         errs = errs || unloadErrs
 
+        logger.info("Enabling ${newScripts.size} scripts...")
+
         for ((name, state) in newScripts) {
             try {
                 state.lifecycle.onLoad() // Enable the script
                 state.enabled = true
                 logger.info("Enabled script: $name")
             } catch (e: Exception) {
-                logger.severe("Failed to enable script: $name")
+                logger.severe("Failed to enable script: $name (${e.javaClass.simpleName})")
                 e.printStackTrace()
                 errs = true
             }
@@ -126,18 +124,6 @@ object ScriptEngine {
             return evalValue.value as ManagedLifecycle
         } else {
             throw IllegalStateException("Script did not return a ManagedLifecycle object. Found: $evalValue")
-        }
-    }
-
-    fun compileUtilityScript(file: File) {
-        val compilationConfig = createJvmCompilationConfigurationFromTemplate<UtilityScript>()
-        val evaluationConfig = createJvmEvaluationConfigurationFromTemplate<UtilityScript>()
-        val result = scriptingHost.eval(file.toScriptSource(), compilationConfig, evaluationConfig)
-
-        result.reports.forEach { report ->
-            if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
-                logger.warning("[${report.severity}] ${report.message} (${report.location})")
-            }
         }
     }
 

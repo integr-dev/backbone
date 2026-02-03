@@ -8,6 +8,7 @@ Whether you're a server administrator looking to add custom features with simple
 ## Features
 
 - **Hot-Loadable Scripts:** Write and reload Kotlin scripts without restarting the server, enabling rapid development and iteration.
+- **Advanced Scripting:** Go beyond simple scripts with support for inter-script imports, Maven dependencies, and custom compiler options.
 - **Event System:** A custom event bus that complements Bukkit's event system, offering more control and flexibility within your scripts.
 - **Command Framework:** A simple yet powerful command system to create custom commands directly from your scripts.
 - **Storage Abstraction:** Easily manage data with a flexible storage system that supports SQLite databases and typed configuration files.
@@ -41,40 +42,35 @@ All script files should be placed in the `scripts/` directory in your server's r
 
 Every script file must evaluate to an object that extends `ManagedLifecycle`. This class provides the necessary hooks for the script engine to manage the script's lifecycle.
 
-A typical script looks like this:
 
 ```kotlin
 import net.integr.backbone.Backbone
 import net.integr.backbone.events.TickEvent
 import net.integr.backbone.systems.event.BackboneEventHandler
-import net.integr.backbone.systems.hotloader.ManagedLifecycle
-import net.integr.backbone.systems.hotloader.sustained
+import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
+import net.integr.backbone.systems.hotloader.lifecycle.sustained
 
 // The script file must return an object that extends ManagedLifecycle
 object : ManagedLifecycle() {
-    // Use 'by sustained()' to create variables that persist across script reloads.
-    var counter by sustained(0) 
-    
-    // Normal variables are reset every time the script is reloaded.
-    var otherCounter = 0 
+    var counter by sustained(0) // Sustained persists script reloads
+    var otherCounter = 0 // Normal variables are reset during the script reloading process
 
     // Called when the script is loaded or enabled.
     override fun onLoad() {
         Backbone.registerListener(this) 
     }
 
-    // Called when the script is unloaded, disabled, or reloaded.
+    // Called when the script is unloaded, disabled.
     override fun onUnload() {
         Backbone.unregisterListener(this)
     }
 
+    // This event will fire every server tick while the script is enabled.
     @BackboneEventHandler
     fun onTick(event: TickEvent) {
-        // This event will fire every server tick while the script is enabled.
         counter++
         otherCounter++
-
-        if (counter % 20 == 0) { // Every second
+        if (counter % 20 == 0) {
             Backbone.PLUGIN.server.onlinePlayers
                 .forEach { it.sendMessage("Sustained Count: $counter | Volatile Count: $otherCounter") }
         }
@@ -88,8 +84,67 @@ Backbone provides a set of commands to manage your scripts. The base command is 
 
 -   `/bb scripting`: Lists all discovered scripts and shows whether they are currently enabled or disabled.
 -   `/bb scripting reload`: Unloads all current scripts and then loads and enables all scripts from the scripts directory. This is the primary command for applying changes.
--   `/bb scripting enable <script_name>`: Enables a specific script that is currently disabled. This will call the script's `onLoad()` function.
--   `/bb scripting disable <script_name>`: Disables a specific script that is currently enabled. This will call the script's `onUnload()` function.
+-   `/bb scripting enable <script_name>`: Enables a specific script that is currently disabled.
+-   `/bb scripting disable <script_name>`: Disables a specific script that is currently enabled.
+
+### Advanced Scripting
+
+You can make your scripts even more powerful by using file-level annotations to manage dependencies and compiler settings.
+
+#### Sharing Code with `@Import`
+
+The `@Import` annotation allows you to share code between your script files. This is perfect for defining utility functions or classes that you want to reuse across multiple scripts.
+
+**`utils.bbu.kts`**
+```kotlin
+class MyUtilities {
+    fun getGreeting(): String = "Hello from a utility script!"
+}
+```
+
+**`main.bb.kts`**
+```kotlin
+@file:Import("utils.bbu.kts")
+
+import net.integr.backbone.systems.hotloader.annotations.Import
+
+// ... inside your ManagedLifecycle
+val utils = MyUtilities()
+println(utils.getGreeting()) // Prints "Hello from a utility script!"
+```
+
+#### Managing Dependencies with `@DependsOn` and `@Repository`
+
+You can pull in external libraries directly from Maven repositories using the `@DependsOn` and `@Repository` annotations. This lets you use powerful third-party libraries without having to manually bundle them with your server.
+
+```kotlin
+// Add a custom Maven repository
+@file:Repository("https://jitpack.io")
+// Depend on a library from that repository
+@file:DependsOn("com.github.javafaker:javafaker:1.0.2")
+
+import com.github.javafaker.Faker
+import kotlin.script.experimental.dependencies.DependsOn
+import kotlin.script.experimental.dependencies.Repository
+
+// ... inside your script
+val faker = Faker()
+val randomName = faker.name().fullName()
+println("A random name: $randomName")
+```
+
+#### Customizing with `@CompilerOptions`
+
+The `@CompilerOptions` annotation gives you fine-grained control over the Kotlin compiler, allowing you to enable specific language features or pass other flags.
+
+```kotlin
+// Enable a specific language feature
+@file:CompilerOptions("-Xcontext-receivers")
+
+import kotlin.script.experimental.api.CompilerOptions
+
+// Your script code can now use context receivers
+```
 
 ### Storage and Configuration
 
