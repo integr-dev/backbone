@@ -57,7 +57,7 @@ object ScriptEngine {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun loadScripts(): Boolean {
+    suspend fun loadScripts(): Boolean { //TODO: Possibly go back to @Import but use same cld?
         val files = Backbone.SCRIPT_POOL
             .listFiles()
             .filter { it.name.endsWith(".bb.kts") }
@@ -102,7 +102,7 @@ object ScriptEngine {
 
         // test
         val a = scriptClassLoader.findResource("com.github.javafaker.Faker")
-        println("RESULT: " + a)
+        println("RESULT: " + a) //TODO: cld does not find things that should be added
 
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<Script>().with {
             hostConfiguration(ScriptingHostConfiguration {
