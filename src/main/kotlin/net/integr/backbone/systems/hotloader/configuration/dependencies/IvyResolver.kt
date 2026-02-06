@@ -1,5 +1,6 @@
 package net.integr.backbone.systems.hotloader.configuration.dependencies
 
+import net.integr.backbone.Backbone
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.LogOptions
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
@@ -30,6 +31,7 @@ import kotlin.script.experimental.dependencies.impl.toRepositoryUrlOrNull
     https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/impl/ivy.kt
  */
 class IvyResolver : ExternalDependenciesResolver {
+    val logger = Backbone.LOGGER.derive("script-ivy-resolver")
 
     private fun String?.isValidParam() = this?.isNotBlank() ?: false
 
@@ -45,7 +47,7 @@ class IvyResolver : ExternalDependenciesResolver {
         options: ExternalDependenciesResolver.Options,
         sourceCodeLocation: SourceCode.LocationWithId?
     ): ResultWithDiagnostics<List<File>> {
-
+        logger.info("Resolving: $artifactCoordinates")
         val artifactType = artifactCoordinates.substringAfterLast('@', "").trim()
         val stringCoordinates = if (artifactType.isNotEmpty()) artifactCoordinates.removeSuffix("@$artifactType") else artifactCoordinates
         return if (acceptsArtifact(stringCoordinates)) {
@@ -55,8 +57,11 @@ class IvyResolver : ExternalDependenciesResolver {
                     artifactId[0], artifactId[1], artifactId[2],
                     if (artifactId.size > 3) artifactId[3] else null,
                     artifactType.ifEmpty { null }
-                )
+                ).also {
+                    logger.info("Resolved: $artifactCoordinates")
+                }
             } catch (e: Exception) {
+                logger.severe("Failed to resolve artifact: $artifactCoordinates (${e.javaClass.simpleName})")
                 makeFailureResult(e.asDiagnostics())
             }
         } else {

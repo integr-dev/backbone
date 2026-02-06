@@ -17,10 +17,13 @@ object CommandHandler {
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val map: CommandMap by lazy {
-        logger.info("Got command map via reflection")
         val bukkitCommandMap: Field = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
         bukkitCommandMap.isAccessible = true
-        bukkitCommandMap.get(Bukkit.getServer()) as CommandMap
+        val map = bukkitCommandMap.get(Bukkit.getServer()) as CommandMap
+
+        logger.info("Got command map via reflection: ${map.javaClass.hashCode()}")
+
+        map
     }
 
 

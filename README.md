@@ -91,9 +91,10 @@ Backbone provides a set of commands to manage your scripts. The base command is 
 
 You can make your scripts even more powerful by using file-level annotations to manage dependencies and compiler settings.
 
-#### Sharing Code with `@Import`
+#### Sharing Code with other scripts
 
-The `@Import` annotation allows you to share code between your script files. This is perfect for defining utility functions or classes that you want to reuse across multiple scripts.
+Scripts automatically share one classpath and are injected with the classes defined in `.bbu` scripts.
+The only thing you need to do is to import the stored classpath entry like shown in the bottom snippet.
 
 **`utils.bbu.kts`**
 ```kotlin
@@ -104,9 +105,8 @@ class MyUtilities {
 
 **`main.bb.kts`**
 ```kotlin
-@file:Import("utils.bbu.kts")
-
 import net.integr.backbone.systems.hotloader.annotations.Import
+import Utils_bbu.* // This import is important
 
 // ... inside your ManagedLifecycle
 val utils = MyUtilities()
