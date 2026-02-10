@@ -9,6 +9,7 @@ import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.InventoryHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
+import net.integr.backbone.systems.hotloader.ScriptLinker
 import org.bukkit.plugin.java.JavaPlugin
 
 class BackboneServer : JavaPlugin() {
@@ -20,7 +21,7 @@ class BackboneServer : JavaPlugin() {
 
         runBlocking {
             async(Dispatchers.IO) {
-                ScriptEngine.loadScripts()
+                ScriptLinker.compileAndLink()
             }
         }
 

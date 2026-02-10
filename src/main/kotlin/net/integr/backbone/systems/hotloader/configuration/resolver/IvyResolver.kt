@@ -1,5 +1,6 @@
-package net.integr.backbone.systems.hotloader.configuration.dependencies
+package net.integr.backbone.systems.hotloader.configuration.resolver
 
+import net.integr.backbone.Backbone
 import org.apache.ivy.Ivy
 import org.apache.ivy.core.LogOptions
 import org.apache.ivy.core.module.descriptor.DefaultDependencyArtifactDescriptor
@@ -12,15 +13,11 @@ import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter
 import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.apache.ivy.plugins.resolver.URLResolver
+import org.apache.ivy.util.AbstractMessageLogger
 import org.apache.ivy.util.DefaultMessageLogger
 import org.apache.ivy.util.Message
 import java.io.File
-import kotlin.script.experimental.api.ResultWithDiagnostics
-import kotlin.script.experimental.api.SourceCode
-import kotlin.script.experimental.api.asDiagnostics
-import kotlin.script.experimental.api.asErrorDiagnostics
-import kotlin.script.experimental.api.asSuccess
-import kotlin.script.experimental.api.makeFailureResult
+import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.ExternalDependenciesResolver
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
 import kotlin.script.experimental.dependencies.impl.toRepositoryUrlOrNull
@@ -45,18 +42,22 @@ class IvyResolver : ExternalDependenciesResolver {
         options: ExternalDependenciesResolver.Options,
         sourceCodeLocation: SourceCode.LocationWithId?
     ): ResultWithDiagnostics<List<File>> {
-
+        logger.info("Resolving artifact with ivy: $artifactCoordinates")
         val artifactType = artifactCoordinates.substringAfterLast('@', "").trim()
         val stringCoordinates = if (artifactType.isNotEmpty()) artifactCoordinates.removeSuffix("@$artifactType") else artifactCoordinates
         return if (acceptsArtifact(stringCoordinates)) {
             val artifactId = stringCoordinates.split(':')
             try {
-                resolveArtifact(
+                val result = resolveArtifact(
                     artifactId[0], artifactId[1], artifactId[2],
                     if (artifactId.size > 3) artifactId[3] else null,
                     artifactType.ifEmpty { null }
                 )
+                logger.info("Resolved artifact with ivy: $artifactCoordinates")
+
+                result
             } catch (e: Exception) {
+                logger.severe("Failed to resolve artifact with ivy: $artifactCoordinates")
                 makeFailureResult(e.asDiagnostics())
             }
         } else {
@@ -67,7 +68,11 @@ class IvyResolver : ExternalDependenciesResolver {
     private val ivyResolvers = arrayListOf<URLResolver>()
 
     private fun resolveArtifact(
-        groupId: String, artifactName: String, revision: String, conf: String? = null, type: String? = null
+        groupId: String,
+        artifactName: String,
+        revision: String,
+        conf: String? = null,
+        type: String? = null
     ): ResultWithDiagnostics<List<File>> {
 
         if (ivyResolvers.isEmpty() || ivyResolvers.none { it.name == "central" }) {
@@ -103,10 +108,12 @@ class IvyResolver : ExternalDependenciesResolver {
             ModuleRevisionId.newInstance(groupId, artifactName, conf, revision),
             false, false, true
         )
+
         if (type != null) {
             val depArtifact = DefaultDependencyArtifactDescriptor(depsDescriptor, artifactName, type, type, null, null)
             depsDescriptor.addDependencyArtifact(conf, depArtifact)
         }
+
         depsDescriptor.addDependencyConfiguration("default", "master,compile")
         moduleDescriptor.addDependency(depsDescriptor)
 
@@ -133,6 +140,7 @@ class IvyResolver : ExternalDependenciesResolver {
         sourceCodeLocation: SourceCode.LocationWithId?
     ): ResultWithDiagnostics<Boolean> {
         val url = repositoryCoordinates.toRepositoryUrlOrNull()
+
         if (url != null) {
             ivyResolvers.add(
                 IBiblioResolver().apply {
@@ -147,9 +155,30 @@ class IvyResolver : ExternalDependenciesResolver {
         }
     }
 
+
     companion object {
+        private val logger = Backbone.LOGGER.derive("ivy-resolver")
+
         init {
-            Message.setDefaultLogger(DefaultMessageLogger(1))
+            Message.setDefaultLogger(object : AbstractMessageLogger() {
+                override fun doProgress() {
+                    logger.info(".")
+                }
+
+                override fun doEndProgress(msg: String) {
+                    logger.info(msg)
+                }
+
+                override fun log(msg: String, level: Int) {
+                    if (level > Message.MSG_INFO) return
+                    logger.info(msg)
+                }
+
+                override fun rawlog(msg: String, level: Int) {
+                    if (level > Message.MSG_INFO) return
+                    logger.info(msg)
+                }
+            })
         }
     }
 }

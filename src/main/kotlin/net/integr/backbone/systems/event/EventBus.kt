@@ -29,15 +29,21 @@ import kotlin.reflect.full.hasAnnotation
 object EventBus {
     private val logger = Backbone.LOGGER.derive("event-system")
 
-    private var eventHandlers: ConcurrentHashMap<String, SortedMap<Int, ConcurrentHashMap<KCallable<*>, Any>>> = ConcurrentHashMap()
+    /* event_id to (priority to (handler to instance)) */
+    private var eventHandlers: ConcurrentHashMap<String, SortedMap<Int, ConcurrentHashMap<KCallable<*>, Any>>> =
+        ConcurrentHashMap()
 
     fun register(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
-                if (member.parameters.size > 2) throw IllegalArgumentException("Only one parameter is allowed at ${member.javaClass.declaringClass?.kotlin?.simpleName}.${member.name}()")
+                if (member.parameters.size > 2) throw IllegalArgumentException(
+                    "Only one parameter is allowed at ${member.javaClass.declaringClass?.kotlin?.simpleName}.${member.name}()"
+                )
 
                 val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
-                val targetEventId = member.parameters[1].type.classifier?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
+
+                val targetEventId = member.parameters[1].type.classifier
+                    ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
                 val entry = eventHandlers.getOrPut(targetEventId) { sortedMapOf() }
                 val priorityEntry = entry.getOrPut(priority) { ConcurrentHashMap() }
@@ -53,7 +59,9 @@ object EventBus {
     fun unRegister(klass: KClass<*>) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
-                val targetEventId = member.parameters[1].type.classifier?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
+                val targetEventId = member.parameters[1].type.classifier
+                    ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
+
                 val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
 
                 val entry = eventHandlers[targetEventId] ?: continue
@@ -88,6 +96,11 @@ object EventBus {
     private fun callOnPriority(event: Event, entry: ConcurrentHashMap<KCallable<*>, Any>) {
         for ((handler, instance) in entry) {
             try {
+                if (handler.parameters[1].type.classifier?.let { (it as? KClass<*>)?.qualifiedName } != event::class.qualifiedName) {
+                    logger.warning("Skipping event handler ${handler.name} due to class loader mismatch.")
+                    continue
+                }
+
                 handler.call(instance, event)
             } catch (e: InvocationTargetException) {
                 val handlerName = handler.name

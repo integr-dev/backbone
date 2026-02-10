@@ -1,7 +1,6 @@
 package net.integr.backbone.systems.command
 
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.systems.command.argument.Argument
@@ -9,7 +8,7 @@ import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
 
-abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.feedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
+abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.defaultFeedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
     protected val logger = Backbone.LOGGER.derive("command")
 
     private val subCommands = mutableListOf<Command>()

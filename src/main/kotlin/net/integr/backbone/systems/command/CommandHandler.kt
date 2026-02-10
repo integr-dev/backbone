@@ -7,12 +7,11 @@ import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
 import java.lang.reflect.Field
-import java.util.*
 
 
 object CommandHandler {
     val logger = Backbone.LOGGER.derive("command-handler")
-    val feedbackFormat = CommandFeedbackFormat("backbone", "#8db882")
+    val defaultFeedbackFormat = CommandFeedbackFormat("backbone", "#8db882")
 
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 

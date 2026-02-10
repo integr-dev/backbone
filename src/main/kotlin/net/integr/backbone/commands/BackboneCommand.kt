@@ -5,6 +5,8 @@ import net.integr.backbone.commands.arguments.scriptArgument
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.hotloader.ScriptEngine
+import net.integr.backbone.systems.hotloader.ScriptLinker
+import net.integr.backbone.systems.hotloader.ScriptStore
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     override fun onBuild() {
@@ -25,8 +27,8 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         override suspend fun exec(ctx: Execution) {
             ctx.requirePermission(scriptingPerm)
 
-            ctx.respond("Enabled scripts: ${ScriptEngine.getEnabledScripts().joinToString(", ")}") //TODO: better formatting here
-            ctx.respond("Disabled scripts: ${ScriptEngine.getDisabledScripts().joinToString(", ")}")
+            ctx.respond("Enabled scripts: ${ScriptStore.getEnabledScripts().joinToString(", ")}") //TODO: better formatting here
+            ctx.respond("Disabled scripts: ${ScriptStore.getDisabledScripts().joinToString(", ")}")
         }
 
         object Reload : Command("reload", "Reload all Backbone scripts") {
@@ -38,7 +40,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                 ctx.respond("Reloading scripts...")
                 val start = System.currentTimeMillis()
 
-                val hasError = ScriptEngine.loadScripts()
+                val hasError = ScriptLinker.compileAndLink()
                 val time = System.currentTimeMillis() - start
                 ctx.respond("Scripts reloaded in ${time}ms.")
                 if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")

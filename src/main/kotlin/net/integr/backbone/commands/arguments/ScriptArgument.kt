@@ -2,7 +2,7 @@ package net.integr.backbone.commands.arguments
 
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
-import net.integr.backbone.systems.hotloader.ScriptEngine
+import net.integr.backbone.systems.hotloader.ScriptStore
 
 fun scriptArgument(name: String, description: String): Argument<String> {
     return ScriptArgument(name, description)
@@ -10,7 +10,7 @@ fun scriptArgument(name: String, description: String): Argument<String> {
 
 class ScriptArgument(name: String, description: String) : Argument<String>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
-        val scripts = ScriptEngine.getScriptNames()
+        val scripts = ScriptStore.getScriptNames()
         val isQuoted = current.value.startsWith("\"")
 
         val arg = if (isQuoted) current.getNextGreedyWithBoundChar('"') else current.getNextSingle()
@@ -27,7 +27,7 @@ class ScriptArgument(name: String, description: String) : Argument<String>(name,
     }
 
     override fun parse(current: ArgumentInput): ParseResult<String> {
-        val scripts = ScriptEngine.getScriptNames()
+        val scripts = ScriptStore.getScriptNames()
         val isQuoted = current.value.startsWith("\"")
         val arg = if (isQuoted) current.getNextGreedyWithBoundChar('"') else current.getNextSingle()
 
