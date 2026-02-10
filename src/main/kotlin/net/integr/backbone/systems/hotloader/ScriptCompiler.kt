@@ -2,20 +2,20 @@ package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.hotloader.ScriptEngine.logger
 import net.integr.backbone.systems.hotloader.configuration.UtilityScript
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URLClassLoader
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import kotlin.script.experimental.api.ResultValue
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
+import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.impl.KJvmCompiledScript
 import kotlin.script.experimental.jvm.impl.getOrCreateActualClassloader
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
@@ -23,6 +23,8 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 
 object ScriptCompiler {
+    data class CompilationResult(val classPath: List<File>, val classLoader: ClassLoader, val fqName: String)
+
     val logger = Backbone.LOGGER.derive("script-compiler")
 
     private val scriptingHost = BasicJvmScriptingHost()
@@ -52,7 +54,7 @@ object ScriptCompiler {
         }
     }
 
-    fun compileUtilityScript(file: File): ClassLoader? {
+    fun compileUtilityScript(file: File): CompilationResult? {
         val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<UtilityScript>()
         val evaluationConfiguration = createJvmEvaluationConfigurationFromTemplate<UtilityScript>()
 
@@ -71,7 +73,12 @@ object ScriptCompiler {
                 logger.info("[${file.name}] Grabbing classloader...")
                 val classLoader = value.getOrCreateActualClassloader(evaluationConfiguration)
 
-                return@runBlocking classLoader
+                val classpath = value.compilationConfiguration[ScriptCompilationConfiguration.dependencies]
+                    ?.filterIsInstance<JvmDependency>()?.flatMap { it.classpath } ?: emptyList()
+
+                val result = CompilationResult(classpath, classLoader, value.scriptClassFQName)
+
+                return@runBlocking result
             } else return@runBlocking null
         }
     }

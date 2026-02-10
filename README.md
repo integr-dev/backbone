@@ -1,6 +1,5 @@
 # Backbone
 
-
 Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically accelerating the development lifecycle.
 
 Whether you're a server administrator looking to add custom features with simple scripts or a developer prototyping new ideas, Backbone provides the tools you need to be more productive and creative.
@@ -19,10 +18,10 @@ Whether you're a server administrator looking to add custom features with simple
 
 Getting started with Backbone is simple. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
 
-1.  **Download:** Grab the latest version of Backbone from the [releases page](https://github.com/integr-dev/backbone/releases).
+1.  **Download:** Download the latest release from the [official releases page](https://github.com/integr-dev/backbone/releases).
 2.  **Install:** Place the downloaded `.jar` file into your server's `plugins` directory.
-3.  **Start:** Start your server. Backbone will generate its necessary folders in your server's root directory.
-4.  **Scripting:** You can now start writing your own custom logic in `.bb.kts` script files inside the `scripts/` directory at the root of your server. See the examples below to get started!
+3.  **Start:** Launch your server. Backbone will generate its necessary folders in your server's root directory.
+4.  **Scripting:** You can now begin writing custom logic in `.bb.kts` script files inside the `scripts/` directory. See the examples below to get started!
 
 For advanced users who wish to build a plugin that depends on Backbone, you can add it as a dependency. However, for most use cases, the scripting engine provides all the power you need.
 
@@ -36,12 +35,11 @@ Backbone's most powerful feature is its hot-loadable script engine. This allows 
 
 #### Script Location and Aggregation
 
-All script files should be placed in the `scripts/` directory in your server's root. The script engine will automatically discover and compile any `.bb.kts` files in this location when scripts are loaded.
+All script files should be placed in the `scripts/` directory in your server's root. The script engine automatically discovers and compiles any `.bb.kts` files in this location when scripts are loaded.
 
 #### Script Structure
 
 Every script file must evaluate to an object that extends `ManagedLifecycle`. This class provides the necessary hooks for the script engine to manage the script's lifecycle.
-
 
 ```kotlin
 import net.integr.backbone.Backbone
@@ -50,22 +48,24 @@ import net.integr.backbone.systems.event.BackboneEventHandler
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import net.integr.backbone.systems.hotloader.lifecycle.sustained
 
-// The script file must return an object that extends ManagedLifecycle
+// Each script must return an object that extends ManagedLifecycle.
 object : ManagedLifecycle() {
-    var counter by sustained(0) // Sustained persists script reloads
-    var otherCounter = 0 // Normal variables are reset during the script reloading process
+    // 'sustained' properties persist their values across script reloads.
+    var counter by sustained(0)
+    // Standard variables are reset every time the script is reloaded.
+    var otherCounter = 0
 
-    // Called when the script is loaded or enabled.
+    // Called when the script is loaded or enabled
     override fun onLoad() {
-        Backbone.registerListener(this) 
+        Backbone.registerListener(this)
     }
 
-    // Called when the script is unloaded, disabled.
+    // Called when the script is unloaded or disabled
     override fun onUnload() {
         Backbone.unregisterListener(this)
     }
 
-    // This event will fire every server tick while the script is enabled.
+    // This event fires every server tick while the script is enabled.
     @BackboneEventHandler
     fun onTick(event: TickEvent) {
         counter++
@@ -82,8 +82,8 @@ object : ManagedLifecycle() {
 
 Backbone provides a set of commands to manage your scripts. The base command is `/backbone`, which can be aliased to `/bb`.
 
--   `/bb scripting`: Lists all discovered scripts and shows whether they are currently enabled or disabled.
--   `/bb scripting reload`: Unloads all current scripts and then loads and enables all scripts from the scripts directory. This is the primary command for applying changes.
+-   `/bb scripting`: Lists all discovered scripts and shows their current status (enabled/disabled).
+-   `/bb scripting reload`: Unloads all current scripts, then loads and enables all scripts from the `scripts` directory. This is the primary command for applying changes.
 -   `/bb scripting enable <script_name>`: Enables a specific script that is currently disabled.
 -   `/bb scripting disable <script_name>`: Disables a specific script that is currently enabled.
 
@@ -91,9 +91,8 @@ Backbone provides a set of commands to manage your scripts. The base command is 
 
 You can make your scripts even more powerful by using file-level annotations to manage dependencies and compiler settings.
 
-#### Sharing Code with `@Import`
-
-The `@Import` annotation allows you to share code between your script files. This is perfect for defining utility functions or classes that you want to reuse across multiple scripts.
+#### Sharing Code Between Scripts
+You can define utility scripts with the `.bbu.kts` file extension. These scripts function as shared libraries. Backbone automatically compiles them and injects their classes and functions into the classpath and default imports of all main `.bb.kts` scripts.
 
 **`utils.bbu.kts`**
 ```kotlin
@@ -101,13 +100,10 @@ class MyUtilities {
     fun getGreeting(): String = "Hello from a utility script!"
 }
 ```
+This means you can use the defined classes and methods in your main scripts as if they were in the same file.
 
 **`main.bb.kts`**
 ```kotlin
-@file:Import("utils.bbu.kts")
-
-import net.integr.backbone.systems.hotloader.annotations.Import
-
 // ... inside your ManagedLifecycle
 val utils = MyUtilities()
 println(utils.getGreeting()) // Prints "Hello from a utility script!"
@@ -138,12 +134,14 @@ println("A random name: $randomName")
 The `@CompilerOptions` annotation gives you fine-grained control over the Kotlin compiler, allowing you to enable specific language features or pass other flags.
 
 ```kotlin
-// Enable a specific language feature
+// Enable a specific language feature, like context receivers, or just pass any plain old compiler option
 @file:CompilerOptions("-Xcontext-receivers")
 
-import kotlin.script.experimental.api.CompilerOptions
-
 // Your script code can now use context receivers
+context(String)
+fun greet() {
+    println("Hello, $this")
+}
 ```
 
 ### Storage and Configuration
@@ -152,7 +150,7 @@ Backbone provides a simple and powerful way to manage your plugin's data and con
 
 #### Resource Pools
 
-A `ResourcePool` is a namespaced container for your resources. It's recommended to create a separate pool for your script or feature set to avoid conflicts.
+A `ResourcePool` is a namespaced container for your resources. It's recommended to create a separate pool for each script or feature set to avoid conflicts.
 
 ```kotlin
 // Create a resource pool for your script's storage
@@ -166,9 +164,9 @@ This will create directories at `storage/mystorage/` and `config/myconfig/` in y
 
 #### Configuration
 
-You can easily manage typed configuration files. Backbone handles the serialization and deserialization of your data classes.
+You can easily manage typed configuration files. Backbone handles the serialization and deserialization of your data classes automatically.
 
-First, define a data class for your configuration:
+First, define a serializable data class for your configuration:
 
 ```kotlin
 @Serializable // Requires the kotlinx.serialization plugin
@@ -197,8 +195,8 @@ Backbone provides a simple and efficient way to work with SQLite databases from 
 // Get a connection to a database file named 'playerdata.db'
 val dbConnection = myScriptStorage.database("playerdata.db")
 
-// The useConnection block handles connection setup and teardown automatically.
-dbConnection.useConnection { 
+// The useConnection block handles connection setup and teardown, preventing resource leaks.
+dbConnection.useConnection {
     // The 'this' context is a StatementCreator instance.
     execute("CREATE TABLE IF NOT EXISTS players (uuid TEXT PRIMARY KEY, name TEXT NOT NULL);")
 
@@ -214,34 +212,30 @@ dbConnection.useConnection {
 }
 ```
 
-The `useConnection` block ensures that the database connection is properly acquired and released, preventing resource leaks. It also provides a `StatementCreator` context, giving you direct access to the `execute`, `query`, and `preparedStatement` helper methods.
-
 ### Custom Events
 
 Backbone's event system allows you to create and listen for custom events, giving you more control over your script's behavior.
-
 
 ```kotlin
 // Define a custom event
 class MyCustomEvent(val message: String) : Event()
 
-// Register a listener for the custom event
-// Priority is from -3 up to 3 with 0 being normal, lower means first
+// Register a listener for the custom event.
+// Priority ranges from -3 to 3, with 0 being normal. Lower values execute first.
 @BackboneEventHandler(EventPriority.THREE_BEFORE)
 fun onMyCustomEvent(event: MyCustomEvent) {
     println("Received custom event: ${event.message}")
 }
 
-// Fire the custom event
+// Fire the custom event from anywhere in your code
 EventBus.post(MyCustomEvent("Hello, world!"))
 ```
 
 ### Commands
 
-Backbone's command framework makes it easy to create and manage commands.
-You can use arguments, subcommands, permission checks and by default commands are async
-This is why you need to wrap calls that affect the server in `Backbone.dispatchMain {}`
+Backbone's command framework makes it easy to create and manage commands with arguments, subcommands, and permission checks.
 
+Commands are executed asynchronously by default. For this reason, any API calls that modify server state must be wrapped in a `Backbone.dispatchMain {}` block to ensure they run on the main server thread.
 
 ```kotlin
 // Define a command
@@ -249,33 +243,30 @@ object MyCommand : Command("mycommand", "My first command") {
     val perm = PermissionNode("myplugin")
 
     override fun onBuild() {
-        // Provide another command as a sub
-        // The command will be executed with /<parent> <child1> <child2> <...> <argument1> <argument2> <...>
-        subCommands(
-            MySubCommand
-        )
+        // Register subcommands
+        subCommands(MySubCommand)
 
-        // Create arguments for the command
+        // Define arguments for the command
         arguments(
             scriptArgument("text", "My string")
         )
     }
-    
+
     override suspend fun exec(ctx: Execution) {
-        ctx.requirePermission(perm.derive("mycommand")) // Create a permission check for "myplugin.mycommand"
-        
-        val text = ctx.get<String>("text") // Get a filled argument
+        // Require a permission for this command
+        ctx.requirePermission(perm.derive("mycommand")) // "myplugin.mycommand"
 
-        ctx.respond("Hello ${ctx.sender.name}: $text") // Respond send a formatted message
+        val text = ctx.get<String>("text")
 
-        // Calls that affect the server are to wrap in "dispatchMain"
-        // This runs them on the next tick, on the server thread
+        ctx.respond("Hello ${ctx.sender.name}: $text")
+
+        // To affect server state, dispatch to the main thread for the next tick.
         Backbone.dispatchMain {
-            val player = ctx.getPlayer() // Get the sender as player (and require it to be one)
+            val player = ctx.getPlayer() // Get the sender as a player (and require it to be one)
             player.world.spawnEntity(player.location, EntityType.BEE)
         }
-        
-        // Mark the execution as failed, throws an exception and halts the execution here
+
+        // Halt execution and mark the command as failed.
         ctx.fail("Something is not right!")
     }
 }
@@ -293,7 +284,7 @@ override fun onUnload() {
 
 ### Custom Arguments
 
-You can also create your own custom argument types by extending the `Argument` class. This allows you to define custom parsing and completion logic.
+You can also create your own custom argument types by extending the `Argument` class. This allows you to define custom parsing and tab-completion logic.
 
 Here is an example of a custom `DoubleArgument`:
 
@@ -301,8 +292,8 @@ Here is an example of a custom `DoubleArgument`:
 class DoubleArgument(name: String, description: String) : Argument<Double>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()
-
-        return CompletionResult(if (arg.text.isBlank()) mutableListOf("<$name:double>") else mutableListOf(), arg.end)
+        val completions = if (arg.text.isBlank()) mutableListOf("<$name:double>") else mutableListOf()
+        return CompletionResult(completions, arg.end)
     }
 
     override fun parse(current: ArgumentInput): ParseResult<Double> {
@@ -332,7 +323,7 @@ You can create a custom `CommandFeedbackFormat` to change how command responses 
 ```kotlin
 val myFormat = CommandFeedbackFormat("MyPlugin", "#55555")
 
-// You can then pass this format to your command
+// You can then pass this format to your command.
 object MyCommand : Command("mycommand", "My first command", format = myFormat) {
     // ...
 }
@@ -350,55 +341,52 @@ object MyAlphabet : Alphabet {
 
     override fun encode(str: String): String {
         // Your encoding logic here
+        return "encoded_string"
     }
 }
 ```
 
 ### GUIs
 
-Backbone's GUI framework provides a declarative way to create and manage inventories.
-The inventory handler can automatically differentiate between players inventories
-and will manage their states for you.
+Backbone's GUI framework provides a declarative way to create and manage inventories. The GUI handler automatically manages state on a per-player basis, differentiating each player's unique inventory view.
 
 ```kotlin
 // Create a Test Inventory Gui with 27 slots
-object TestGui : Gui("Test Gui" , 27) {
-    // Prepare is ran once during construction to set up base layouts
-    // Use this to for example load fixed content and for example buttons
+object TestGui : Gui("Test Gui", 27) {
+    // 'prepare' is run once during construction.
+    // Use this to define the static layout of your GUI, such as placing buttons.
     override fun prepare(inventory: Inventory) {
         inventory.setItem(0, ItemStack(Material.GOLDEN_APPLE))
     }
 
-    // Ran whenever the inventory is first loaded for a player
-    // Use this to dynamically load data
+    // 'open' is run whenever the inventory is first loaded for a player.
+    // Use this to dynamically load player-specific data.
     override fun open(player: Player, inventory: Inventory) {
-        // Opened!
+        // GUI has been opened for the player
     }
 
-    // Called when the inventory is closed
-    // Do not use this to re-open inventories!
-    // If you want to re-open another inventory wrap your
-    // .open(<player>) call with Backbone.dispatchMain {}
-    // To schedule the operation for the next tick
+    // 'close' is called when the inventory is closed.
+    // Note: To open another GUI from this event, schedule it for the next tick
+    // by wrapping the .open() call in Backbone.dispatchMain {}.
     override fun close(inventory: InventoryCloseEvent) {
-        // Closed!
+        // GUI has been closed
     }
 
-    // Runs every game tick
-    // Used for animations and other logic
+    // 'tick' runs every game tick for open GUIs.
+    // Useful for animations and other dynamic logic.
     override fun tick(inventory: Inventory) {
         val randomSlot = (0 until inventory.size).random()
         inventory.setItem(randomSlot, ItemStack(Material.APPLE))
     }
 
-    // Runs when a slot is clicked in the inventory
+    // 'clicked' runs when a slot is clicked in this GUI.
     override fun clicked(inventory: InventoryClickEvent) {
-        // Clicked!
+        // A slot was clicked
     }
 
-    // Runs on any interaction (including clicks)
+    // 'interacted' runs on any interaction (including clicks).
     override fun interacted(inventory: InventoryInteractEvent) {
-        // Interacted!
+        // An interaction occurred
     }
 }
 

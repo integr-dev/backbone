@@ -1,5 +1,6 @@
 package net.integr.backbone.systems.hotloader
 
+import java.net.URL
 import java.net.URLClassLoader
 
 class ExtendableClassLoader(parent: ClassLoader) : URLClassLoader(emptyArray(), parent) {
@@ -7,6 +8,10 @@ class ExtendableClassLoader(parent: ClassLoader) : URLClassLoader(emptyArray(), 
 
     fun addClasses(entries: Map<String, ByteArray>) {
         extraClasses.putAll(entries)
+    }
+
+    public override fun addURL(url: URL) {
+        super.addURL(url)
     }
 
     override fun findClass(name: String): Class<*> {

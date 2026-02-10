@@ -1,9 +1,7 @@
 package net.integr.backbone
 
-import kotlinx.coroutines.Runnable
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.permission.PermissionNode
-import net.integr.backbone.systems.renderer.Renderer
 import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -11,6 +9,7 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
+    //TODO: Finish renderer, add item helper
     private val executionContext = System.getenv("EXEC_CONTEXT")
 
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")

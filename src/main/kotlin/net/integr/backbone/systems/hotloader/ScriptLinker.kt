@@ -10,6 +10,7 @@ import net.integr.backbone.systems.hotloader.configuration.Script
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.name
+import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.with
 import kotlin.script.experimental.host.ScriptingHostConfiguration
@@ -40,7 +41,7 @@ object ScriptLinker {
         logger.info("Processing ${scripts.size} scripts...")
 
         val jobs = mutableListOf<Job>()
-        val classLoaders = mutableListOf<ClassLoader>()
+        val compilationResults = mutableListOf<ScriptCompiler.CompilationResult>()
 
         logger.info("Now compiling utility scripts...")
 
@@ -48,11 +49,11 @@ object ScriptLinker {
             jobs += coroutineScope.launch {
                 try {
                     logger.info("[${file.name}] Compiling...")
-                    val classLoader = ScriptCompiler.compileUtilityScript(file.toFile())
-                    logger.info("[${file.name}] Done compiling: $classLoader")
+                    val result = ScriptCompiler.compileUtilityScript(file.toFile())
+                    logger.info("[${file.name}] Done compiling: $result")
 
-                    if (classLoader != null) {
-                        classLoaders += classLoader
+                    if (result != null) {
+                        compilationResults += result
                     } else {
                         logger.warning("[${file.name}] No ClassLoader found.")
                     }
@@ -66,17 +67,25 @@ object ScriptLinker {
         jobs.forEach { it.join() }
         jobs.clear()
 
-        logger.info("Resolved ${classLoaders.size} utility script classloaders.")
+        logger.info("Resolved ${compilationResults.size} utility script ClassLoaders.")
         logger.info("Now generating temp artifacts and full ClassLoader...")
 
         val fullClassLoader = ExtendableClassLoader(Backbone::class.java.classLoader)
         val jarFiles = mutableListOf<File>()
+        val defaultImports = mutableListOf<String>()
 
-        for (loader in classLoaders) {
-            val entries = ScriptCompiler.getClassloaderEntries(loader)
+        for (result in compilationResults) {
+            val entries = ScriptCompiler.getClassloaderEntries(result.classLoader)
             val tempJar = ScriptCompiler.createTempJar(entries)
 
             fullClassLoader.addClasses(entries)
+
+            for (file in result.classPath) {
+                fullClassLoader.addURL(file.toURI().toURL())
+            }
+
+            defaultImports += "${result.fqName}.*"
+
             jarFiles += tempJar
         }
 
@@ -85,6 +94,10 @@ object ScriptLinker {
         val newScripts = ConcurrentHashMap<String, ScriptStore.State>()
 
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<Script>().with {
+            jvm {
+                defaultImports(defaultImports)
+            }
+
             hostConfiguration(ScriptingHostConfiguration {
                 jvm {
                     baseClassLoader(fullClassLoader)
@@ -92,7 +105,7 @@ object ScriptLinker {
             })
 
             updateClasspath(jarFiles)
-        } //TODO: Deps from ivy are missing during runtime
+        }
 
         val evaluationConfig = createJvmEvaluationConfigurationFromTemplate<Script>().with {
             jvm {
