@@ -1,3 +1,5 @@
+<img alt="logo.png" src="logo.png" width="20%"/>
+
 # Backbone
 
 Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically accelerating the development lifecycle.
