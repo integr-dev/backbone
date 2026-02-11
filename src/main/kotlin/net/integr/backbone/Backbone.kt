@@ -46,7 +46,7 @@ object Backbone {
     }
 
     fun dispatchMain(block: () -> Unit) {
-        SCHEDULER.runTask(Backbone.PLUGIN, block)
+        SCHEDULER.runTask(PLUGIN, block)
     }
 }
 

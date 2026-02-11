@@ -12,6 +12,7 @@ import kotlin.script.experimental.api.ResultValue
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
@@ -25,7 +26,7 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
 object ScriptCompiler {
     data class CompilationResult(val classPath: List<File>, val classLoader: ClassLoader, val fqName: String)
 
-    val logger = Backbone.LOGGER.derive("script-compiler")
+    val logger = ScriptEngine.logger.derive("compiler")
 
     private val scriptingHost = BasicJvmScriptingHost()
 
@@ -70,7 +71,7 @@ object ScriptCompiler {
             val value = result.valueOrNull()
 
             if (value is KJvmCompiledScript) {
-                logger.info("[${file.name}] Grabbing classloader...")
+                logger.info("[${file.name}] Grabbing ClassLoader...")
                 val classLoader = value.getOrCreateActualClassloader(evaluationConfiguration)
 
                 val classpath = value.compilationConfiguration[ScriptCompilationConfiguration.dependencies]
@@ -87,12 +88,17 @@ object ScriptCompiler {
         reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning(
-                    "[${file.name}] [${report.severity}] ${report.message} (${report.location})"
+                    "[${file.name}] [${report.severity}] ${report.message} (${getLocationReadable(report.location)})"
                 )
 
                 report.exception?.printStackTrace()
             }
         }
+    }
+
+    fun getLocationReadable(location: SourceCode.Location?): String {
+        if (location == null) return "Unknown"
+        return "${location.start.line}:${location.start.col}" + if (location.end != null) " - ${location.end!!.line}:${location.end!!.col}" else ""
     }
 
     fun getClassloaderEntries(loader: ClassLoader): Map<String, ByteArray> {

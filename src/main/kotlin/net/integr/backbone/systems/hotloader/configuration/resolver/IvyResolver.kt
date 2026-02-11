@@ -157,7 +157,7 @@ class IvyResolver : ExternalDependenciesResolver {
 
 
     companion object {
-        private val logger = Backbone.LOGGER.derive("ivy-resolver")
+        private val logger = AnnotationResolver.logger.derive("ivy")
 
         init {
             Message.setDefaultLogger(object : AbstractMessageLogger() {
@@ -170,12 +170,12 @@ class IvyResolver : ExternalDependenciesResolver {
                 }
 
                 override fun log(msg: String, level: Int) {
-                    if (level > Message.MSG_INFO) return
+                    if (level > Message.MSG_WARN) return
                     logger.info(msg)
                 }
 
                 override fun rawlog(msg: String, level: Int) {
-                    if (level > Message.MSG_INFO) return
+                    if (level > Message.MSG_WARN) return
                     logger.info(msg)
                 }
             })

@@ -27,8 +27,10 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         override suspend fun exec(ctx: Execution) {
             ctx.requirePermission(scriptingPerm)
 
-            ctx.respond("Enabled scripts: ${ScriptStore.getEnabledScripts().joinToString(", ")}") //TODO: better formatting here
-            ctx.respond("Disabled scripts: ${ScriptStore.getDisabledScripts().joinToString(", ")}")
+            ctx.respond("Scripts [${ScriptStore.scripts.size}]:")
+            for (script in ScriptStore.scripts) {
+                ctx.respondNoPrefix("  - ${script.key.substringBefore(".bb.kts")}: ${if (script.value.enabled) "&#7AFE2Eenabled" else "&#FE2D2Adisabled"}")
+            }
         }
 
         object Reload : Command("reload", "Reload all Backbone scripts") {

@@ -1,6 +1,6 @@
 package net.integr.backbone.systems.hotloader.configuration.resolver
 
-import net.integr.backbone.Backbone
+import net.integr.backbone.systems.hotloader.configuration.RefinementHandler
 import java.io.File
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptDiagnostic
@@ -13,7 +13,7 @@ import kotlin.script.experimental.dependencies.Repository
 import kotlin.script.experimental.dependencies.addRepository
 
 object AnnotationResolver {
-    private val logger = Backbone.LOGGER.derive("annotation-resolver")
+    val logger = RefinementHandler.logger.derive("resolver")
 
     suspend fun resolveFromAnnotations(
         resolver: ExternalDependenciesResolver,
@@ -30,8 +30,10 @@ object AnnotationResolver {
                             .also { reports.addAll(it.reports) }
                             .valueOr { return it }
 
-                        if (!added)
+                        if (!added) {
+                            logger.warning("Could not add repository: $coordinates")
                             return makeFailureResult("Unrecognized repository coordinates: $coordinates")
+                        }
                     }
                 }
                 is DependsOn -> {}
@@ -41,8 +43,10 @@ object AnnotationResolver {
 
         return annotations.filterIsInstance<DependsOn>().flatMapSuccess { annotation ->
             annotation.artifactsCoordinates.asIterable().flatMapSuccess { artifactCoordinates ->
-                logger.info("Resolving dependency: $artifactCoordinates")
-                resolver.resolve(artifactCoordinates)
+                logger.info("Processing dependency: $artifactCoordinates")
+                val res = resolver.resolve(artifactCoordinates)
+                logger.info("Processed dependency: $artifactCoordinates")
+                res
             }
         }
     }

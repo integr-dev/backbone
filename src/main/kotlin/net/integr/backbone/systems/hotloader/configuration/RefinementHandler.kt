@@ -1,6 +1,8 @@
 package net.integr.backbone.systems.hotloader.configuration
 
 import kotlinx.coroutines.runBlocking
+import net.integr.backbone.Backbone
+import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.annotations.CompilerOptions
 import net.integr.backbone.systems.hotloader.configuration.resolver.AnnotationResolver
 import net.integr.backbone.systems.hotloader.configuration.resolver.IvyResolver
@@ -22,6 +24,10 @@ import kotlin.script.experimental.dependencies.Repository
 import kotlin.script.experimental.jvm.updateClasspath
 
 class RefinementHandler : RefineScriptCompilationConfigurationHandler {
+    companion object {
+        val logger = ScriptEngine.logger.derive("refinement")
+    }
+
     private val resolver = CompoundDependenciesResolver(FileSystemDependenciesResolver(), IvyResolver())
 
     override operator fun invoke(context: ScriptConfigurationRefinementContext):
@@ -46,6 +52,7 @@ class RefinementHandler : RefineScriptCompilationConfigurationHandler {
                     annotations.filter { it is DependsOn || it is Repository })
             }
         } catch (e: Throwable) {
+            logger.severe("Failed to resolve dependencies. (${e.javaClass.simpleName})")
             ResultWithDiagnostics.Failure(*diagnostics.toTypedArray(), e.asDiagnostics(path = context.script.locationId))
         }
 

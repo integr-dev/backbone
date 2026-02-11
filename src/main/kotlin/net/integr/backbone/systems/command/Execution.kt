@@ -15,6 +15,10 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
         sender.sendMessage(format.format(message))
     }
 
+    fun respondNoPrefix(message: String) {
+        sender.sendMessage(format.formatNoPrefix(message))
+    }
+
     fun failOnPlayer() {
         if (sender is Player) {
             fail("This command can only be executed from the console.")

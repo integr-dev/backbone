@@ -3,6 +3,7 @@ package net.integr.backbone.systems.hotloader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
@@ -21,7 +22,7 @@ import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromT
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 
 object ScriptLinker {
-    private val logger = Backbone.LOGGER.derive("script-linker")
+    private val logger = ScriptEngine.logger.derive("linker")
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
@@ -50,7 +51,7 @@ object ScriptLinker {
                 try {
                     logger.info("[${file.name}] Compiling...")
                     val result = ScriptCompiler.compileUtilityScript(file.toFile())
-                    logger.info("[${file.name}] Done compiling: $result")
+                    logger.info("[${file.name}] Done compiling: ${result?.classLoader}")
 
                     if (result != null) {
                         compilationResults += result
@@ -64,7 +65,7 @@ object ScriptLinker {
             }
         }
 
-        jobs.forEach { it.join() }
+        jobs.joinAll()
         jobs.clear()
 
         logger.info("Resolved ${compilationResults.size} utility script ClassLoaders.")
@@ -129,20 +130,19 @@ object ScriptLinker {
 
                     if (oldLifecycle != null) {
                         lifecycle.updateStatesFrom(oldLifecycle.lifecycle)
-                        logger.info("[${file.name}] Transferred state from old script")
+                        logger.info("[${file.name}] Transferred state from old script.")
                     }
 
                     newScripts[file.name] = ScriptStore.State(false, lifecycle)
 
                 } catch (e: Exception) {
-                    logger.severe("[${file.name}] Failed to compile. (${e.javaClass.simpleName})")
-                    e.printStackTrace()
+                    logger.severe("[${file.name}] Failed to compile. (${e.message})")
                     errs = true
                 }
             }
         }
 
-        jobs.forEach { it.join() }
+        jobs.joinAll()
 
         logger.info("Compiled ${newScripts.size} scripts.")
         logger.info("Now swapping hot...")

@@ -1,6 +1,5 @@
 package net.integr.backbone.systems.hotloader.configuration
 
-import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import kotlin.script.experimental.annotations.KotlinScript
 
 
@@ -16,4 +15,4 @@ interface UtilityScript
     compilationConfiguration = ScriptConfiguration::class,
     evaluationConfiguration = EvaluationConfiguration::class
 )
-abstract class Script : ManagedLifecycle()
+interface Script
