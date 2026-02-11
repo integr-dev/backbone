@@ -7,6 +7,13 @@ import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
+import net.integr.backbone.systems.text.append
+import net.integr.backbone.systems.text.component
+import net.md_5.bungee.api.ChatColor
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.HoverEvent
+import net.md_5.bungee.api.chat.hover.content.Text
+import java.awt.Color
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     override fun onBuild() {
@@ -29,7 +36,30 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
             ctx.respond("Scripts [${ScriptStore.scripts.size}]:")
             for (script in ScriptStore.scripts) {
-                ctx.respondNoPrefix("  - ${script.key.substringBefore(".bb.kts")}: ${if (script.value.enabled) "&#7AFE2Eenabled" else "&#FE2D2Adisabled"}")
+                ctx.respondComponent(component {
+                    append("  - ${script.key.substringBefore(".bb.kts")}: ") {
+                        color(ChatColor.of(Color(169, 173, 168)))
+                        event(HoverEvent(
+                            HoverEvent.Action.SHOW_TEXT,
+                            Text("${if (script.value.enabled) "Disable" else "Enable"} " +
+                                    script.key.substringBefore(".bb.kts")
+                            ))
+                        )
+                        event(ClickEvent(
+                            ClickEvent.Action.RUN_COMMAND,
+                            "bb scripting ${if (script.value.enabled) "disable" else "enable"} " +
+                                    script.key.substringBefore(".bb.kts")
+                            )
+                        )
+                    }
+
+                    append(if (script.value.enabled) "✔ enabled" else "❌ disabled") {
+                        color(
+                            if (script.value.enabled) ChatColor.of(Color(141, 184, 130))
+                            else ChatColor.of(Color(201, 82, 60))
+                        )
+                    }
+                })
             }
         }
 

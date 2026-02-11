@@ -316,14 +316,35 @@ arguments(
 
 ### Custom Formatting and Utilities
 
-Backbone includes a flexible text formatting system that allows you to customize the look and feel of your script's output.
+Backbone includes a flexible text component system that allows you to customize the look and feel of your script's output.
+
+### Components
+
+Backbone has a simple component builder abstraction that is based on the bungeecord implementation of `BaseComponent` and `ComponentBuilder`.
+
+```kotlin
+component {
+    append("Hello") {
+        color(ChatColor.of(Color.RED))
+    }
+
+    append("World") {
+        color(ChatColor.of(Color.GREEN))
+        event(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text("Hover!")))
+    }
+
+    append("!") {
+        color(ChatColor.of(Color.YELLOW))
+    }
+}
+```
 
 #### Command Feedback Format
 
-You can create a custom `CommandFeedbackFormat` to change how command responses are displayed.
+You can create a custom `CommandFeedbackFormat` to change how command responses are displayed. Or simply inherit from it to unlock even more customisation via the component system.
 
 ```kotlin
-val myFormat = CommandFeedbackFormat("MyPlugin", "#55555")
+val myFormat = CommandFeedbackFormat("MyPlugin", Color.RED)
 
 // You can then pass this format to your command.
 object MyCommand : Command("mycommand", "My first command", format = myFormat) {

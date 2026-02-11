@@ -2,6 +2,7 @@ package net.integr.backbone.systems.command
 
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
+import net.md_5.bungee.api.chat.BaseComponent
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
@@ -12,11 +13,11 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
     }
 
     fun respond(message: String) {
-        sender.sendMessage(format.format(message))
+        sender.spigot().sendMessage(format.format(message))
     }
 
-    fun respondNoPrefix(message: String) {
-        sender.sendMessage(format.formatNoPrefix(message))
+    fun respondComponent(component: BaseComponent) {
+        sender.spigot().sendMessage(component)
     }
 
     fun failOnPlayer() {
