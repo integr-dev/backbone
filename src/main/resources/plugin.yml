@@ -14,3 +14,5 @@ description: |
   - Config utility with serialization to yaml.
   - Inventory Gui Utility to create guis and differentiate between them with ease and without checking inventory title.
 website: tdb
+
+softdepend: ["PlaceholderAPI"]

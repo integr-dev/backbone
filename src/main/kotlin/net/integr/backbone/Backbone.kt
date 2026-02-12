@@ -2,6 +2,7 @@ package net.integr.backbone
 
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.permission.PermissionNode
+import net.integr.backbone.systems.placeholder.PlaceholderGroup
 import net.integr.backbone.systems.storage.ResourcePool
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -9,7 +10,7 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
-    //TODO: Finish renderer, add item helper
+    //TODO: Finish renderer, add item helper, add item repository, add entity helper
     private val executionContext = System.getenv("EXEC_CONTEXT")
 
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")
@@ -17,7 +18,13 @@ object Backbone {
 
     val SCRIPT_POOL = ResourcePool.getScripts()
 
-    val ROOT_PERMISSION = PermissionNode("backbone")
+    val ROOT_PERMISSION by lazy {
+        PermissionNode("backbone")
+    }
+
+    val PLACEHOLDER_GROUP by lazy {
+        PlaceholderGroup(VERSION, "backbone")
+    }
 
     val VERSION by lazy {
         PLUGIN.description.version

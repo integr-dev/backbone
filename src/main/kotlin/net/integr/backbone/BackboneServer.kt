@@ -19,6 +19,8 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.SCRIPT_POOL.create()
 
+        setPlaceholders()
+
         runBlocking {
             async(Dispatchers.IO) {
                 ScriptLinker.compileAndLink()
@@ -41,5 +43,13 @@ class BackboneServer : JavaPlugin() {
                 ScriptEngine.unloadScripts() // Cleanup
             }
         }
+    }
+
+    fun setPlaceholders() {
+        Backbone.PLACEHOLDER_GROUP.create("backbone_version") { _, _ ->
+            return@create Backbone.VERSION
+        }
+
+        Backbone.PLACEHOLDER_GROUP.registerAll()
     }
 }

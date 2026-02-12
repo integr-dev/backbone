@@ -13,10 +13,13 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
         name = "spigotmc-repo"
     }
+    maven("https://repo.extendedclip.com/releases/")
 }
 
 dependencies {
     implementation("org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT")
+
+    implementation("me.clip:placeholderapi:2.12.2")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
