@@ -63,4 +63,19 @@ object ScriptEngine {
             throw IllegalArgumentException("Exception occurred while enabling script.")
         }
     }
+
+    fun wipeScript(name: String) {
+        val state = ScriptStore.getScriptByName(name) ?: throw IllegalArgumentException("Script not found.")
+        val script = state.lifecycle
+
+        try {
+            script.wipeStates()
+            state.enabled = true
+            logger.info("Wiped script: '$name'")
+        } catch (e: Exception) {
+            logger.severe("Failed to wipe script: '$name'")
+            e.printStackTrace()
+            throw IllegalArgumentException("Exception occurred while enabling script.")
+        }
+    }
 }

@@ -32,7 +32,7 @@ object CommandHandler {
         }
     }
 
-    fun unRegister(command: Command, prefix: String = "backbone") {
+    fun unregister(command: Command, prefix: String = "backbone") {
         unregisterCommand(command.name, prefix)
 
         Bukkit.getOnlinePlayers().forEach {

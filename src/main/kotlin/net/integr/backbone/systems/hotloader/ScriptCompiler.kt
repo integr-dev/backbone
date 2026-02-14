@@ -1,7 +1,6 @@
 package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.runBlocking
-import net.integr.backbone.Backbone
 import net.integr.backbone.systems.hotloader.configuration.UtilityScript
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import java.io.File

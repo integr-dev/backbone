@@ -88,6 +88,7 @@ Backbone provides a set of commands to manage your scripts. The base command is 
 -   `/bb scripting reload`: Unloads all current scripts, then loads and enables all scripts from the `scripts` directory. This is the primary command for applying changes.
 -   `/bb scripting enable <script_name>`: Enables a specific script that is currently disabled.
 -   `/bb scripting disable <script_name>`: Disables a specific script that is currently enabled.
+-   `/bb scripting wipe <script_name>`: Resets sustained state data for a script.
 
 ### Advanced Scripting
 

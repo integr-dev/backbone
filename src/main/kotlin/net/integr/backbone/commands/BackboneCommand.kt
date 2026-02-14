@@ -28,7 +28,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         val scriptingPerm = Backbone.ROOT_PERMISSION.derive("scripting")
 
         override fun onBuild() {
-            subCommands(Reload, Enable, Disable)
+            subCommands(Reload, Enable, Disable, Wipe)
         }
 
         override suspend fun exec(ctx: Execution) {
@@ -124,6 +124,30 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                     ctx.respond("Script disabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while disabling the script.")
+                }
+            }
+        }
+
+        object Wipe : Command("wipe", "Wipes the sustained state from a script") {
+            val scriptingWipePerm = scriptingPerm.derive("wipe")
+
+            override fun onBuild() {
+                arguments(
+                    scriptArgument("script", "The script to wipe state from")
+                )
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(scriptingWipePerm)
+                val script = ctx.get<String>("script")
+
+                ctx.respond("Wiping state from script...")
+
+                try {
+                    ScriptEngine.wipeScript(script)
+                    ctx.respond("Script state wiped.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while wiping state from the script.")
                 }
             }
         }

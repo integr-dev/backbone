@@ -73,7 +73,11 @@ object ScriptLinker {
 
         val fullClassLoader = ExtendableClassLoader(Backbone::class.java.classLoader)
         val jarFiles = mutableListOf<File>()
-        val defaultImports = mutableListOf<String>()
+        val newDefaultImports = mutableListOf(
+            "kotlin.script.experimental.dependencies.DependsOn",
+            "kotlin.script.experimental.dependencies.Repository",
+            "net.integr.backbone.systems.hotloader.annotations.CompilerOptions"
+        )
 
         for (result in compilationResults) {
             val entries = ScriptCompiler.getClassloaderEntries(result.classLoader)
@@ -85,7 +89,7 @@ object ScriptLinker {
                 fullClassLoader.addURL(file.toURI().toURL())
             }
 
-            defaultImports += "${result.fqName}.*"
+            newDefaultImports += "${result.fqName}.*"
 
             jarFiles += tempJar
         }
@@ -96,7 +100,7 @@ object ScriptLinker {
 
         val compilationConfig = createJvmCompilationConfigurationFromTemplate<Script>().with {
             jvm {
-                defaultImports(defaultImports)
+                defaultImports(newDefaultImports)
             }
 
             hostConfiguration(ScriptingHostConfiguration {

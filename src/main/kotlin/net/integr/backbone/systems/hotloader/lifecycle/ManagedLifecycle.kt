@@ -18,4 +18,10 @@ abstract class ManagedLifecycle : Listener {
             newState?.dangerouslySetState(state.dangerouslyGetState())
         }
     }
+
+    fun wipeStates() {
+        for (state in sustainedStates) {
+            state.wipeState()
+        }
+    }
 }

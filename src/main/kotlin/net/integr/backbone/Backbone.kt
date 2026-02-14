@@ -30,12 +30,19 @@ object Backbone {
         PLUGIN.description.version
     }
 
-    val PLUGIN: JavaPlugin by lazy {
-        JavaPlugin.getPlugin(BackboneServer::class.java)
+    private val pluginInternal: JavaPlugin? by lazy {
+        try {
+            JavaPlugin.getPlugin(BackboneServer::class.java)
+        } catch (e: Exception) {
+            null
+        }
     }
 
+    val PLUGIN
+        get() = pluginInternal!!
+
     val LOGGER: BackboneLogger by lazy {
-        BackboneLogger("backbone", if (executionContext != "test") PLUGIN else null)
+        BackboneLogger("backbone", if (executionContext != "test") pluginInternal else null)
     }
 
     val SCHEDULER by lazy {

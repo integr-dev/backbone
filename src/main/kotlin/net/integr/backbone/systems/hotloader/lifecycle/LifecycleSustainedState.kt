@@ -7,6 +7,8 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
     var id: String? = null
         private set
 
+    val default: T = value
+
     override fun getValue(thisRef: ManagedLifecycle, property: KProperty<*>): T {
         return value
     }
@@ -28,6 +30,10 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
 
     fun dangerouslyGetState(): Any? {
         return value as Any?
+    }
+
+    fun wipeState() {
+        value = default
     }
 }
 
