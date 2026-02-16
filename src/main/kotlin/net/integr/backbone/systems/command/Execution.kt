@@ -64,6 +64,12 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
         }
     }
 
+    fun cantHavePermission(perm: PermissionNode) {
+        if (sender.hasPermission(perm.id)) {
+            fail("You are not allowed to execute this command.")
+        }
+    }
+
     fun hasPermission(perm: PermissionNode): Boolean {
         return sender.hasPermission(perm.id)
     }

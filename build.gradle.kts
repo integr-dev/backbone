@@ -1,8 +1,9 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     kotlin("jvm") version "2.3.20-Beta1"
     id("com.gradleup.shadow") version "8.3.0"
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    kotlin("plugin.serialization") version "1.4.20"
 }
 
 group = "net.integr"
@@ -23,7 +24,6 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-    implementation("com.charleskorn.kaml:kaml:0.104.0")
 
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
@@ -35,6 +35,11 @@ dependencies {
     implementation(kotlin("compiler-embeddable"))
 
     implementation("org.apache.ivy:ivy:2.5.2")
+
+    // The core engine
+    implementation("tools.jackson.core:jackson-databind:3.0.4")
+    implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.4")
+    implementation("tools.jackson.module:jackson-module-kotlin:3.0.4")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito:mockito-core:5.2.0")
@@ -70,4 +75,8 @@ tasks.processResources {
     filesMatching("plugin.yml") {
         expand(props)
     }
+}
+
+tasks.withType<ShadowJar> {
+    mergeServiceFiles()
 }

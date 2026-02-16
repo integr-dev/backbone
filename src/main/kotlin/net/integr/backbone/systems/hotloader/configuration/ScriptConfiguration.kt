@@ -6,6 +6,7 @@ import kotlin.script.experimental.api.ScriptAcceptedLocation
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.acceptedLocations
+import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.ide
 import kotlin.script.experimental.api.refineConfiguration
@@ -19,6 +20,7 @@ object ScriptConfiguration : ScriptCompilationConfiguration({
     jvm {
         dependenciesFromClassloader(classLoader = Backbone::class.java.classLoader, wholeClasspath = true)
         defaultImports(DependsOn::class, Repository::class, CompilerOptions::class)
+        compilerOptions("-jvm-target", "21")
     }
 
     ide {

@@ -157,7 +157,7 @@ class IvyResolver : ExternalDependenciesResolver {
 
 
     companion object {
-        private val logger = AnnotationResolver.logger.derive("ivy")
+        private val logger = Backbone.LOGGER.derive("ivy")
 
         init {
             Message.setDefaultLogger(object : AbstractMessageLogger() {

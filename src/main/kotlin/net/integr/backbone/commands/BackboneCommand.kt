@@ -2,6 +2,7 @@ package net.integr.backbone.commands
 
 import net.integr.backbone.Backbone
 import net.integr.backbone.commands.arguments.scriptArgument
+import net.integr.backbone.commands.arguments.stringArgument
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.hotloader.ScriptEngine
@@ -133,13 +134,19 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
             override fun onBuild() {
                 arguments(
-                    scriptArgument("script", "The script to wipe state from")
+                    scriptArgument("script", "The script to wipe state from"),
+                    stringArgument("confirmation", "The name of the script for confirmation")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
                 ctx.requirePermission(scriptingWipePerm)
                 val script = ctx.get<String>("script")
+                val confirmation = ctx.get<String>("confirmation")
+
+                if (script != confirmation) {
+                    ctx.fail("Confirmation failed. Script name does not match: $script != $confirmation")
+                }
 
                 ctx.respond("Wiping state from script...")
 

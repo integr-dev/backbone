@@ -34,7 +34,7 @@ class ResourcePool(origin: Path, id: String) {
     inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
-        return ConfigHandler(location, typeOf<T>())
+        return ConfigHandler(location, T::class)
     }
 
     companion object {
