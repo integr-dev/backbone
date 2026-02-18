@@ -5,11 +5,13 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.TickEvent
+import net.integr.backbone.items.TestItem
 import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.event.EventBus
-import net.integr.backbone.systems.gui.InventoryHandler
+import net.integr.backbone.systems.gui.GuiHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
+import net.integr.backbone.systems.item.ItemHandler
 import org.bukkit.plugin.java.JavaPlugin
 
 class BackboneServer : JavaPlugin() {
@@ -27,7 +29,10 @@ class BackboneServer : JavaPlugin() {
             }
         }
 
-        Backbone.registerListener(InventoryHandler)
+        Backbone.registerListener(GuiHandler)
+        Backbone.registerListener(ItemHandler)
+
+        ItemHandler.register(TestItem)
 
         Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)

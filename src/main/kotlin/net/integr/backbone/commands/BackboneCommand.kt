@@ -1,6 +1,7 @@
 package net.integr.backbone.commands
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.commands.arguments.customItemArgument
 import net.integr.backbone.commands.arguments.scriptArgument
 import net.integr.backbone.commands.arguments.stringArgument
 import net.integr.backbone.systems.command.Command
@@ -8,6 +9,7 @@ import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
+import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.systems.text.append
 import net.integr.backbone.systems.text.component
 import net.md_5.bungee.api.ChatColor
@@ -18,7 +20,7 @@ import java.awt.Color
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     override fun onBuild() {
-        subCommands(Scripting)
+        subCommands(Scripting, Item)
     }
 
     override suspend fun exec(ctx: Execution) {
@@ -155,6 +157,54 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                     ctx.respond("Script state wiped.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while wiping state from the script.")
+                }
+            }
+        }
+    }
+
+    object Item : Command("item", "Commands for Backbone item system") {
+        val itemPerm = Backbone.ROOT_PERMISSION.derive("item")
+
+        override fun onBuild() {
+            subCommands(Give)
+        }
+
+        override suspend fun exec(ctx: Execution) {
+            ctx.requirePermission(itemPerm)
+
+            ctx.respond("Items [${ItemHandler.items.size}]:")
+            for (item in ItemHandler.items) {
+                ctx.respondComponent(component {
+                    append("  - ${item.key}") {
+                        color(ChatColor.of(Color(169, 173, 168)))
+                    }
+                })
+            }
+        }
+
+        object Give : Command("give", "Gives a custom item") {
+            val itemGivePerm = itemPerm.derive("give")
+
+            override fun onBuild() {
+                arguments(
+                    customItemArgument("item", "The custom item to give")
+                )
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(itemGivePerm)
+                ctx.requirePlayer()
+
+                val item = ctx.get<String>("item")
+
+                ctx.respond("Generating item...")
+
+                try {
+                    val stack = ItemHandler.generate(item)
+                    ctx.getPlayer().inventory.addItem(stack)
+                    ctx.respond("Item generated.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while generating the item.")
                 }
             }
         }

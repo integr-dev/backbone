@@ -7,7 +7,7 @@ import org.bukkit.event.inventory.InventoryInteractEvent
 import org.bukkit.inventory.Inventory
 
 abstract class Gui(title: String, size: Int = 27) {
-    val initialState: GuiState = GuiState(this, title, size)
+    val initialState = GuiState(this, title, size)
 
     init {
         prepare(initialState.getInventory())
@@ -17,19 +17,16 @@ abstract class Gui(title: String, size: Int = 27) {
         player.closeInventory() // Close any existing inventory first
         val playerState = initialState.copy()
         val inv = playerState.getInventory()
-        InventoryHandler.openInventories[player] = playerState
+        GuiHandler.openInventories[player] = playerState
         player.openInventory(inv)
         open(player, inv)
     }
 
-    abstract fun prepare(inventory: Inventory)
-    abstract fun open(player: Player, inventory: Inventory)
-    abstract fun close(inventory: InventoryCloseEvent)
+    open fun prepare(inventory: Inventory) {}
+    open fun open(player: Player, inventory: Inventory) {}
+    open fun close(inventory: InventoryCloseEvent) {}
 
-    abstract fun tick(inventory: Inventory)
-    abstract fun clicked(inventory: InventoryClickEvent)
-    abstract fun interacted(inventory: InventoryInteractEvent)
-
-
-
+    open fun tick(inventory: Inventory) {}
+    open fun clicked(inventory: InventoryClickEvent) {}
+    open fun interacted(inventory: InventoryInteractEvent) {}
 }
