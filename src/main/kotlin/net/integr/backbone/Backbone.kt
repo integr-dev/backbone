@@ -10,7 +10,7 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
-    //TODO: Finish renderer, add item helper, add item repository, add entity helper
+    //TODO: add item helper, add item repository, add entity helper
     private val executionContext = System.getenv("EXEC_CONTEXT")
 
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")

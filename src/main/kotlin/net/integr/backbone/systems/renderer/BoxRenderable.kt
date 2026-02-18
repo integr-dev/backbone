@@ -1,31 +1,31 @@
 package net.integr.backbone.systems.renderer
 
 import org.bukkit.Location
-import org.bukkit.World
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.BlockDisplay
 import kotlin.math.max
 import kotlin.math.min
 
-class HighlightBox(val block: BlockData, var p1: Location, var p2: Location) {
+class BoxRenderable : Renderable() {
     // Top
-    val tN = ObjectPart()
-    val tE = ObjectPart()
-    val tS = ObjectPart()
-    val tW = ObjectPart()
+    val tN = blockDisplay()
+    val tE = blockDisplay()
+    val tS = blockDisplay()
+    val tW = blockDisplay()
 
     // Bottom
-    val bN = ObjectPart()
-    val bE = ObjectPart()
-    val bS = ObjectPart()
-    val bW = ObjectPart()
+    val bN = blockDisplay()
+    val bE = blockDisplay()
+    val bS = blockDisplay()
+    val bW = blockDisplay()
 
     // Sides
-    val sNE = ObjectPart()
-    val sNW = ObjectPart()
-    val sSE = ObjectPart()
-    val sSW = ObjectPart()
+    val sNE = blockDisplay()
+    val sNW = blockDisplay()
+    val sSE = blockDisplay()
+    val sSW = blockDisplay()
 
-    fun update(p1: Location, p2: Location) {
+    fun update(p1: Location, p2: Location, block: BlockData) {
         val beamThickness = 0.03
         val beamOffset = beamThickness / 2.0
 
@@ -44,9 +44,9 @@ class HighlightBox(val block: BlockData, var p1: Location, var p2: Location) {
         val world = p1.world ?: return
 
         // Reset translations to zero, as we handle offsets in the teleport location
-        val allParts = listOf(tN, tE, tS, tW, bN, bE, bS, bW, sNE, sNW, sSE, sSW)
-        allParts.forEach {
-            it.entity?.let { entity ->
+        objects.forEach {
+            it.entity?.let { e ->
+                val entity = e as BlockDisplay
                 val newTransformation = entity.transformation
                 newTransformation.translation.set(0f, 0f, 0f)
                 entity.transformation = newTransformation
@@ -140,52 +140,5 @@ class HighlightBox(val block: BlockData, var p1: Location, var p2: Location) {
             newTransformation.scale.set(beamF, sizeY, beamF)
             entity.transformation = newTransformation
         }
-
-        this.p1 = p1
-        this.p2 = p2
-    }
-
-    fun spawn(world: World) {
-        tN.spawn(world, center(p1))
-        tE.spawn(world, center(p1))
-        tS.spawn(world, center(p1))
-        tW.spawn(world, center(p1))
-
-        bN.spawn(world, center(p1))
-        bE.spawn(world, center(p1))
-        bS.spawn(world, center(p1))
-        bW.spawn(world, center(p1))
-
-        sNE.spawn(world, center(p1))
-        sNW.spawn(world, center(p1))
-        sSE.spawn(world, center(p1))
-        sSW.spawn(world, center(p1))
-    }
-
-    fun despawn() {
-        tN.despawn()
-        tE.despawn()
-        tS.despawn()
-        tW.despawn()
-
-        bN.despawn()
-        bE.despawn()
-        bS.despawn()
-        bW.despawn()
-
-        sNE.despawn()
-        sNW.despawn()
-        sSE.despawn()
-        sSW.despawn()
-    }
-
-    fun exists(): Boolean {
-        return tN.exists() && tE.exists() && tS.exists() && tW.exists()
-                && bN.exists() && bE.exists() && bS.exists() && bW.exists()
-                && sNE.exists() && sNW.exists() && sSE.exists() && sSW.exists()
-    }
-
-    private fun center(loc: Location): Location {
-        return loc.block.location
     }
 }
