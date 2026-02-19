@@ -3,6 +3,8 @@ package net.integr.backbone.items
 import net.integr.backbone.systems.item.CustomItem
 import net.integr.backbone.systems.item.CustomItemState
 import net.integr.backbone.systems.item.ItemHandler
+import net.integr.backbone.systems.item.applyLore
+import net.integr.backbone.systems.item.applyMeta
 import org.bukkit.Material
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
@@ -23,12 +25,11 @@ object TestItem : CustomItem("test_item", DefaultState) {
 
     object DefaultState : CustomItemState(Material.IRON_HOE, "default") {
         override fun populate(stack: ItemStack) {
-            val meta = stack.itemMeta ?: return
-            val lore = meta.lore ?: mutableListOf()
-            lore += "Default"
-
-            meta.lore = lore
-            stack.itemMeta = meta
+            stack.applyMeta {
+                applyLore { lore ->
+                    lore += "Default"
+                }
+            }
         }
 
         override fun interacted(event: PlayerInteractEvent) {
@@ -41,12 +42,11 @@ object TestItem : CustomItem("test_item", DefaultState) {
 
     object CooldownState : CustomItemState(Material.GOLDEN_HOE, "cooldown") {
         override fun populate(stack: ItemStack) {
-            val meta = stack.itemMeta ?: return
-            val lore = meta.lore ?: mutableListOf()
-            lore += "Cooldown"
-
-            meta.lore = lore
-            stack.itemMeta = meta
+            stack.applyMeta {
+                applyLore { lore ->
+                    lore += "Cooldown"
+                }
+            }
         }
 
         override fun interacted(event: PlayerInteractEvent) {
