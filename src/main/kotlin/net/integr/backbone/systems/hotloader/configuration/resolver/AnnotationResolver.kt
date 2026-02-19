@@ -12,6 +12,10 @@ import kotlin.script.experimental.dependencies.ExternalDependenciesResolver
 import kotlin.script.experimental.dependencies.Repository
 import kotlin.script.experimental.dependencies.addRepository
 
+/*
+    This file originates from the JetBrains simple-main-kts example for kotlin scripting
+    https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/impl/resolve.kt
+ */
 object AnnotationResolver {
     val logger = RefinementHandler.logger.derive("resolver")
 
