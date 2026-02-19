@@ -45,7 +45,7 @@ dependencies {
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.2.0")
-
+    testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
 }
 
 tasks {

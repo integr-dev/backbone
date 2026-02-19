@@ -26,4 +26,22 @@ class ResourceLocation(val pool: ResourcePool, id: String) {
     fun exists(): Boolean {
         return location.exists()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ResourceLocation
+
+        if (pool != other.pool) return false
+        if (location != other.location) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = pool.hashCode()
+        result = 31 * result + location.hashCode()
+        return result
+    }
 }

@@ -18,8 +18,8 @@ import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.commands.arguments.StringArgument
 import org.bukkit.command.CommandSender
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.mockito.Mockito.mock
-import kotlin.test.Test
 import kotlin.test.assertContains
 
 class CommandTest {

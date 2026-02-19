@@ -13,21 +13,25 @@
 
 package net.integr.backbone.systems.permission
 
-class PermissionNode(val id: String) {
-    fun derive(id: String): PermissionNode {
-        return PermissionNode("${this.id}.$id")
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+
+class PermissionNodeTest {
+    @Test
+    fun testDerive() {
+        val node = PermissionNode("root")
+        val derivedNode = node.derive("child")
+
+        assertEquals("root.child", derivedNode.id)
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+    @Test
+    fun testEquals() {
+        val node1 = PermissionNode("root")
+        val node2 = PermissionNode("root")
+        val node3 = PermissionNode("other")
 
-        other as PermissionNode
-
-        return id == other.id
-    }
-
-    override fun hashCode(): Int {
-        return id.hashCode()
+        assertEquals(node1, node2)
+        assertNotEquals(node1, node3)
     }
 }

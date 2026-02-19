@@ -19,11 +19,17 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectories
 import kotlin.reflect.typeOf
 
-class ResourcePool(origin: Path, id: String) {
+class ResourcePool(val origin: Path, id: String) {
     val location: Path = origin.resolve(id)
 
     fun allocate(id: String): ResourceLocation {
         return ResourceLocation(this, id)
+    }
+
+    fun file(id: String): ResourceLocation {
+        val location = allocate(id)
+        location.create()
+        return location
     }
 
     fun create() {
@@ -48,6 +54,19 @@ class ResourcePool(origin: Path, id: String) {
         val location = allocate(id)
         location.create()
         return ConfigHandler(location, T::class)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ResourcePool
+
+        return location == other.location
+    }
+
+    override fun hashCode(): Int {
+        return location.hashCode()
     }
 
     companion object {

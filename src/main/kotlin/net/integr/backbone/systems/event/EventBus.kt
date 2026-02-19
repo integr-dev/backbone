@@ -74,6 +74,10 @@ object EventBus {
 
     fun unRegister(instance: Any) = unRegister(instance::class)
 
+    fun clear() {
+        eventHandlers.clear()
+    }
+
     fun post(event: Event): Any? {
         val eventId = event::class.qualifiedName ?: return null
         val priorityEntries = eventHandlers[eventId] ?: return null
