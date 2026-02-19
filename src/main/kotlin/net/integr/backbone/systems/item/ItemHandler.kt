@@ -20,6 +20,32 @@ object ItemHandler : Listener {
         return customItem.generate()
     }
 
+    fun replicate(item: ItemStack): ItemStack? {
+        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
+        if (customItemUid == null) return null
+        val customItem = items[customItemUid] ?: throw IllegalArgumentException("Item not found.")
+
+        return customItem.generate()
+    }
+
+    fun readTags(item: ItemStack): Map<String, String> {
+        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
+        val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
+        val customItemStateInstanceUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING)
+
+        val map = mutableMapOf<String, String>()
+
+        if (customItemUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key] = customItemUid
+        if (customItemStateUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key] = customItemStateUid
+        if (customItemStateInstanceUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key] = customItemStateInstanceUid
+
+        return map
+    }
+
+    fun getInstanceId(item: ItemStack): String {
+        return PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING) ?: PersistenceHelper.genUid()
+    }
+
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val item = event.item

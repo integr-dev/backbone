@@ -2,13 +2,14 @@ package net.integr.backbone.items
 
 import net.integr.backbone.systems.item.CustomItem
 import net.integr.backbone.systems.item.CustomItemState
+import net.integr.backbone.systems.item.ItemHandler
 import org.bukkit.Material
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 
-object TestItem : CustomItem("test_item", true, DefaultState) {
+object TestItem : CustomItem("test_item", DefaultState) {
     init {
         register(DefaultState)
         register(CooldownState)
@@ -32,7 +33,8 @@ object TestItem : CustomItem("test_item", true, DefaultState) {
 
         override fun interacted(event: PlayerInteractEvent) {
             if (event.action == Action.RIGHT_CLICK_AIR && event.hand == EquipmentSlot.HAND) {
-                event.player.inventory.setItemInMainHand(generate(CooldownState))
+                val id = ItemHandler.getInstanceId(event.player.inventory.itemInMainHand)
+                event.player.inventory.setItemInMainHand(generate(CooldownState, id))
             }
         }
     }
@@ -49,7 +51,8 @@ object TestItem : CustomItem("test_item", true, DefaultState) {
 
         override fun interacted(event: PlayerInteractEvent) {
             if (event.action == Action.RIGHT_CLICK_AIR && event.hand == EquipmentSlot.HAND) {
-                event.player.inventory.setItemInMainHand(generate(DefaultState))
+                val id = ItemHandler.getInstanceId(event.player.inventory.itemInMainHand)
+                event.player.inventory.setItemInMainHand(generate(DefaultState, id))
             }
         }
     }

@@ -7,29 +7,27 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
-abstract class CustomItem(val id: String, val attachInstanceId: Boolean, val defaultState: CustomItemState) {
+abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
     private val states: MutableMap<String, CustomItemState> = mutableMapOf()
 
     fun register(state: CustomItemState) {
         states[state.id] = state
     }
 
-    fun generate(state: CustomItemState): ItemStack {
+    fun generate(state: CustomItemState, instanceId: String = PersistenceHelper.genUid()): ItemStack {
         val stack = state.generate()
 
-        attach(stack)
+        attach(stack, instanceId)
         populate(stack)
         return stack
     }
+
     fun generate() = generate(defaultState)
 
 
-    private fun attach(stack: ItemStack) {
+    private fun attach(stack: ItemStack, instanceId: String) {
         PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING, id)
-
-        if (attachInstanceId) {
-            PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING, PersistenceHelper.genUid())
-        }
+        PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING, instanceId)
     }
 
     protected open fun populate(stack: ItemStack) {}

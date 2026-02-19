@@ -166,7 +166,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         val itemPerm = Backbone.ROOT_PERMISSION.derive("item")
 
         override fun onBuild() {
-            subCommands(Give)
+            subCommands(Give, Replicate, Read)
         }
 
         override suspend fun exec(ctx: Execution) {
@@ -203,6 +203,57 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                     val stack = ItemHandler.generate(item)
                     ctx.getPlayer().inventory.addItem(stack)
                     ctx.respond("Item generated.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while generating the item.")
+                }
+            }
+        }
+
+        object Replicate : Command("replicate", "Copies the held item with a new instance.") {
+            val itemReplicatePerm = itemPerm.derive("replicate")
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(itemReplicatePerm)
+                ctx.requirePlayer()
+
+                ctx.respond("Replicating item...")
+
+                try {
+                    val stack = ItemHandler.replicate(ctx.getPlayer().inventory.itemInMainHand)
+                    if (stack == null) ctx.fail("Item is not a backbone item.")
+                    ctx.getPlayer().inventory.addItem(stack)
+                    ctx.respond("Item replicated.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while generating the item.")
+                }
+            }
+        }
+
+        object Read : Command("read", "Reads all meta tags from an item.") {
+            val itemReadPerm = itemPerm.derive("read")
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(itemReadPerm)
+                ctx.requirePlayer()
+
+                ctx.respond("Reading item...")
+
+                try {
+                    val tags = ItemHandler.readTags(ctx.getPlayer().inventory.itemInMainHand)
+
+                    ctx.respond("Tags [${tags.size}]:")
+                    for (tag in tags) {
+                        ctx.respondComponent(component {
+                            append("  - ${tag.key}: ") {
+                                color(ChatColor.of(Color(169, 173, 168)))
+                            }
+
+                            append(tag.value) {
+                                color(ChatColor.of(Color(141, 184, 130)))
+                            }
+                        })
+                    }
+
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while generating the item.")
                 }
