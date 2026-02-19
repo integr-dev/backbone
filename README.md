@@ -1,6 +1,11 @@
+
 <img alt="logo.png" src="logo.png" width="20%"/>
 
 # Backbone
+[![CI](https://github.com/integr-dev/backbone/actions/workflows/ci.yaml/badge.svg)](https://github.com/integr-dev/backbone/actions/workflows/ci.yaml)
+[![GitHub release](https://img.shields.io/github/v/release/integr-dev/backbone)](https://github.com/integr-dev/backbone/releases/latest)
+![GitHub last commit](https://img.shields.io/github/last-commit/integr-dev/backbone)
+[![GitHub license](https://img.shields.io/github/license/integr-dev/backbone)](https://github.com/integr-dev/backbone/blob/master/LICENSE)
 
 Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically accelerating the development lifecycle.
 
