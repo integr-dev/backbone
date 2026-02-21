@@ -16,7 +16,6 @@ package net.integr.backbone.systems.command
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import net.kyori.adventure.text.Component
-import net.md_5.bungee.api.chat.BaseComponent
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 

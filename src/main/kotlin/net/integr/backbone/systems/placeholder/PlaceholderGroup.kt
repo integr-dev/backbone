@@ -14,7 +14,6 @@
 package net.integr.backbone.systems.placeholder
 
 import net.integr.backbone.Backbone
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 
 class PlaceholderGroup(val version: String, val author: String) {
@@ -31,7 +30,7 @@ class PlaceholderGroup(val version: String, val author: String) {
     }
 
     fun registerAll() {
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (Backbone.SERVER.pluginManager.isPluginEnabled("PlaceholderAPI")) {
             extensions.forEach { it.register() }
         } else {
             logger.warning("PlaceholderAPI is not installed/enabled on the server. Ignoring.")
@@ -39,7 +38,7 @@ class PlaceholderGroup(val version: String, val author: String) {
     }
 
     fun unregisterAll() {
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (Backbone.SERVER.pluginManager.isPluginEnabled("PlaceholderAPI")) {
             extensions.forEach { it.unregister() }
         } else {
             logger.warning("PlaceholderAPI is not installed/enabled on the server. Ignoring.")

@@ -17,7 +17,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import net.integr.backbone.Backbone
 import net.integr.backbone.text.formats.CommandFeedbackFormat
-import org.bukkit.Bukkit
 import org.bukkit.command.CommandMap
 import java.awt.Color
 import java.lang.reflect.Field
@@ -31,16 +30,16 @@ object CommandHandler {
 
     private val map: CommandMap by lazy {
         logger.info("Got command map via reflection.")
-        val bukkitCommandMap: Field = Bukkit.getServer().javaClass.getDeclaredField("commandMap")
+        val bukkitCommandMap: Field = Backbone.SERVER.javaClass.getDeclaredField("commandMap")
         bukkitCommandMap.isAccessible = true
-        bukkitCommandMap.get(Bukkit.getServer()) as CommandMap
+        bukkitCommandMap.get(Backbone.SERVER) as CommandMap
     }
 
 
     fun register(command: Command, prefix: String = "backbone") {
         command.build()
         map.register(prefix, command)
-        Bukkit.getOnlinePlayers().forEach {
+        Backbone.SERVER.onlinePlayers.forEach {
             it.updateCommands()
         }
     }
@@ -48,7 +47,7 @@ object CommandHandler {
     fun unregister(command: Command, prefix: String = "backbone") {
         unregisterCommand(command.name, prefix)
 
-        Bukkit.getOnlinePlayers().forEach {
+        Backbone.SERVER.onlinePlayers.forEach {
             it.updateCommands()
         }
     }

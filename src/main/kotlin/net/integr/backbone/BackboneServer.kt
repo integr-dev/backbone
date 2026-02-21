@@ -47,7 +47,7 @@ class BackboneServer : JavaPlugin() {
 
         ItemHandler.register(TestItem)
 
-        Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN, Runnable {
+        Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)
         }, 0L, 1L)
 

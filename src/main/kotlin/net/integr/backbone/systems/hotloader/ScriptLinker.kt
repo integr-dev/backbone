@@ -164,7 +164,8 @@ object ScriptLinker {
         logger.info("Compiled ${newScripts.size} scripts.")
         logger.info("Now swapping hot...")
 
-        errs = errs || unloadScripts()
+        val unloadErrs = unloadScripts()
+        errs = errs || unloadErrs
         logger.info("Unloaded old scripts.")
 
         logger.info("Enabling ${newScripts.size} scripts...")

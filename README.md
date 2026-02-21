@@ -385,7 +385,7 @@ Backbone's GUI framework provides a declarative way to create and manage invento
 
 ```kotlin
 // Create a Test Inventory Gui with 27 slots
-object TestGui : Gui("Test Gui", 27) {
+object TestGui : Gui(component { append("Test Gui") }, 27) {
     // 'prepare' is run once during construction.
     // Use this to define the static layout of your GUI, such as placing buttons.
     override fun prepare(inventory: Inventory) {

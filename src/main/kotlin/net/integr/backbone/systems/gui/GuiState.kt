@@ -13,12 +13,13 @@
 
 package net.integr.backbone.systems.gui
 
-import org.bukkit.Bukkit
+import net.integr.backbone.Backbone
+import net.kyori.adventure.text.Component
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 
-class GuiState(val origin: Gui, val title: String, val size: Int = 27) {
-    private val inventory: Inventory = Bukkit.createInventory(null, size, title)
+class GuiState(val origin: Gui, val title: Component, val size: Int = 27) {
+    private val inventory: Inventory = Backbone.SERVER.createInventory(null, size, title)
 
     fun copy(): GuiState {
         val newState = GuiState(origin, title, size)

@@ -11,21 +11,22 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.placeholder
+package net.integr.backbone.systems.item
 
-import me.clip.placeholderapi.PlaceholderAPI
-import net.integr.backbone.Backbone
-import org.bukkit.entity.Player
+import net.kyori.adventure.text.Component
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
 
-object PlaceholderHelper {
-    val logger = Backbone.LOGGER.derive("placeholder-helper")
-
-    fun fill(player: Player, text: String): String {
-        if (Backbone.SERVER.pluginManager.isPluginEnabled("PlaceholderAPI")) {
-            return PlaceholderAPI.setPlaceholders(player, text)
-        } else {
-            logger.warning("PlaceholderAPI is not installed/enabled on the server. Ignoring.")
-            return text
-        }
+fun ItemStack.applyMeta(block: ItemMeta.() -> Unit) {
+    val meta = this.itemMeta
+    if (meta != null) {
+        block(meta)
+        this.itemMeta = meta
     }
+}
+
+fun ItemMeta.applyLore(block: (MutableList<Component>) -> Unit) {
+    val lore = this.lore() ?: mutableListOf()
+    block(lore)
+    this.lore(lore)
 }

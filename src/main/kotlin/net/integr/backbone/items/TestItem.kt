@@ -18,6 +18,7 @@ import net.integr.backbone.systems.item.CustomItemState
 import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.systems.item.applyLore
 import net.integr.backbone.systems.item.applyMeta
+import net.integr.backbone.systems.text.component
 import org.bukkit.Material
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
@@ -40,7 +41,7 @@ object TestItem : CustomItem("test_item", DefaultState) {
         override fun populate(stack: ItemStack) {
             stack.applyMeta {
                 applyLore { lore ->
-                    lore += "Default"
+                    lore += component { append("Default") }
                 }
             }
         }
@@ -57,7 +58,7 @@ object TestItem : CustomItem("test_item", DefaultState) {
         override fun populate(stack: ItemStack) {
             stack.applyMeta {
                 applyLore { lore ->
-                    lore += "Cooldown"
+                    lore += component { append("Cooldown") }
                 }
             }
         }
