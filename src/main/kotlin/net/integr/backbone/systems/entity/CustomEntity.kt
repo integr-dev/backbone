@@ -11,16 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.renderer.obj
+package net.integr.backbone.systems.entity
 
-import org.bukkit.Location
-import org.bukkit.World
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.TextDisplay
+import org.bukkit.entity.Zombie
 
-
-class TextDisplayObject : EntityBackedObject<TextDisplay>() {
-    override fun spawn(world: World, location: Location) {
-        entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY) as TextDisplay
-    }
-}
