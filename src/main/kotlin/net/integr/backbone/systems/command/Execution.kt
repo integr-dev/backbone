@@ -15,22 +15,23 @@ package net.integr.backbone.systems.command
 
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
+import net.kyori.adventure.text.Component
 import net.md_5.bungee.api.chat.BaseComponent
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
-class Execution(val sender: CommandSender, val args: Map<String, Any>, private val format: CommandFeedbackFormat) {
+class Execution(val sender: CommandSender?, val args: Map<String, Any>, private val format: CommandFeedbackFormat) {
     fun <T> get(key: String): T {
         @Suppress("UNCHECKED_CAST")
         return args[key] as T
     }
 
     fun respond(message: String) {
-        sender.spigot().sendMessage(format.format(message))
+        sender?.sendMessage(format.format(message))
     }
 
-    fun respondComponent(component: BaseComponent) {
-        sender.spigot().sendMessage(component)
+    fun respondComponent(component: Component) {
+        sender?.sendMessage(component)
     }
 
     fun failOnPlayer() {
@@ -64,7 +65,7 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
 
     fun getConsole(): CommandSender {
         requireConsole()
-        return sender
+        return sender!!
     }
 
     fun fail(message: String): Boolean {
@@ -72,18 +73,18 @@ class Execution(val sender: CommandSender, val args: Map<String, Any>, private v
     }
 
     fun requirePermission(perm: PermissionNode) {
-        if (!sender.hasPermission(perm.id)) {
+        if (!sender!!.hasPermission(perm.id)) {
             fail("You do not have permission to execute this command.")
         }
     }
 
     fun cantHavePermission(perm: PermissionNode) {
-        if (sender.hasPermission(perm.id)) {
+        if (sender!!.hasPermission(perm.id)) {
             fail("You are not allowed to execute this command.")
         }
     }
 
     fun hasPermission(perm: PermissionNode): Boolean {
-        return sender.hasPermission(perm.id)
+        return sender!!.hasPermission(perm.id)
     }
 }

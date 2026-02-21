@@ -23,12 +23,9 @@ import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
 import net.integr.backbone.systems.item.ItemHandler
-import net.integr.backbone.systems.text.append
 import net.integr.backbone.systems.text.component
-import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.HoverEvent
-import net.md_5.bungee.api.chat.hover.content.Text
+import net.kyori.adventure.text.event.ClickEvent
+import net.kyori.adventure.text.event.HoverEvent
 import java.awt.Color
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
@@ -54,25 +51,22 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             for (script in ScriptStore.scripts) {
                 ctx.respondComponent(component {
                     append("  - ${script.key.substringBefore(".bb.kts")}: ") {
-                        color(ChatColor.of(Color(169, 173, 168)))
-                        event(HoverEvent(
-                            HoverEvent.Action.SHOW_TEXT,
-                            Text("${if (script.value.enabled) "Disable" else "Enable"} " +
-                                    script.key.substringBefore(".bb.kts")
-                            ))
-                        )
-                        event(ClickEvent(
-                            ClickEvent.Action.RUN_COMMAND,
-                            "bb scripting ${if (script.value.enabled) "disable" else "enable"} " +
-                                    script.key.substringBefore(".bb.kts")
-                            )
-                        )
+                        color(Color(169, 173, 168))
+                        onHover(HoverEvent.showText(component {
+                            append(if (script.value.enabled) "Disable " else "Enable ")
+                            append(script.key.substringBefore(".bb.kts"))
+                        }))
+
+                        onClick(ClickEvent.runCommand(
+                            "bb scripting ${if (script.value.enabled) "disable" else "enable"} "
+                                    + script.key.substringBefore(".bb.kts")
+                        ))
                     }
 
                     append(if (script.value.enabled) "✔ enabled" else "❌ disabled") {
                         color(
-                            if (script.value.enabled) ChatColor.of(Color(141, 184, 130))
-                            else ChatColor.of(Color(201, 82, 60))
+                            if (script.value.enabled) Color(141, 184, 130)
+                            else Color(201, 82, 60)
                         )
                     }
                 })
@@ -189,7 +183,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             for (item in ItemHandler.items) {
                 ctx.respondComponent(component {
                     append("  - ${item.key}") {
-                        color(ChatColor.of(Color(169, 173, 168)))
+                        color(Color(169, 173, 168))
                     }
                 })
             }
@@ -234,7 +228,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                 try {
                     val stack = ItemHandler.replicate(ctx.getPlayer().inventory.itemInMainHand)
                     if (stack == null) ctx.fail("Item is not a backbone item.")
-                    ctx.getPlayer().inventory.addItem(stack)
+                    else ctx.getPlayer().inventory.addItem(stack)
                     ctx.respond("Item replicated.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while generating the item.")
@@ -258,11 +252,11 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
                     for (tag in tags) {
                         ctx.respondComponent(component {
                             append("  - ${tag.key}: ") {
-                                color(ChatColor.of(Color(169, 173, 168)))
+                                color(Color(169, 173, 168))
                             }
 
                             append(tag.value) {
-                                color(ChatColor.of(Color(141, 184, 130)))
+                                color(Color(141, 184, 130))
                             }
                         })
                     }

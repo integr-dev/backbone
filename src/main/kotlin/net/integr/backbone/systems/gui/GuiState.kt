@@ -30,11 +30,11 @@ class GuiState(val origin: Gui, val title: String, val size: Int = 27) {
         return inventory
     }
 
-    private fun setContents(contents: Array<ItemStack>) {
+    private fun setContents(contents: Array<ItemStack?>) {
         inventory.contents = contents
     }
 
-    private fun getContents(): Array<ItemStack> {
+    private fun getContents(): Array<ItemStack?> {
         return inventory.contents
     }
 }

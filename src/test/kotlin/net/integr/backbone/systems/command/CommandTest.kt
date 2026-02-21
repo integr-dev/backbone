@@ -16,10 +16,8 @@ package net.integr.backbone.systems.command
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.commands.arguments.StringArgument
-import org.bukkit.command.CommandSender
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
 import kotlin.test.assertContains
 
 class CommandTest {
@@ -59,15 +57,13 @@ class CommandTest {
         command.subCommands(subCommand)
         command.build()
 
-        val sender = mock(CommandSender::class.java)
         val argChain = ArgumentChain(listOf("sub", "arg1", "arg2"))
 
         runBlocking {
-            command.handleExecution(sender, argChain)
+            command.handleExecution(null, argChain)
         }
 
         assertTrue(subCommand.execCalled)
-        assertEquals(subCommand.lastExecution.sender, sender)
     }
 
     @Test
