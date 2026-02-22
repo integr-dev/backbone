@@ -16,7 +16,6 @@ package net.integr.backbone
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.TickEvent
-import net.integr.backbone.items.TestItem
 import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
@@ -27,8 +26,6 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.PrintStream
-
-
 
 class BackboneServer : JavaPlugin() {
     override fun onEnable() {
@@ -48,8 +45,6 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.registerListener(GuiHandler)
         Backbone.registerListener(ItemHandler)
-
-        ItemHandler.register(TestItem)
 
         CommandHandler.register(BackboneCommand)
 

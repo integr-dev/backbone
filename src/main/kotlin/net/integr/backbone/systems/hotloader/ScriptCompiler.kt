@@ -63,7 +63,7 @@ object ScriptCompiler {
             return evalValue.value as ManagedLifecycle
         } else {
             throw IllegalStateException(
-                "[${file.name}] Script did not return a ManagedLifecycle object. Found: $evalValue"
+                "Script did not return a ManagedLifecycle object. Found: $evalValue"
             )
         }
     }

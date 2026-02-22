@@ -23,6 +23,7 @@ import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 
 object Backbone {
+    //TODO: dialogues
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")
     val CONFIG_POOL = ResourcePool.fromConfig("backbone")
 
