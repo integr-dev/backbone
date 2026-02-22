@@ -46,7 +46,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         this.arguments.addAll(arguments)
     }
 
-    suspend fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
+    suspend fun handleExecution(sender: CommandSender?, argChain: ArgumentChain) {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -123,15 +123,15 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             } catch (e: CommandFailedException) {
                 // Command has been failed manually
                 logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
-                sender.spigot().sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
             } catch (e: CommandArgumentException) {
                 // User has provided invalid argument
                 logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
-                sender.spigot().sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
             } catch (e: Exception) {
                 // Unexpected error such as database failure
                 logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
-                sender.spigot().sendMessage(format.formatErr("An error occurred while executing the command. Please contact administration."))
+                sender.sendMessage(format.formatErr("An error occurred while executing the command. Please contact administration."))
                 e.printStackTrace()
             }
         }

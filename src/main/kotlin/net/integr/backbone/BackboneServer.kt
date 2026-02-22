@@ -13,12 +13,9 @@
 
 package net.integr.backbone
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.TickEvent
-import net.integr.backbone.items.TestItem
 import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
@@ -26,40 +23,40 @@ import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.item.ItemHandler
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.FileDescriptor
+import java.io.FileOutputStream
+import java.io.PrintStream
 
 class BackboneServer : JavaPlugin() {
     override fun onEnable() {
-        Backbone.LOGGER.info("Starting up Backbone")
-        CommandHandler.register(BackboneCommand)
+        val fdOut = FileOutputStream(FileDescriptor.out)
+        val originalOut = PrintStream(fdOut, true)
+
+        System.setOut(originalOut)
+        System.setErr(PrintStream(FileOutputStream(FileDescriptor.err), true))
 
         Backbone.SCRIPT_POOL.create()
 
         setPlaceholders()
 
         runBlocking {
-            async(Dispatchers.IO) {
-                ScriptLinker.compileAndLink()
-            }
+            ScriptLinker.compileAndLink()
         }
 
         Backbone.registerListener(GuiHandler)
         Backbone.registerListener(ItemHandler)
 
-        ItemHandler.register(TestItem)
+        CommandHandler.register(BackboneCommand)
 
-        Backbone.SCHEDULER.runTaskTimer(Backbone.PLUGIN, Runnable {
+        Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)
         }, 0L, 1L)
 
     }
 
     override fun onDisable() {
-        Backbone.LOGGER.info("Shutting down Backbone")
-
         runBlocking {
-            async(Dispatchers.IO) {
-                ScriptEngine.unloadScripts() // Cleanup
-            }
+            ScriptEngine.unloadScripts() // Cleanup
         }
     }
 

@@ -11,16 +11,22 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.renderer.obj
+package net.integr.backbone.systems.item
 
-import org.bukkit.Location
-import org.bukkit.World
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.TextDisplay
+import net.kyori.adventure.text.Component
+import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.ItemMeta
 
-
-class TextDisplayObject : EntityBackedObject<TextDisplay>() {
-    override fun spawn(world: World, location: Location) {
-        entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY) as TextDisplay
+fun ItemStack.applyMeta(block: ItemMeta.() -> Unit) {
+    val meta = this.itemMeta
+    if (meta != null) {
+        block(meta)
+        this.itemMeta = meta
     }
+}
+
+fun ItemMeta.applyLore(block: (MutableList<Component>) -> Unit) {
+    val lore = this.lore() ?: mutableListOf()
+    block(lore)
+    this.lore(lore)
 }

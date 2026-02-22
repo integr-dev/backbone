@@ -11,21 +11,14 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.item
+package net.integr.backbone
 
-import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
-
-fun ItemStack.applyMeta(block: ItemMeta.() -> Unit) {
-    val meta = this.itemMeta
-    if (meta != null) {
-        block(meta)
-        this.itemMeta = meta
+object Utils {
+    fun <T> tryOrNull(block: () -> T): T? {
+        return try {
+            block()
+        } catch (e: Exception) {
+            null
+        }
     }
-}
-
-fun ItemMeta.applyLore(block: (MutableList<String>) -> Unit) {
-    val lore = this.lore ?: mutableListOf()
-    block(lore)
-    this.lore = lore
 }

@@ -11,16 +11,27 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.renderer.obj
+package net.integr.backbone.systems.entity
 
+import com.destroystokyo.paper.entity.ai.GoalKey
+import net.integr.backbone.Backbone
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.TextDisplay
+import org.bukkit.entity.Mob
 
+abstract class CustomEntity<T : Mob>(val type: EntityType) {
+    abstract fun prepare(mob: T)
 
-class TextDisplayObject : EntityBackedObject<TextDisplay>() {
-    override fun spawn(world: World, location: Location) {
-        entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY) as TextDisplay
+    fun spawn(location: Location, world: World): T {
+        val e = world.spawnEntity(location, type)
+        @Suppress("UNCHECKED_CAST")
+        prepare(e as T)
+        return e
+    }
+
+    inline fun <reified T : Mob> getGoalKey(namespace: String, key: String): GoalKey<T> {
+        return GoalKey.of(T::class.java, Backbone.getKey(namespace, key))
     }
 }
+

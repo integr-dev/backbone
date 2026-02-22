@@ -14,6 +14,7 @@
 package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.runBlocking
+import net.integr.backbone.BackboneLogger
 import net.integr.backbone.systems.hotloader.configuration.UtilityScript
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import java.io.File
@@ -62,7 +63,7 @@ object ScriptCompiler {
             return evalValue.value as ManagedLifecycle
         } else {
             throw IllegalStateException(
-                "[${file.name}] Script did not return a ManagedLifecycle object. Found: $evalValue"
+                "Script did not return a ManagedLifecycle object. Found: $evalValue"
             )
         }
     }
@@ -100,11 +101,19 @@ object ScriptCompiler {
         reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning(
-                    "[${file.name}] [${report.severity}] ${report.message} (${getLocationReadable(report.location)})"
+                    "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneLogger.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
                 )
 
                 report.exception?.printStackTrace()
             }
+        }
+    }
+
+    fun getSeverityColor(sev: ScriptDiagnostic.Severity): String {
+        return when (sev) {
+            ScriptDiagnostic.Severity.WARNING -> BackboneLogger.ANSI_YELLOW
+            ScriptDiagnostic.Severity.ERROR -> BackboneLogger.ANSI_RED
+            else -> BackboneLogger.ANSI_CYAN
         }
     }
 

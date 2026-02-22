@@ -37,6 +37,7 @@ class StatementCreator(private val connection: Connection) {
     }
 
     fun execute(@Language("SQL") sql: String): Boolean? {
+        logger.info("Executing SQL: $sql")
         return statement {
             @Suppress("SqlSourceToSinkFlow") // String is just passed along
             this.execute(sql)
@@ -44,6 +45,7 @@ class StatementCreator(private val connection: Connection) {
     }
 
     fun <T> query(@Language("SQL") sql: String, mapper: (ResultSet) -> T?): T? {
+        logger.info("Executing SQL: $sql")
         return statement {
             @Suppress("SqlSourceToSinkFlow") // String is just passed along
             val res = this.executeQuery(sql)
@@ -58,6 +60,7 @@ class StatementCreator(private val connection: Connection) {
     }
 
     fun <T> preparedStatement(@Language("SQL") sql: String, block: PreparedStatement.() -> T): T? {
+        logger.info("Executing SQL: $sql")
         try {
             @Suppress("SqlSourceToSinkFlow") // String is just passed along
             val statement = connection.prepareStatement(sql)

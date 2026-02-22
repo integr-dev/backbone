@@ -13,13 +13,14 @@
 
 package net.integr.backbone.systems.gui
 
+import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryInteractEvent
 import org.bukkit.inventory.Inventory
 
-abstract class Gui(title: String, size: Int = 27) {
+abstract class Gui(title: Component, size: Int = 27) {
     val initialState = GuiState(this, title, size)
 
     init {

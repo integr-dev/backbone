@@ -11,14 +11,16 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") {
-        name = "spigotmc-repo"
+    maven {
+        name = "papermc"
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
+
     maven("https://repo.extendedclip.com/releases/")
 }
 
 dependencies {
-    implementation("org.spigotmc:spigot-api:1.21.11-R0.1-SNAPSHOT")
+    implementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
 
     implementation("me.clip:placeholderapi:2.12.2")
 

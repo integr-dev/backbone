@@ -50,7 +50,7 @@ class EventBusTest {
 
         val listener = TestListener()
         EventBus.register(listener)
-        EventBus.unRegister(listener)
+        EventBus.unregister(listener)
         EventBus.post(TestEvent())
 
         assertFalse(eventHandled)

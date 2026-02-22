@@ -326,21 +326,25 @@ Backbone includes a flexible text component system that allows you to customize 
 
 ### Components
 
-Backbone has a simple component builder abstraction that is based on the bungeecord implementation of `BaseComponent` and `ComponentBuilder`.
+Backbone has a simple component builder abstraction that is based on the papermc `net.kyori.adventure.text.Component`
+
 
 ```kotlin
 component {
     append("Hello") {
-        color(ChatColor.of(Color.RED))
+        color(Color.RED)
     }
 
     append("World") {
-        color(ChatColor.of(Color.GREEN))
-        event(HoverEvent(HoverEvent.Action.SHOW_TEXT, Text("Hover!")))
+        color(Color.GREEN)
+        
+        onHover(HoverEvent.showText(component {
+            append("Hover")
+        }))
     }
 
     append("!") {
-        color(ChatColor.of(Color.YELLOW))
+        color(Color.YELLOW)
     }
 }
 ```
@@ -381,7 +385,7 @@ Backbone's GUI framework provides a declarative way to create and manage invento
 
 ```kotlin
 // Create a Test Inventory Gui with 27 slots
-object TestGui : Gui("Test Gui", 27) {
+object TestGui : Gui(component { append("Test Gui") }, 27) {
     // 'prepare' is run once during construction.
     // Use this to define the static layout of your GUI, such as placing buttons.
     override fun prepare(inventory: Inventory) {
