@@ -13,6 +13,7 @@
 
 package net.integr.backbone.systems.storage.database
 
+import net.integr.backbone.Backbone
 import net.integr.backbone.systems.storage.ResourceLocation
 import java.sql.Connection
 import java.sql.DriverManager
@@ -20,6 +21,8 @@ import java.sql.Savepoint
 import java.util.concurrent.atomic.AtomicInteger
 
 class DatabaseConnection(db: ResourceLocation) : AutoCloseable {
+    private val logger = Backbone.LOGGER.derive("database-connection")
+
     private val jdbcUrl = "jdbc:sqlite:" + db.location.absolutePath
     private var connection: Connection? = null
 
@@ -29,6 +32,7 @@ class DatabaseConnection(db: ResourceLocation) : AutoCloseable {
     fun getOrConnect(): Connection = synchronized(lock) {
         if (connection == null || connection!!.isClosed) {
             connection = DriverManager.getConnection(jdbcUrl)
+            logger.info("Connection to '$jdbcUrl' opened.")
         }
 
         useCount.incrementAndGet()
@@ -39,6 +43,7 @@ class DatabaseConnection(db: ResourceLocation) : AutoCloseable {
         if (useCount.decrementAndGet() == 0) {
             connection?.close()
             connection = null
+            logger.info("Connection to '$jdbcUrl' closed.")
         }
     }
 

@@ -48,15 +48,16 @@ object EventBus {
                 val entry = eventHandlers.getOrPut(targetEventId) { sortedMapOf() }
                 val priorityEntry = entry.getOrPut(priority) { ConcurrentHashMap() }
 
+                logger.info("Registering event handler ${klass.simpleName}.${member.name}()")
                 priorityEntry[member] = instance
             }
         }
     }
 
     fun register(klass: KClass<*>) = register(klass, klass.createInstance())
-    fun register(instance: Any)  = register(instance::class, instance)
+    fun register(instance: Any) = register(instance::class, instance)
 
-    fun unRegister(klass: KClass<*>) {
+    fun unregister(klass: KClass<*>) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
                 val targetEventId = member.parameters[1].type.classifier
@@ -67,14 +68,16 @@ object EventBus {
                 val entry = eventHandlers[targetEventId] ?: continue
                 val priorityEntry = entry[priority] ?: continue
 
+                logger.info("Unregistering event handler ${klass.simpleName}.${member.name}()")
                 priorityEntry.remove(member)
             }
         }
     }
 
-    fun unRegister(instance: Any) = unRegister(instance::class)
+    fun unregister(instance: Any) = unregister(instance::class)
 
     fun clear() {
+        logger.info("Clearing all event handlers")
         eventHandlers.clear()
     }
 

@@ -17,7 +17,6 @@ import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
 import net.integr.backbone.systems.storage.ResourcePool
-import net.integr.backbone.Utils
 import org.bukkit.NamespacedKey
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
@@ -55,17 +54,23 @@ object Backbone {
     }
 
     fun registerListener(listener: Listener) {
+        LOGGER.info("Registering listener: ${listener.javaClass.name}")
         SERVER.pluginManager.registerEvents(listener, PLUGIN)
         EventBus.register(listener)
     }
 
     fun unregisterListener(listener: Listener) {
+        LOGGER.info("Unregistering listener: ${listener.javaClass.name}")
         HandlerList.unregisterAll(listener)
-        EventBus.unRegister(listener)
+        EventBus.unregister(listener)
     }
 
     fun dispatchMain(block: () -> Unit) {
         SERVER.scheduler.runTask(PLUGIN, block)
+    }
+
+    fun dispatch(block: () -> Unit) {
+        SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
     }
 
     fun getKey(namespace: String, key: String): NamespacedKey {

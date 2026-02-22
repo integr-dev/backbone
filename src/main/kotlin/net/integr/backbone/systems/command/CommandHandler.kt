@@ -29,10 +29,11 @@ object CommandHandler {
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val map: CommandMap by lazy {
-        logger.info("Got command map via reflection.")
         val bukkitCommandMap: Field = Backbone.SERVER.javaClass.getDeclaredField("commandMap")
         bukkitCommandMap.isAccessible = true
-        bukkitCommandMap.get(Backbone.SERVER) as CommandMap
+        val map = bukkitCommandMap.get(Backbone.SERVER) as CommandMap
+        logger.info("Got command map via reflection.")
+        map
     }
 
 
