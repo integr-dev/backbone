@@ -30,7 +30,7 @@ object GuiHandler : Listener {
         val playersInv = openInventories[event.player as Player] ?: return
         if (playersInv.getInventory() == event.inventory) {
             openInventories.remove(event.player as Player)
-            playersInv.origin.close(event)
+            playersInv.origin.onClose(event)
         }
     }
 
@@ -38,7 +38,7 @@ object GuiHandler : Listener {
     fun onClickInventory(event: InventoryClickEvent) {
         val playersInv = openInventories[event.whoClicked as Player] ?: return
         if (playersInv.getInventory() == event.inventory) {
-            playersInv.origin.clicked(event)
+            playersInv.origin.onClick(event)
         }
     }
 
@@ -46,14 +46,14 @@ object GuiHandler : Listener {
     fun onInteractInventory(event: InventoryInteractEvent) {
         val playersInv = openInventories[event.whoClicked as Player] ?: return
         if (playersInv.getInventory() == event.inventory) {
-            playersInv.origin.interacted(event)
+            playersInv.origin.onInteract(event)
         }
     }
 
     @BackboneEventHandler
     fun onTick(event: TickEvent) {
         for ((_, guiState) in openInventories) {
-            guiState.origin.tick(guiState.getInventory())
+            guiState.origin.onTick(guiState.getInventory())
         }
     }
 }

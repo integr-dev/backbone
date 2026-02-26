@@ -33,14 +33,14 @@ abstract class Gui(title: Component, size: Int = 27) {
         val inv = playerState.getInventory()
         GuiHandler.openInventories[player] = playerState
         player.openInventory(inv)
-        open(player, inv)
+        onOpen(player, inv)
     }
 
-    open fun prepare(inventory: Inventory) {}
-    open fun open(player: Player, inventory: Inventory) {}
-    open fun close(inventory: InventoryCloseEvent) {}
+    protected open fun prepare(inventory: Inventory) {}
+    open fun onOpen(player: Player, inventory: Inventory) {}
+    open fun onClose(inventory: InventoryCloseEvent) {}
 
-    open fun tick(inventory: Inventory) {}
-    open fun clicked(inventory: InventoryClickEvent) {}
-    open fun interacted(inventory: InventoryInteractEvent) {}
+    open fun onTick(inventory: Inventory) {}
+    open fun onClick(inventory: InventoryClickEvent) {}
+    open fun onInteract(inventory: InventoryInteractEvent) {}
 }

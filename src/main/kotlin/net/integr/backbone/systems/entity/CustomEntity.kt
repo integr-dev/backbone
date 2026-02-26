@@ -21,7 +21,7 @@ import org.bukkit.entity.EntityType
 import org.bukkit.entity.Mob
 
 abstract class CustomEntity<T : Mob>(val type: EntityType) {
-    abstract fun prepare(mob: T)
+    protected abstract fun prepare(mob: T)
 
     fun spawn(location: Location, world: World): T {
         val e = world.spawnEntity(location, type)

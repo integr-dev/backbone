@@ -13,7 +13,6 @@
 
 package net.integr.backbone.systems.item
 
-import org.bukkit.Material
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
@@ -45,16 +44,16 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
 
     protected open fun populate(stack: ItemStack) {}
 
-    fun postInteracted(customItemStateUid: String?, event: PlayerInteractEvent) {
-        interacted(event)
+    fun postInteract(customItemStateUid: String?, event: PlayerInteractEvent) {
+        onInteract(event)
 
         if (customItemStateUid == null) return
         val state = states[customItemStateUid] ?: return
         state.interacted(event)
     }
 
-    fun postDropped(customItemStateUid: String?, event: EntityDropItemEvent) {
-        dropped(event)
+    fun postDrop(customItemStateUid: String?, event: EntityDropItemEvent) {
+        onDrop(event)
 
         if (customItemStateUid == null) return
         val state = states[customItemStateUid] ?: return
@@ -62,14 +61,14 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
     }
 
     fun postPickup(customItemStateUid: String?, event: EntityPickupItemEvent) {
-        pickup(event)
+        onPickup(event)
 
         if (customItemStateUid == null) return
         val state = states[customItemStateUid] ?: return
         state.pickup(event)
     }
 
-    open fun interacted(event: PlayerInteractEvent) {}
-    open fun dropped(event: EntityDropItemEvent) {}
-    open fun pickup(event: EntityPickupItemEvent) {}
+    protected open fun onInteract(event: PlayerInteractEvent) {}
+    protected open fun onDrop(event: EntityDropItemEvent) {}
+    protected open fun onPickup(event: EntityPickupItemEvent) {}
 }

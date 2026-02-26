@@ -70,7 +70,7 @@ object ItemHandler : Listener {
         val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
-        customItem.postInteracted(customItemStateUid, event)
+        customItem.postInteract(customItemStateUid, event)
     }
 
     @EventHandler
@@ -83,7 +83,7 @@ object ItemHandler : Listener {
         val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
-        customItem.postDropped(customItemStateUid, event)
+        customItem.postDrop(customItemStateUid, event)
     }
 
     fun onPlayerPickup(event: EntityPickupItemEvent) {
