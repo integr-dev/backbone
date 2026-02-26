@@ -1,11 +1,11 @@
 name: Backbone
-version: '1.0.0'
+version: '${version}'
 main: net.integr.backbone.BackboneServer
 api-version: '1.21'
 prefix: backbone
 authors: [ Integr ]
 description: |
-  Backbone provides a robust and flexible framework for developing Minecraft plugins.
+  Backbone provides a robust and flexible framework for developing Minecraft servers.
   Features include but are not limited to:
   - Hot reloading of .bb.kts scripts during runtime.
   - Extensive command parsing with validation, arguments and async execution.
@@ -13,6 +13,10 @@ description: |
   - Database connector and utility to easily create a SQLite connection on your server.
   - Config utility with serialization to yaml.
   - Inventory Gui Utility to create guis and differentiate between them with ease and without checking inventory title.
+  - Custom item utility for adding ability items.
+  - Custom entity utility for adding custom entities via the goals api.
+  - TextComponent builder based on the AdventureText api.
+  - Display entity rendering system for creating custom visuals.
 website: tdb
 
 softdepend: ["PlaceholderAPI"]

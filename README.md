@@ -20,17 +20,51 @@ Whether you're a server administrator looking to add custom features with simple
 - **Storage Abstraction:** Easily manage data with a flexible storage system that supports SQLite databases and typed configuration files.
 - **GUI Framework:** A declarative GUI framework for creating complex and interactive inventories from your scripts.
 - **Text Formatting:** A flexible text formatting system with support for custom alphabets and color codes.
+- **Entity Framework:** Custom entity utility for adding custom entities via the goals api.
+- **Display Entity Rendering System:** A powerful display entity rendering system for creating custom visuals
+- **Custom Item Framework:** A stateful custom item framework for creating items with unique abilities.
 
 ## Getting Started
 
 Getting started with Backbone is simple. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
 
+### Requirements
+- Minecraft Java Edition Server version 1.21 or higher.
+- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.62/) (optional, for placeholder support).
+
+### Installation
 1.  **Download:** Download the latest release from the [official releases page](https://github.com/integr-dev/backbone/releases).
 2.  **Install:** Place the downloaded `.jar` file into your server's `plugins` directory.
 3.  **Start:** Launch your server. Backbone will generate its necessary folders in your server's root directory.
 4.  **Scripting:** You can now begin writing custom logic in `.bb.kts` script files inside the `scripts/` directory. See the examples below to get started!
 
 For advanced users who wish to build a plugin that depends on Backbone, you can add it as a dependency. However, for most use cases, the scripting engine provides all the power you need.
+
+## Management Commands
+Backbone comes with a set of powerful management commands to control its various systems. The base command is `/backbone`, which can also be accessed using the alias `/bb`.
+
+### Scripting Commands
+The `/bb scripting` command provides tools to manage your hot-loadable scripts.
+
+-   `/bb scripting`: Lists all discovered scripts and their current status (enabled/disabled).
+-   `/bb scripting reload`: Reloads all scripts, applying any changes you've made.
+-   `/bb scripting enable <script_name>`: Enables a disabled script.
+-   `/bb scripting disable <script_name>`: Disables an enabled script.
+-   `/bb scripting wipe <script_name> <confirmation>`: Wipes the persistent state of a script. Requires the script name to be entered twice for confirmation.
+
+### Custom Item Commands
+The `/bb item` command allows you to interact with the custom item system.
+
+-   `/bb item`: Lists all registered custom items.
+-   `/bb item give <item_name>`: Gives you the specified custom item.
+-   `/bb item replicate`: Creates a new instance of the custom item you are currently holding.
+-   `/bb item read`: Reads and displays the NBT tags of the item you are holding.
+
+### Custom Entity Commands
+The `/bb entity` command provides control over custom entities.
+
+-   `/bb entity`: Lists all registered custom entities.
+-   `/bb entity spawn <entity_name>`: Spawns the specified custom entity at your location.
 
 ## Examples
 
@@ -84,16 +118,6 @@ object : ManagedLifecycle() {
     }
 }
 ```
-
-#### Managing Scripts
-
-Backbone provides a set of commands to manage your scripts. The base command is `/backbone`, which can be aliased to `/bb`.
-
--   `/bb scripting`: Lists all discovered scripts and shows their current status (enabled/disabled).
--   `/bb scripting reload`: Unloads all current scripts, then loads and enables all scripts from the `scripts` directory. This is the primary command for applying changes.
--   `/bb scripting enable <script_name>`: Enables a specific script that is currently disabled.
--   `/bb scripting disable <script_name>`: Disables a specific script that is currently enabled.
--   `/bb scripting wipe <script_name>`: Resets sustained state data for a script.
 
 ### Advanced Scripting
 
@@ -184,15 +208,18 @@ data class MyConfig(val settingA: String = "default", val settingB: Int = 10)
 Then, use the `config()` function on your resource pool to get a handler for it:
 
 ```kotlin
-// Get a handler for a config file named 'settings.json'
-val configHandler = myScriptConfig.config<MyConfig>("settings.json")
+// Get a handler for a config file named 'settings.yml'
+val configHandler = myScriptConfig.config<MyConfig>("settings.yml")
 
-// Get the current config, or the default if it doesn't exist
-val currentConfig = configHandler.get()
-println("Setting A: ${currentConfig.settingA}")
+// Load the config file synchronously
+configHandler.updateSync()
 
-// Modify and save the config
-configHandler.set(currentConfig.copy(settingB = 20))
+// Get the current config from the cache
+val currentConfig = configHandler.getState()
+println("Setting A: ${currentConfig?.settingA}")
+
+// Modify and save the config asynchronously
+configHandler.writeState(currentConfig.copy(settingB = 20))
 ```
 
 #### Databases
@@ -281,12 +308,12 @@ object MyCommand : Command("mycommand", "My first command") {
 
 // In your ManagedLifecycle's onLoad:
 override fun onLoad() {
-    CommandHandler.register(MyCommand)
+    Backbone.Handlers.COMMAND.register(MyCommand)
 }
 
 // In your ManagedLifecycle's onUnload:
 override fun onUnload() {
-    CommandHandler.unregister(MyCommand)
+    Backbone.Handlers.COMMAND.unregister(MyCommand)
 }
 ```
 
@@ -318,6 +345,106 @@ You can then use this custom argument in your command definitions:
 arguments(
     DoubleArgument("amount", "A decimal number")
 )
+```
+
+### Custom Items
+Backbone includes a powerful framework for creating custom items with unique behaviors and state.
+
+#### Defining a Custom Item
+To create a custom item, you extend the `CustomItem` class. This class allows you to define the item's ID, its default state, and its behavior when interacted with.
+
+```kotlin
+// Define a custom item
+object MyItem : CustomItem("my_item", MyItemState) {
+    // This method is called when a player interacts with the item
+    override fun onInteract(event: PlayerInteractEvent) {
+        event.player.sendMessage("You used My Item!")
+    }
+}
+
+// Define the state for the custom item
+object MyItemState : CustomItemState("default") {
+    override fun generate(): ItemStack {
+        return ItemStack(Material.DIAMOND_SWORD).apply {
+            itemMeta = itemMeta.apply {
+                setDisplayName("My Custom Sword")
+            }
+        }
+    }
+}
+
+// In your ManagedLifecycle's onLoad:
+override fun onLoad() {
+    Backbone.Handlers.ITEM.register(MyItem)
+}
+```
+
+You can then give the item to a player using a command:
+```kotlin
+// In a command's exec method
+val item = MyItem.generate()
+ctx.getPlayer().inventory.addItem(item)
+```
+
+### Custom Entities
+Backbone allows you to create custom entities with unique AI goals.
+
+```kotlin
+// Define a custom entity that is a non-moving zombie
+object GuardEntity : CustomEntity<Zombie>("guard", EntityType.ZOMBIE) {
+    override fun prepare(mob: Zombie) {
+        // Set up for example armor
+    }
+
+    override fun setupGoals(mob: Zombie) {
+        // Clear existing goals and add a simple look goal
+        val goals = Backbone.SERVER.mobGoals
+        goals.removeAllGoals(mob)
+        goals.addGoal(mob, 1, LookAtPlayerGoal(mob))
+    }
+}
+
+// In your ManagedLifecycle's onLoad:
+override fun onLoad() {
+    Backbone.Handlers.ENTITY.register(GuardEntity)
+}
+
+// You can then spawn the entity for example using a command
+// In a command's exec method:
+GuardEntity.spawn(ctx.getPlayer().location, ctx.getPlayer().world)
+```
+
+### Display Entity Rendering
+Backbone provides a powerful rendering system using display entities. This allows you to create custom visuals in the world.
+
+Here is an example of how to create a glowing box around a player:
+```kotlin
+// Create a renderable object
+val playerBox = BoxRenderable()
+
+// In your ManagedLifecycle's onLoad:
+override fun onLoad() {
+    // Spawn the box when the script loads
+    val player = Backbone.SERVER.onlinePlayers.firstOrNull()
+    if (player != null) {
+        playerBox.spawn(player.world, player.location)
+    }
+}
+
+// In your ManagedLifecycle's onUnload:
+override fun onUnload() {
+    // Despawn the box when the script unloads
+    playerBox.despawn()
+}
+
+// In a tick event, update the box's position and appearance
+@BackboneEventHandler
+fun onTick(event: TickEvent) {
+    val player = Backbone.SERVER.onlinePlayers.firstOrNull()
+    if (player != null) {
+        playerBox.update(player.location, player.location.clone().add(0.0, 1.0, 0.0), Material.GLASS.createBlockData())
+    }
+}
 ```
 
 ### Custom Formatting and Utilities
@@ -392,33 +519,33 @@ object TestGui : Gui(component { append("Test Gui") }, 27) {
         inventory.setItem(0, ItemStack(Material.GOLDEN_APPLE))
     }
 
-    // 'open' is run whenever the inventory is first loaded for a player.
+    // 'onOpen' is run whenever the inventory is first loaded for a player.
     // Use this to dynamically load player-specific data.
-    override fun open(player: Player, inventory: Inventory) {
+    override fun onOpen(player: Player, inventory: Inventory) {
         // GUI has been opened for the player
     }
 
-    // 'close' is called when the inventory is closed.
+    // 'onClose' is called when the inventory is closed.
     // Note: To open another GUI from this event, schedule it for the next tick
     // by wrapping the .open() call in Backbone.dispatchMain {}.
-    override fun close(inventory: InventoryCloseEvent) {
+    override fun onClose(inventory: InventoryCloseEvent) {
         // GUI has been closed
     }
 
-    // 'tick' runs every game tick for open GUIs.
+    // 'onTick' runs every game tick for open GUIs.
     // Useful for animations and other dynamic logic.
-    override fun tick(inventory: Inventory) {
+    override fun onTick(inventory: Inventory) {
         val randomSlot = (0 until inventory.size).random()
         inventory.setItem(randomSlot, ItemStack(Material.APPLE))
     }
 
-    // 'clicked' runs when a slot is clicked in this GUI.
-    override fun clicked(inventory: InventoryClickEvent) {
+    // 'onClick' runs when a slot is clicked in this GUI.
+    override fun onClick(inventory: InventoryClickEvent) {
         // A slot was clicked
     }
 
-    // 'interacted' runs on any interaction (including clicks).
-    override fun interacted(inventory: InventoryInteractEvent) {
+    // 'onInteract' runs on any interaction (including clicks).
+    override fun onInteract(inventory: InventoryInteractEvent) {
         // An interaction occurred
     }
 }
@@ -426,3 +553,10 @@ object TestGui : Gui(component { append("Test Gui") }, 27) {
 // In a command or event within your script:
 TestGui.open(player)
 ```
+
+### PlaceholderAPI Integration
+Backbone provides a set of placeholders through its soft dependency on PlaceholderAPI. If you have PlaceholderAPI installed, you can use the following placeholders in any plugin that supports them:
+
+- `%backbone_version%`: Displays the current version of the Backbone plugin.
+
+More placeholders are planned for future releases.
