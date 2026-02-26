@@ -13,7 +13,11 @@
 
 package net.integr.backbone
 
+import net.integr.backbone.systems.command.CommandHandler
+import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.event.EventBus
+import net.integr.backbone.systems.gui.GuiHandler
+import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
 import net.integr.backbone.systems.storage.ResourcePool
@@ -76,6 +80,20 @@ object Backbone {
 
     fun getKey(namespace: String, key: String): NamespacedKey {
         return NamespacedKey(namespace, key)
+    }
+
+    object Handler {
+        val COMMAND
+            get() = CommandHandler
+
+        val ITEM
+            get() = ItemHandler
+
+        val ENTITY
+            get() = EntityHandler
+
+        val GUI
+            get() = GuiHandler
     }
 }
 

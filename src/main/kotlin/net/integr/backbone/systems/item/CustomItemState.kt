@@ -13,6 +13,9 @@
 
 package net.integr.backbone.systems.item
 
+import net.integr.backbone.Utils
+import net.integr.backbone.systems.persistence.PersistenceHelper
+import net.integr.backbone.systems.persistence.PersistenceKeys
 import org.bukkit.Material
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
@@ -21,6 +24,10 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
 abstract class CustomItemState(val material: Material, val id: String) {
+    init {
+        if (!Utils.isSnakeCase(id)) throw IllegalArgumentException("ID must be snake_case")
+    }
+
     fun generate(): ItemStack {
         val stack = ItemStack(material)
         populate(stack)

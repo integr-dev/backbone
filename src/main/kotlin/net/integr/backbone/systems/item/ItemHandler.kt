@@ -13,6 +13,8 @@
 
 package net.integr.backbone.systems.item
 
+import net.integr.backbone.systems.persistence.PersistenceHelper
+import net.integr.backbone.systems.persistence.PersistenceKeys
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDropItemEvent
@@ -70,7 +72,7 @@ object ItemHandler : Listener {
         val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
-        customItem.postInteracted(customItemStateUid, event)
+        customItem.postInteract(customItemStateUid, event)
     }
 
     @EventHandler
@@ -83,7 +85,7 @@ object ItemHandler : Listener {
         val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
-        customItem.postDropped(customItemStateUid, event)
+        customItem.postDrop(customItemStateUid, event)
     }
 
     fun onPlayerPickup(event: EntityPickupItemEvent) {

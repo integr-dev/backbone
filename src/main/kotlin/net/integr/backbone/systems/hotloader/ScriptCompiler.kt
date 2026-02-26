@@ -101,7 +101,7 @@ object ScriptCompiler {
         reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning(
-                    "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneLogger.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
+                    "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneLogger.CustomFormat.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
                 )
 
                 report.exception?.printStackTrace()
@@ -111,9 +111,9 @@ object ScriptCompiler {
 
     fun getSeverityColor(sev: ScriptDiagnostic.Severity): String {
         return when (sev) {
-            ScriptDiagnostic.Severity.WARNING -> BackboneLogger.ANSI_YELLOW
-            ScriptDiagnostic.Severity.ERROR -> BackboneLogger.ANSI_RED
-            else -> BackboneLogger.ANSI_CYAN
+            ScriptDiagnostic.Severity.WARNING -> BackboneLogger.CustomFormat.ANSI_YELLOW
+            ScriptDiagnostic.Severity.ERROR -> BackboneLogger.CustomFormat.ANSI_RED
+            else -> BackboneLogger.CustomFormat.ANSI_CYAN
         }
     }
 

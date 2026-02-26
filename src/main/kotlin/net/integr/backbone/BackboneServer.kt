@@ -15,8 +15,9 @@ package net.integr.backbone
 
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
+import net.integr.backbone.entities.TestEntity
 import net.integr.backbone.events.TickEvent
-import net.integr.backbone.systems.command.CommandHandler
+import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
@@ -32,6 +33,7 @@ class BackboneServer : JavaPlugin() {
         val fdOut = FileOutputStream(FileDescriptor.out)
         val originalOut = PrintStream(fdOut, true)
 
+        // Bypass papers println intercept
         System.setOut(originalOut)
         System.setErr(PrintStream(FileOutputStream(FileDescriptor.err), true))
 
@@ -45,8 +47,10 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.registerListener(GuiHandler)
         Backbone.registerListener(ItemHandler)
+        Backbone.registerListener(EntityHandler)
 
-        CommandHandler.register(BackboneCommand)
+        Backbone.Handler.COMMAND.register(BackboneCommand)
+        Backbone.Handler.ENTITY.register(TestEntity)
 
         Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)
