@@ -14,11 +14,13 @@
 package net.integr.backbone.commands
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.commands.arguments.customEntityArgument
 import net.integr.backbone.commands.arguments.customItemArgument
 import net.integr.backbone.commands.arguments.scriptArgument
 import net.integr.backbone.commands.arguments.stringArgument
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.Execution
+import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
@@ -29,8 +31,10 @@ import net.kyori.adventure.text.event.HoverEvent
 import java.awt.Color
 
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
+    val perm = Backbone.ROOT_PERMISSION.derive("command")
+
     override fun onBuild() {
-        subCommands(Scripting, Item)
+        subCommands(Scripting, Item, Entity)
     }
 
     override suspend fun exec(ctx: Execution) {
@@ -38,7 +42,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
     }
 
     object Scripting : Command("scripting", "Commands for Backbone scripting system") {
-        val scriptingPerm = Backbone.ROOT_PERMISSION.derive("scripting")
+        val scriptingPerm = perm.derive("scripting")
 
         override fun onBuild() {
             subCommands(Reload, Enable, Disable, Wipe)
@@ -170,7 +174,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
     }
 
     object Item : Command("item", "Commands for Backbone item system") {
-        val itemPerm = Backbone.ROOT_PERMISSION.derive("item")
+        val itemPerm = perm.derive("item")
 
         override fun onBuild() {
             subCommands(Give, Replicate, Read)
@@ -206,12 +210,14 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
                 ctx.respond("Generating item...")
 
-                try {
-                    val stack = ItemHandler.generate(item)
-                    ctx.getPlayer().inventory.addItem(stack)
-                    ctx.respond("Item generated.")
-                } catch (e: Exception) {
-                    ctx.fail(e.message ?: "An error occurred while generating the item.")
+                Backbone.dispatchMain {
+                    try {
+                        val stack = ItemHandler.generate(item)
+                        ctx.getPlayer().inventory.addItem(stack)
+                        ctx.respond("Item generated.")
+                    } catch (e: Exception) {
+                        ctx.fail(e.message ?: "An error occurred while generating the item.")
+                    }
                 }
             }
         }
@@ -263,6 +269,63 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
 
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while generating the item.")
+                }
+            }
+        }
+    }
+
+    object Entity : Command("entity", "Commands for Backbone entity system") {
+        val entityPerm = perm.derive("entity")
+
+        override fun onBuild() {
+            subCommands(Spawn)
+        }
+
+        override suspend fun exec(ctx: Execution) {
+            ctx.requirePermission(entityPerm)
+
+            ctx.respond("Entities [${EntityHandler.entities.size}]:")
+            for (entity in EntityHandler.entities) {
+                ctx.respondComponent(component {
+                    append("  - ${entity.key}: ") {
+                        color(Color(169, 173, 168))
+                    }
+
+                    append(entity.value.type.name.lowercase()) {
+                        color(
+                            Color(141, 184, 130)
+                        )
+                    }
+                })
+            }
+        }
+
+        object Spawn : Command("spawn", "Spawns a custom entity") {
+            val entitySpawnPerm = entityPerm.derive("spawn")
+
+            override fun onBuild() {
+                arguments(
+                    customEntityArgument("entity", "The custom entity to spawn")
+                )
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(entitySpawnPerm)
+                ctx.requirePlayer()
+
+                val entity = ctx.get<String>("entity")
+
+                ctx.respond("Spawning entity...")
+
+                val player = ctx.getPlayer()
+
+                Backbone.dispatchMain {
+                    try {
+                        EntityHandler.spawn(entity, player.location, player.world)
+                        ctx.respond("Entity spawned.")
+                    } catch (e: Exception) {
+                        ctx.fail(e.message ?: "An error occurred while spawning the entity.")
+                    }
                 }
             }
         }

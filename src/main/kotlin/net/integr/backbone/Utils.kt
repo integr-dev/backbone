@@ -21,4 +21,12 @@ object Utils {
             null
         }
     }
+
+    fun isSnakeCase(string: String): Boolean {
+        return string.matches("^[a-z0-9]+(_[a-z0-9]+)*$".toRegex())
+    }
+
+    fun isUid(string: String): Boolean {
+        return string.matches("^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$".toRegex())
+    }
 }

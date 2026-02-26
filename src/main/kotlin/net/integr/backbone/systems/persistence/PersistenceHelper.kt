@@ -11,9 +11,10 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.item
+package net.integr.backbone.systems.persistence
 
 import net.integr.backbone.Backbone
+import org.bukkit.entity.Entity
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import kotlin.uuid.ExperimentalUuidApi
@@ -32,6 +33,16 @@ object PersistenceHelper {
     fun <P : Any, C : Any> read(stack: ItemStack, key: String, type: PersistentDataType<P, C>): C? {
         val container = stack.itemMeta?.persistentDataContainer ?: return null
 
+        return container.get(Backbone.getKey("backbone", key), type)
+    }
+
+    fun <P : Any, C : Any> write(entity: Entity, key: String, type: PersistentDataType<P, C>, value: C) {
+        val container = entity.persistentDataContainer
+        container.set<P, C>(Backbone.getKey("backbone", key), type, value)
+    }
+
+    fun <P : Any, C : Any> read(entity: Entity, key: String, type: PersistentDataType<P, C>): C? {
+        val container = entity.persistentDataContainer
         return container.get(Backbone.getKey("backbone", key), type)
     }
 

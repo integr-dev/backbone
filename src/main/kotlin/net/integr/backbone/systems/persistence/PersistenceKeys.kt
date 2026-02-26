@@ -11,10 +11,11 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.item
+package net.integr.backbone.systems.persistence
 
 enum class PersistenceKeys(val key: String) {
     BACKBONE_CUSTOM_ITEM_UID("bbciuid"), // Backbone Custom Item UID
     BACKBONE_CUSTOM_ITEM_INSTANCE_UID("bbciiuid"), // Backbone Custom Item Instance UID
-    BACKBONE_CUSTOM_ITEM_STATE_UID("bbcisuid") // Backbone Custom Item State UID
+    BACKBONE_CUSTOM_ITEM_STATE_UID("bbcisuid"), // Backbone Custom Item State UID
+    BACKBONE_CUSTOM_ENTITY_UID("bbceuid") // Backbone Custom Entity UID
 }

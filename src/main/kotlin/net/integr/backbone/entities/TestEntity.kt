@@ -25,9 +25,15 @@ import org.bukkit.entity.Zombie
 import org.jetbrains.kotlin.utils.addToStdlib.enumSetOf
 import java.util.*
 
-//TODO: After being reloaded, entities no longer have behaviour
-object TestEntity : CustomEntity<Zombie>(EntityType.ZOMBIE) {
+object TestEntity : CustomEntity<Zombie>("test_entity", EntityType.ZOMBIE) {
     override fun prepare(mob: Zombie) {
+        val goals = Backbone.SERVER.mobGoals
+
+        goals.removeAllGoals(mob)
+        goals.addGoal(mob, 1, LookGoal(mob))
+    }
+
+    override fun setupGoals(mob: Zombie) {
         val goals = Backbone.SERVER.mobGoals
 
         goals.removeAllGoals(mob)

@@ -13,6 +13,9 @@
 
 package net.integr.backbone.systems.item
 
+import net.integr.backbone.Utils
+import net.integr.backbone.systems.persistence.PersistenceHelper
+import net.integr.backbone.systems.persistence.PersistenceKeys
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
@@ -20,6 +23,10 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
 abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
+    init {
+        if (!Utils.isSnakeCase(id)) throw IllegalArgumentException("ID must be snake_case")
+    }
+
     private val states: MutableMap<String, CustomItemState> = mutableMapOf()
 
     fun register(state: CustomItemState) {
@@ -27,6 +34,8 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
     }
 
     fun generate(state: CustomItemState, instanceId: String = PersistenceHelper.genUid()): ItemStack {
+        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be snake_case")
+
         val stack = state.generate()
 
         attach(stack, instanceId)
@@ -38,6 +47,8 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
 
 
     private fun attach(stack: ItemStack, instanceId: String) {
+        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be snake_case")
+
         PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING, id)
         PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING, instanceId)
     }

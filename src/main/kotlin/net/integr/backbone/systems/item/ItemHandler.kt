@@ -13,6 +13,8 @@
 
 package net.integr.backbone.systems.item
 
+import net.integr.backbone.systems.persistence.PersistenceHelper
+import net.integr.backbone.systems.persistence.PersistenceKeys
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDropItemEvent
