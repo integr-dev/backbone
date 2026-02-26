@@ -46,7 +46,6 @@ class BackboneLogger(name: String, private val plugin: JavaPlugin?) : Logger(nam
     fun format(record: LogRecord): String {
         val builder = StringBuilder()
 
-        builder.append(" ")
         builder.append(dateFormat.format(Date(record.millis)))
         builder.append(" ")
 
@@ -74,7 +73,7 @@ class BackboneLogger(name: String, private val plugin: JavaPlugin?) : Logger(nam
             }
         }
 
-        builder.append("   [")
+        builder.append(" [")
         builder.append(name)
         builder.append("]")
 
