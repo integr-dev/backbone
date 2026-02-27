@@ -19,12 +19,15 @@ repositories {
     maven("https://repo.extendedclip.com/releases/")
 }
 
+val paper = "io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT"
+
 dependencies {
-    implementation("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly(paper)
+
+    implementation("org.bstats:bstats-bukkit:3.2.1")
 
     implementation("me.clip:placeholderapi:2.12.2")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
     implementation(kotlin("stdlib"))
@@ -38,16 +41,18 @@ dependencies {
 
     implementation("org.apache.ivy:ivy:2.5.2")
 
-    // The core engine
     implementation("tools.jackson.core:jackson-databind:3.0.4")
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.4")
     implementation("tools.jackson.module:jackson-module-kotlin:3.0.4")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.2.0")
+
     testImplementation("org.xerial:sqlite-jdbc:3.46.0.0")
+    testImplementation(paper)
 }
 
 tasks {
@@ -80,5 +85,5 @@ tasks.processResources {
 }
 
 tasks.withType<ShadowJar> {
-    mergeServiceFiles()
+    relocate("org.bstats", "net.integr.backbone.systems.bstats")
 }

@@ -18,6 +18,7 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.format.TextDecoration
 import java.awt.Color
 
 fun component(block: ComponentBuilder.() -> Unit): Component {
@@ -50,6 +51,14 @@ class ComponentStyleBuilder {
 
     fun color(color: Color) {
         base.color(TextColor.color(color.rgb))
+    }
+
+    fun shadowColor(color: Color) {
+        base.color(TextColor.color(color.rgb))
+    }
+
+    fun decorate(decoration: TextDecoration) {
+        base.decorate(decoration)
     }
 
     fun onClick(clickEvent: ClickEvent) {

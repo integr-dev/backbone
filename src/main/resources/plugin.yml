@@ -17,6 +17,5 @@ description: |
   - Custom entity utility for adding custom entities via the goals api.
   - TextComponent builder based on the AdventureText api.
   - Display entity rendering system for creating custom visuals.
-website: tdb
-
+website: https://modrinth.com/plugin/backbone-lib
 softdepend: ["PlaceholderAPI"]

@@ -15,8 +15,9 @@ package net.integr.backbone
 
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
-import net.integr.backbone.entities.TestEntity
+import net.integr.backbone.entities.JumperEntity
 import net.integr.backbone.events.TickEvent
+import net.integr.backbone.systems.bstats.BStatHandler
 import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
@@ -38,19 +39,20 @@ class BackboneServer : JavaPlugin() {
         System.setErr(PrintStream(FileOutputStream(FileDescriptor.err), true))
 
         Backbone.SCRIPT_POOL.create()
-
         setPlaceholders()
 
         runBlocking {
             ScriptLinker.compileAndLink()
         }
 
+        BStatHandler.init()
+
         Backbone.registerListener(GuiHandler)
         Backbone.registerListener(ItemHandler)
         Backbone.registerListener(EntityHandler)
 
         Backbone.Handler.COMMAND.register(BackboneCommand)
-        Backbone.Handler.ENTITY.register(TestEntity)
+        Backbone.Handler.ENTITY.register(JumperEntity)
 
         Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)

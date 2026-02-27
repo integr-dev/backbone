@@ -51,7 +51,7 @@ class CustomEntityArgument(name: String, description: String) : Argument<String>
             arg.text
         }
 
-        if (!items.contains(text)) throw CommandArgumentException("Argument '$name' is not a valid item.")
+        if (!items.contains(text)) throw CommandArgumentException("Argument '$name' is not a valid entity.")
 
         return ParseResult(text, arg.end)
     }

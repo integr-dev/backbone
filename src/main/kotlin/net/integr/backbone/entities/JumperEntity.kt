@@ -15,52 +15,43 @@ package net.integr.backbone.entities
 
 
 import com.destroystokyo.paper.entity.ai.Goal
-import com.destroystokyo.paper.entity.ai.GoalKey
 import com.destroystokyo.paper.entity.ai.GoalType
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.entity.CustomEntity
+import net.integr.backbone.systems.text.component
 import org.bukkit.entity.EntityType
-import org.bukkit.entity.Pose
 import org.bukkit.entity.Zombie
-import org.jetbrains.kotlin.utils.addToStdlib.enumSetOf
-import java.util.*
+import java.awt.Color
+import java.util.EnumSet
 
-object TestEntity : CustomEntity<Zombie>("test_entity", EntityType.ZOMBIE) {
+object JumperEntity : CustomEntity<Zombie>("jumper", EntityType.ZOMBIE) {
     override fun prepare(mob: Zombie) {
-        val goals = Backbone.SERVER.mobGoals
-
-        goals.removeAllGoals(mob)
-        goals.addGoal(mob, 1, LookGoal(mob))
+        mob.customName(component {
+            append("Jumper") {
+                color(Color.GREEN)
+            }
+        })
     }
 
     override fun setupGoals(mob: Zombie) {
-        val goals = Backbone.SERVER.mobGoals
-
-        goals.removeAllGoals(mob)
-        goals.addGoal(mob, 1, LookGoal(mob))
+        Backbone.SERVER.mobGoals.removeAllGoals(mob)
+        Backbone.SERVER.mobGoals.addGoal(mob, 1, JumpGoal(mob))
     }
 
-    class LookGoal(val mob: Zombie) : Goal<Zombie> {
-        override fun shouldActivate(): Boolean {
-            return true
-        }
+    class JumpGoal(val mob: Zombie) : Goal<Zombie> {
+        override fun shouldActivate(): Boolean = true
 
-        override fun getKey(): GoalKey<Zombie> {
-            return getGoalKey("backbone", "look")
-        }
+        override fun getKey() = getGoalKey<Zombie>("backbone", "look")
+        override fun getTypes(): EnumSet<GoalType> = EnumSet.of(GoalType.MOVE)
 
-        override fun getTypes(): EnumSet<GoalType> {
-            return enumSetOf(GoalType.LOOK)
-        }
-
-        var ctr = 0
+        var count = 0
 
         override fun tick() {
-            ctr++
+            count++
 
-            if (ctr % 20 == 0) {
+            if (count % 20 == 0) {
                 mob.isJumping = !mob.isJumping
-                ctr = 0
+                count = 0
             }
         }
     }
