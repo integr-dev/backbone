@@ -19,7 +19,7 @@ import org.jetbrains.annotations.ApiStatus
 
 /**
  * Handles the bStats metrics for Backbone.
- * @since 1.1.0
+ * @since 1.2.0
  */
 @ApiStatus.Internal
 object BStatHandler {
@@ -27,19 +27,19 @@ object BStatHandler {
 
     /**
      * Plugin ID taken from the bStats dashboard.
-     * @since 1.1.0
+     * @since 1.2.0
      */
     private const val PLUGIN_ID = 29810
 
     /**
      * The current metrics instance.
-     * @since 1.1.0
+     * @since 1.2.0
      */
     private var metrics: Metrics? = null
 
     /**
      * Initializes the bStats metrics with backbones information.
-     * @since 1.1.0
+     * @since 1.2.0
      */
     fun init() {
         logger.info("Initializing bStats...")

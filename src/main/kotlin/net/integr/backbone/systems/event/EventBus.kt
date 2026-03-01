@@ -42,7 +42,7 @@ object EventBus {
      * @param priority the priority of the handler
      * @param callable the method to invoke when firing
      * @param instance the instance of the containing class to call the member in
-     * @since 1.0.0
+     * @since 1.1.0
      */
     private class EventHandler(var priority: Int, var callable: KCallable<*>, var instance: Any) : Comparable<EventHandler> {
         override fun equals(other: Any?): Boolean {
@@ -79,7 +79,7 @@ object EventBus {
     private val eventHandlers: ConcurrentHashMap<String, ConcurrentSkipListSet<EventHandler>> = ConcurrentHashMap()
 
     /**
-     * Registers all event handlers in the given class.
+     * Registers all event handlers in the given class for a specified instance.
      *
      * @param klass The class to register.
      * @param instance The instance of the class to use for non-static methods.
@@ -109,7 +109,6 @@ object EventBus {
     }
 
     /**
-     *
      * Registers all event handlers in the given instance.
      *
      * @param instance The instance to register.
@@ -119,7 +118,7 @@ object EventBus {
     fun register(instance: Any) = register(instance::class, instance)
 
     /**
-     * Removes all event handlers in the given class.
+     * Removes all event handlers in the given class for the specified instance.
      *
      * @param klass The class to unregister.
      * @since 1.0.0
@@ -127,6 +126,11 @@ object EventBus {
     fun unregister(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
+                // include the default "this" parameter
+                if (member.parameters.size > 2 || member.parameters.size <= 1)
+                    throw IllegalArgumentException("Member must have exactly one parameter " +
+                            "${member.javaClass.declaringClass?.kotlin?.simpleName}.${member.name}()")
+
                 val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
 
                 val targetEventId = member.parameters[1].type.classifier
@@ -143,7 +147,7 @@ object EventBus {
     }
 
     /**
-     * Removes all event handlers in the given class.
+     * Removes all event handlers in the given instance.
      *
      * @param instance The instance of the class to unregister.
      * @since 1.0.0
