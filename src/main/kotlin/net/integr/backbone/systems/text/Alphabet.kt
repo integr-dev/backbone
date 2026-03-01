@@ -13,10 +13,25 @@
 
 package net.integr.backbone.systems.text
 
+/**
+ * A simple interface for custom alphabets.
+ * @since 1.0.0
+ */
 interface Alphabet {
+    /**
+     * Encodes a string using the alphabet.
+     *
+     * @param str The string to encode.
+     * @return The encoded string.
+     * @since 1.0.0
+     */
     fun encode(str: String): String
 
     companion object {
+        /**
+         * The default alphabet used for encoding.
+         * @since 1.0.0
+         */
         const val DEFAULT_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
     }
 }

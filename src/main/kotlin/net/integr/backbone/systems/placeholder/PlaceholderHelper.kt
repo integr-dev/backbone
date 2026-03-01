@@ -17,9 +17,31 @@ import me.clip.placeholderapi.PlaceholderAPI
 import net.integr.backbone.Backbone
 import org.bukkit.entity.Player
 
-object PlaceholderHelper {
-    val logger = Backbone.LOGGER.derive("placeholder-helper")
+/**
+ * A utility object for interacting with PlaceholderAPI.
 
+ * This helper provides a simplified method for applying PlaceholderAPI placeholders
+ * to a given string for a specific player. It gracefully handles cases where
+ * PlaceholderAPI is not installed or enabled.
+ *
+ * @since 1.0.0
+ */
+object PlaceholderHelper {
+    private val logger = Backbone.LOGGER.derive("placeholder-helper")
+
+    /**
+     * Applies PlaceholderAPI placeholders to a given string for a specific player.
+     *
+     * If PlaceholderAPI is installed and enabled, this method will parse the input string
+     * and replace any valid placeholders with their corresponding values based on the
+     * provided player context. If PlaceholderAPI is not available, a warning will be logged,
+     * and the original string will be returned unchanged.
+     *
+     * @param player The [Player] for whom the placeholders should be resolved.
+     * @param text The input string potentially containing PlaceholderAPI placeholders.
+     * @return The string with placeholders resolved, or the original string if PlaceholderAPI is not available.
+     * @since 1.0.0
+     */
     fun fill(player: Player, text: String): String {
         if (Backbone.SERVER.pluginManager.isPluginEnabled("PlaceholderAPI")) {
             return PlaceholderAPI.setPlaceholders(player, text)

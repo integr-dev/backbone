@@ -13,7 +13,24 @@
 
 package net.integr.backbone.systems.command.argument
 
+import org.jetbrains.annotations.ApiStatus
+
+/**
+ * Represents a chain of arguments for a command.
+ *
+ * @param args The list of arguments.
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 class ArgumentChain(args: List<String>) {
+    /**
+     *
+     * Represents a node in the argument chain.
+     *
+     * @property value The string value of the argument.
+     * @property next The next node in the chain, or null if this is the last node.
+     * @since 1.0.0
+     */
     private class Node(val value: String, var next: Node? = null)
 
     private var head: Node? = if (args.isNotEmpty()) Node(args[0]) else null
@@ -27,18 +44,41 @@ class ArgumentChain(args: List<String>) {
         }
     }
 
+    /**
+     * Checks if the argument chain is empty.
+     *
+     * @return True if the argument chain is empty, false otherwise.
+     * @since 1.0.0
+     */
     fun isEmpty(): Boolean {
         return head == null
     }
 
+    /**
+     * Moves the chain to the next argument.
+     *
+     * @since 1.0.0
+     */
     fun moveNext() {
         head = head?.next
     }
 
+    /**
+     * Returns the current argument in the chain.
+     *
+     * @return The current argument, or null if the chain is empty.
+     * @since 1.0.0
+     */
     fun current(): String? {
         return head?.value
     }
 
+    /**
+     * Returns the full string of the remaining arguments in the chain.
+     *
+     * @return The full string of the remaining arguments.
+     * @since 1.0.0
+     */
     fun remainingFullString(): String {
         val values = mutableListOf<String>()
         var current = head

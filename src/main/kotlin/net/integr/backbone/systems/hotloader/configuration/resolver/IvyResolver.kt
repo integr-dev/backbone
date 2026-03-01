@@ -27,8 +27,8 @@ import org.apache.ivy.plugins.resolver.ChainResolver
 import org.apache.ivy.plugins.resolver.IBiblioResolver
 import org.apache.ivy.plugins.resolver.URLResolver
 import org.apache.ivy.util.AbstractMessageLogger
-import org.apache.ivy.util.DefaultMessageLogger
 import org.apache.ivy.util.Message
+import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.ExternalDependenciesResolver
@@ -39,6 +39,14 @@ import kotlin.script.experimental.dependencies.impl.toRepositoryUrlOrNull
     This file originates from the JetBrains simple-main-kts example for kotlin scripting
     https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/impl/ivy.kt
  */
+
+/**
+ * Uses a custom [ExternalDependenciesResolver] implementation that leverages Apache Ivy to resolve external dependencies.
+ * It supports resolving artifacts from Maven-compatible repositories and handles repository declarations.
+ *
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 class IvyResolver : ExternalDependenciesResolver {
 
     private fun String?.isValidParam() = this?.isNotBlank() ?: false

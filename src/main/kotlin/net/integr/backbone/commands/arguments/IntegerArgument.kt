@@ -16,10 +16,30 @@ package net.integr.backbone.commands.arguments
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
+/**
+ * A command argument that parses an integer value.
+ *
+ * This argument accepts any valid integer as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun integerArgument(name: String, description: String): Argument<Int> {
     return IntegerArgument(name, description)
 }
 
+/**
+ * A command argument that parses an integer value.
+ *
+ * This argument accepts any valid integer as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class IntegerArgument(name: String, description: String) : Argument<Int>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()

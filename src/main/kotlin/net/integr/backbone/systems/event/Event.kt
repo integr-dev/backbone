@@ -13,19 +13,47 @@
 
 package net.integr.backbone.systems.event
 
+/**
+ * Represents a Backbone event. Extend this class to create an event.
+ *
+ * @since 1.0.0
+ */
 open class Event {
     private var callback: Any? = null
     private var isCancelled: Boolean = false
 
-    fun setCallback(v: Any?) {
-        callback = v
+    /**
+     * Sets the callback for the event.
+     *
+     * @param value The callback object.
+     * @since 1.0.0
+     */
+    fun setCallback(value: Any?) {
+        callback = value
     }
 
+    /**
+     * Cancels the event and stops it from spreading in the bus.
+     *
+     * @since 1.0.0
+     */
     fun cancel() {
         isCancelled = true
     }
 
-    fun getCallback(): Any? = callback
+    /**
+     * Get the callback object for the event.
+     *
+     * @return The callback object, or null if not set.
+     * @since 1.0.0
+     */
+    fun callback(): Any? = callback
 
+    /**
+     * Checks if the event has been cancelled.
+     *
+     * @return True if the event has been cancelled, false otherwise.
+     * @since 1.0.0
+     */
     fun isCancelled() = isCancelled
 }

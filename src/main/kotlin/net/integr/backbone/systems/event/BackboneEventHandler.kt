@@ -14,5 +14,11 @@
 package net.integr.backbone.systems.event
 
 
+/**
+ * Annotation for methods that handle Backbone events.
+ *
+ * @param priority The priority of the event handler.
+ * @since 1.0.0
+ */
 @Target(AnnotationTarget.FUNCTION)
 annotation class BackboneEventHandler(val priority: EventPriority = EventPriority.NORMAL)

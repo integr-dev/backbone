@@ -13,13 +13,34 @@
 
 package net.integr.backbone.commands.arguments
 
+import net.integr.backbone.commands.arguments.ValidatedArgument.ValidationResult
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
-fun <T : Any> validatedArgument(argument: Argument<T>, block: ValidatedArgument.ValidationResult.Companion.(T) -> ValidatedArgument.ValidationResult): Argument<T> {
+/**
+ * A command argument that validates the parsed value of another argument.
+ *
+ * This argument wraps an existing argument and applies a validation function to its parsed value.
+ * If the validation fails, a [CommandArgumentException] is thrown with a custom error message.
+ *
+ * @param argument The argument to wrap and validate.
+ * @param block A lambda function that takes the parsed value of the wrapped argument and returns a [ValidationResult].
+ * @since 1.0.0
+ */
+fun <T : Any> validatedArgument(argument: Argument<T>, block: ValidationResult.Companion.(T) -> ValidationResult): Argument<T> {
     return ValidatedArgument(argument, block)
 }
 
+/**
+ * A command argument that validates the parsed value of another argument.
+ *
+ * This argument wraps an existing argument and applies a validation function to its parsed value.
+ * If the validation fails, a [CommandArgumentException] is thrown with a custom error message.
+ *
+ * @param argument The argument to wrap and validate.
+ * @param block A lambda function that takes the parsed value of the wrapped argument and returns a [ValidationResult].
+ * @since 1.0.0
+ */
 class ValidatedArgument<T : Any>(val argument: Argument<T>, val block: ValidationResult.Companion.(T) -> ValidationResult) : Argument<T>(argument.name, argument.description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         return argument.getCompletions(current)

@@ -18,9 +18,23 @@ import net.integr.backbone.text.alphabets.BoldSmallAlphabet
 import net.kyori.adventure.text.Component
 import java.awt.Color
 
+/**
+ * Represents a standardized format for command feedback.
+ *
+ * @param handler The name of the handler (e.g., plugin name) to display in the feedback.
+ * @param handlerColor The color to use for the handler name.
+ * @since 1.0.0
+ */
 class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
     private val handlerName = BoldSmallAlphabet.encode(handler)
 
+    /**
+     * Format a string into a formatted component with the handler name and color.
+     *
+     * @param str The string to format.
+     * @return A formatted [Component].
+     * @since 1.0.0
+     */
     fun format(str: String): Component {
         return component {
             append(handlerName) {
@@ -37,6 +51,13 @@ class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
         }
     }
 
+    /**
+     * Format a string into a formatted error message component with the handler name and color.
+     *
+     * @param str The string to format.
+     * @return A formatted [Component].
+     * @since 1.0.0
+     */
     fun formatErr(str: String): Component {
         return component {
             append(handlerName) {

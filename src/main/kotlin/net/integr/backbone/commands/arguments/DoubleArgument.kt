@@ -16,10 +16,31 @@ package net.integr.backbone.commands.arguments
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
+
+/**
+ * A command argument that parses a double value.
+ *
+ * This argument accepts any valid double as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun doubleArgument(name: String, description: String): Argument<Double> {
     return DoubleArgument(name, description)
 }
 
+/**
+ * A command argument that parses a double value.
+ *
+ * This argument accepts any valid double as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class DoubleArgument(name: String, description: String) : Argument<Double>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()

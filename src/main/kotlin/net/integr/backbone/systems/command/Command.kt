@@ -20,15 +20,32 @@ import net.integr.backbone.systems.command.argument.Argument
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
+import org.jetbrains.annotations.ApiStatus
 
+/**
+ * Represents a command that can be executed by a CommandSender.
+ * This class extends Bukkit's Command class and provides additional functionality for handling subcommands, arguments, and execution context.
+ *
+ * @param name The name of the command.
+ * @param description A brief description of the command.
+ * @param aliases A list of alternative names for the command.
+ * @param format The CommandFeedbackFormat to use for sending messages back to the sender.
+ * @since 1.0.0
+ */
 abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.defaultFeedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
-    protected val logger = Backbone.LOGGER.derive("command")
+    private val logger = Backbone.LOGGER.derive("command")
 
     private val subCommands = mutableListOf<Command>()
     private val arguments = mutableListOf<Argument<*>>()
 
     private var subCommandNames: List<String> = listOf()
 
+    /**
+     * Registers one or more sub-commands to this command.
+     *
+     * @param commands The sub-commands to register.
+     * @since 1.0.0
+     */
     fun subCommands(vararg commands: Command) {
         commands.forEach {
             it.build()
@@ -37,15 +54,36 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         subCommands.addAll(commands)
     }
 
+    /**
+     * Registers one or more arguments to this command.
+     *
+     * @param arguments The arguments to register.
+     * @since 1.0.0
+     */
+    fun arguments(vararg arguments: Argument<*>) {
+        this.arguments.addAll(arguments)
+    }
+
+    /**
+     * Builds the command and its sub-commands.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     fun build() {
         onBuild()
         subCommandNames = subCommands.map { it.name } + subCommands.flatMap { it.aliases }
     }
 
-    fun arguments(vararg arguments: Argument<*>) {
-        this.arguments.addAll(arguments)
-    }
-
+    /**
+     *
+     * Handles the execution of the command based on the provided argument chain.
+     * This method recursively searches for subcommands and executes the appropriate command.
+     *
+     * @param sender The CommandSender who executed the command.
+     * @param argChain The ArgumentChain containing the command arguments.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     suspend fun handleExecution(sender: CommandSender?, argChain: ArgumentChain) {
         val curr = argChain.current()
         val subcommand = subCommands.find {
@@ -68,6 +106,15 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         }
     }
 
+    /**
+     * Handles completion based on the provided argument chain.
+     * This method recursively searches for subcommands and provides completions for the appropriate command or its arguments.
+     *
+     * @param argChain The ArgumentChain containing the command arguments.
+     * @return A list of possible completions.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     fun handleCompletion(argChain: ArgumentChain): List<String> {
         val curr = argChain.current()
         val subcommand = subCommands.find {
@@ -99,6 +146,15 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         }
     }
 
+    /**
+     *
+     * Parses the arguments from the provided argument chain.
+     *
+     * @param argChain The ArgumentChain containing the command arguments.
+     * @return A map of argument names to their parsed values.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     fun parseArgs(argChain: ArgumentChain): Map<String, Any> { // Any - we just want the values of the args here, casting happens later
         val parsedArgs = mutableMapOf<String, Any>()
         var argumentString = argChain.remainingFullString()
@@ -114,6 +170,11 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         return parsedArgs
     }
 
+    /**
+     * Called by Bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     override fun execute(sender: CommandSender, commandLabel: String, args: Array<out String>): Boolean {
         val chain = ArgumentChain(args.toList())
 
@@ -139,10 +200,27 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         return true
     }
 
+    /**
+     * Called by Bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<out String>): List<String> {
         return handleCompletion(ArgumentChain(args.toList()))
     }
 
+    /**
+     * Called when the command is being built.
+     * Override this method to perform any setup or initialization for the command, such as registering subcommands or arguments.
+     * @since 1.0.0
+     */
     protected open fun onBuild() {}
+
+    /**
+     * Called when the command is executed. Override this method to define the command's behavior.
+     *
+     * @param ctx The execution context containing information about the sender and arguments.
+     * @since 1.0.0
+     */
     protected abstract suspend fun exec(ctx: Execution)
 }

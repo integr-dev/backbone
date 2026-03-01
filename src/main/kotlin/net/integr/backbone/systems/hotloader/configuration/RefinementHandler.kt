@@ -14,11 +14,11 @@
 package net.integr.backbone.systems.hotloader.configuration
 
 import kotlinx.coroutines.runBlocking
-import net.integr.backbone.Backbone
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.annotations.CompilerOptions
 import net.integr.backbone.systems.hotloader.configuration.resolver.AnnotationResolver
 import net.integr.backbone.systems.hotloader.configuration.resolver.IvyResolver
+import org.jetbrains.annotations.ApiStatus
 import kotlin.script.experimental.api.RefineScriptCompilationConfigurationHandler
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCollectedData
@@ -36,6 +36,18 @@ import kotlin.script.experimental.dependencies.FileSystemDependenciesResolver
 import kotlin.script.experimental.dependencies.Repository
 import kotlin.script.experimental.jvm.updateClasspath
 
+/**
+ * Handles the refinement of script compilation configurations, primarily by processing annotations
+ * like [DependsOn], [Repository], and [CompilerOptions].
+ *
+ * This class is responsible for:
+ * - Resolving external dependencies using [IvyResolver] and [FileSystemDependenciesResolver].
+ * - Adding resolved dependencies to the script's classpath.
+ * - Applying additional compiler options specified in [CompilerOptions] annotations.
+ *
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 class RefinementHandler : RefineScriptCompilationConfigurationHandler {
     companion object {
         val logger = ScriptEngine.logger.derive("refinement")

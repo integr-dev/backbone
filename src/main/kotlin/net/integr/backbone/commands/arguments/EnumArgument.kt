@@ -16,10 +16,32 @@ package net.integr.backbone.commands.arguments
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
+/**
+ * A command argument that parses an enum value.
+ *
+ * This argument accepts any valid enum constant name (case-insensitive) as input.
+ * It provides completions for all available enum constants.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @param T The class of the enum.
+ * @since 1.0.0
+ */
 inline fun <reified T : Enum<T>> enumArgument(name: String, description: String): Argument<T> {
     return EnumArgument(name, description, T::class.java)
 }
 
+/**
+ * A command argument that parses an enum value.
+ *
+ * This argument accepts any valid enum constant name (case-insensitive) as input.
+ * It provides completions for all available enum constants.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @param type The class of the enum.
+ * @since 1.0.0
+ */
 class EnumArgument<T : Enum<T>>(name: String, description: String, val type: Class<T>) : Argument<T>(name, description) {
     private val values = type.enumConstants.map { it.name }.toMutableList()
 

@@ -17,10 +17,30 @@ import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 import net.integr.backbone.systems.entity.EntityHandler
 
+/**
+ * A command argument that parses a custom entity name.
+ *
+ * This argument accepts any valid custom entity name as input.
+ * It provides completions for all registered custom entities.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun customEntityArgument(name: String, description: String): Argument<String> {
     return CustomEntityArgument(name, description)
 }
 
+/**
+ * A command argument that parses a custom entity name.
+ *
+ * This argument accepts any valid custom entity name as input.
+ * It provides completions for all registered custom entities.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class CustomEntityArgument(name: String, description: String) : Argument<String>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val items = EntityHandler.entities.keys
@@ -51,7 +71,7 @@ class CustomEntityArgument(name: String, description: String) : Argument<String>
             arg.text
         }
 
-        if (!items.contains(text)) throw CommandArgumentException("Argument '$name' is not a valid item.")
+        if (!items.contains(text)) throw CommandArgumentException("Argument '$name' is not a valid entity.")
 
         return ParseResult(text, arg.end)
     }

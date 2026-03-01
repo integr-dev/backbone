@@ -18,7 +18,13 @@ import org.bukkit.World
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.TextDisplay
 
-
+/**
+ * A concrete implementation of [EntityBackedObject] for managing a single [TextDisplay] entity.
+ *
+ * This class provides the specific spawning logic for a [TextDisplay] entity, allowing it to be
+ * created in a given [World] at a specified [Location].
+ * @since 1.0.0
+ */
 class TextDisplayObject : EntityBackedObject<TextDisplay>() {
     override fun spawn(world: World, location: Location) {
         entity = world.spawnEntity(location, EntityType.TEXT_DISPLAY) as TextDisplay

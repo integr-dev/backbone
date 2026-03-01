@@ -16,10 +16,30 @@ package net.integr.backbone.commands.arguments
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
+/**
+ * A command argument that parses a boolean value.
+ *
+ * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
+ * It provides completions for "true" and "false" when the argument is being typed.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun booleanArgument(name: String, description: String): Argument<Boolean> {
     return BooleanArgument(name, description)
 }
 
+/**
+ * A command argument that parses a boolean value.
+ *
+ * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
+ * It provides completions for "true" and "false" when the argument is being typed.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class BooleanArgument(name: String, description: String) : Argument<Boolean>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()

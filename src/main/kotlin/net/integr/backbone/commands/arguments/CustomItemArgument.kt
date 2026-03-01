@@ -15,13 +15,32 @@ package net.integr.backbone.commands.arguments
 
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
-import net.integr.backbone.systems.hotloader.ScriptStore
 import net.integr.backbone.systems.item.ItemHandler
 
+/**
+ * A command argument that parses a custom item name.
+ *
+ * This argument accepts any valid custom item name as input.
+ * It provides completions for all registered custom items.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun customItemArgument(name: String, description: String): Argument<String> {
     return CustomItemArgument(name, description)
 }
 
+/**
+ * A command argument that parses a custom item name.
+ *
+ * This argument accepts any valid custom item name as input.
+ * It provides completions for all registered custom items.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class CustomItemArgument(name: String, description: String) : Argument<String>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val items = ItemHandler.items.keys

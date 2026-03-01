@@ -15,4 +15,10 @@ package net.integr.backbone.events
 
 import net.integr.backbone.systems.event.Event
 
-object TickEvent : Event()
+/**
+ * Called every server tick. (20 times every second)
+ * **Important:** Do not use this for timed tasks.
+ * Use the scheduler instead.
+ * @since 1.0.0
+ */
+class TickEvent : Event()

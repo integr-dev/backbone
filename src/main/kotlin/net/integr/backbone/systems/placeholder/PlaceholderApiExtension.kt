@@ -16,6 +16,21 @@ package net.integr.backbone.systems.placeholder
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.entity.Player
 
+/**
+ * Represents an Extension for use with PlaceholderAPI.
+ *
+ * This class extends PlaceholderAPI's `PlaceholderExpansion` to allow for custom
+ * placeholder logic to be defined. It takes an ID, author, version, and a lambda
+ * function that resolves the placeholder request.
+ *
+ * @property id The unique identifier for this placeholder (e.g., "myplugin").
+ * @property pAuthor The author of this placeholder expansion.
+ * @property pVersion The version of this placeholder expansion.
+ * @property block A lambda function that takes a [Player] and a string identifier
+ *              (representing the specific placeholder requested, e.g., "name" for `%myplugin_name%`)
+ *              and returns the resolved string value.
+ * @since 1.0.0
+ */
 class PlaceholderApiExtension(val id: String, val pAuthor: String, val pVersion: String, val block: (Player?, String) -> String) : PlaceholderExpansion() {
     override fun getIdentifier(): String {
         return id

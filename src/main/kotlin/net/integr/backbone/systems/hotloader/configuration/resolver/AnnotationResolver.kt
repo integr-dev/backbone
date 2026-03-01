@@ -14,6 +14,7 @@
 package net.integr.backbone.systems.hotloader.configuration.resolver
 
 import net.integr.backbone.systems.hotloader.configuration.RefinementHandler
+import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptDiagnostic
@@ -29,9 +30,28 @@ import kotlin.script.experimental.dependencies.addRepository
     This file originates from the JetBrains simple-main-kts example for kotlin scripting
     https://github.com/Kotlin/kotlin-script-examples/blob/master/jvm/simple-main-kts/simple-main-kts/src/main/kotlin/org/jetbrains/kotlin/script/examples/simpleMainKts/impl/resolve.kt
  */
-object AnnotationResolver {
-    val logger = RefinementHandler.logger.derive("resolver")
 
+/**
+ * Resolves script annotations such as [DependsOn] and [Repository] to provide external dependencies.
+ *
+ * This object uses an [ExternalDependenciesResolver] to process annotations and retrieve necessary files.
+ * It logs the resolution process and handles potential failures.
+ *
+ * @since 1.0.0
+
+ */
+@ApiStatus.Internal
+object AnnotationResolver {
+    private val logger = RefinementHandler.logger.derive("resolver")
+
+    /**
+     * Resolves external dependencies based on the provided annotations.
+
+     * @param resolver The [ExternalDependenciesResolver] to use for resolving dependencies.
+     * @param annotations An iterable of annotations to process, typically [DependsOn] and [Repository].
+     * @return A [ResultWithDiagnostics] containing a list of resolved [File]s or diagnostic messages if resolution fails.
+     * @since 1.0.0
+     */
     suspend fun resolveFromAnnotations(
         resolver: ExternalDependenciesResolver,
         annotations: Iterable<Annotation>

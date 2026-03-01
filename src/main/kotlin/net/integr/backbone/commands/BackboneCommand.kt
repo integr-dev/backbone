@@ -30,6 +30,13 @@ import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import java.awt.Color
 
+/**
+ * Represents the main command for the Backbone plugin.
+ *
+ * This command provides access to various Backbone functionalities, including scripting, item management, and entity management.
+ *
+ * @since 1.0.0
+ */
 object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
     val perm = Backbone.ROOT_PERMISSION.derive("command")
 

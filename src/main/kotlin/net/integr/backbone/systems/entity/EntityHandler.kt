@@ -24,21 +24,56 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.persistence.PersistentDataType
+import org.jetbrains.annotations.ApiStatus
 import kotlin.collections.set
 
+/**
+ * Handles the registration and management of custom entities.
+ *
+ * @since 1.0.0
+ */
 object EntityHandler : Listener {
     private val logger = Backbone.LOGGER.derive("entity-handler")
+
+    /**
+     * A map of registered custom entities, where the key is the entity's ID and the value is the [CustomEntity] instance.
+     *
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     val entities: MutableMap<String, CustomEntity<*>> = mutableMapOf()
 
+    /**
+     *
+     * Registers a custom entity.
+     *
+     * @param entity The custom entity to register.
+     * @since 1.0.0
+     */
     fun <T : Mob> register(entity: CustomEntity<T>) {
         entities[entity.id] = entity
     }
 
+    /**
+     * Spawns a custom entity by its ID at the given location in the specified world.
+     *
+     * @param entity The ID of the custom entity to spawn.
+     * @param location The location where the entity should be spawned.
+     * @param world The world in which the entity should be spawned.
+     * @return The spawned custom entity.
+     * @throws IllegalArgumentException If the entity with the given ID is not found.
+     * @since 1.0.0
+     */
     fun spawn(entity: String, location: Location, world: World): Entity {
         val customEntity = entities[entity] ?: throw IllegalArgumentException("Entity not found.")
         return customEntity.spawn(location, world)
     }
 
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     @EventHandler
     fun onEntityLoad(event: EntitiesLoadEvent) {
         for (entity in event.entities) {

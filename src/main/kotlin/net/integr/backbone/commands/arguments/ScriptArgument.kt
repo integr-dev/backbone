@@ -17,10 +17,30 @@ import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 import net.integr.backbone.systems.hotloader.ScriptStore
 
+/**
+ * A command argument that parses a script name.
+ *
+ * This argument accepts any valid script name as input.
+ * It provides completions for all loaded scripts.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun scriptArgument(name: String, description: String): Argument<String> {
     return ScriptArgument(name, description)
 }
 
+/**
+ * A command argument that parses a script name.
+ *
+ * This argument accepts any valid script name as input.
+ * It provides completions for all loaded scripts.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class ScriptArgument(name: String, description: String) : Argument<String>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val scripts = ScriptStore.getScriptNames()

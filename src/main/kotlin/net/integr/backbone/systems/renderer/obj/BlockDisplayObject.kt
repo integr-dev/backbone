@@ -19,6 +19,13 @@ import org.bukkit.entity.BlockDisplay
 import org.bukkit.entity.EntityType
 
 
+/**
+ * A concrete implementation of [EntityBackedObject] for managing a single [BlockDisplay] entity.
+ *
+ * This class provides the specific spawning logic for a [BlockDisplay] entity, allowing it to be
+ * created in a given [World] at a specified [Location].
+ * @since 1.0.0
+ */
 class BlockDisplayObject : EntityBackedObject<BlockDisplay>() {
     override fun spawn(world: World, location: Location) {
         entity = world.spawnEntity(location, EntityType.BLOCK_DISPLAY) as BlockDisplay

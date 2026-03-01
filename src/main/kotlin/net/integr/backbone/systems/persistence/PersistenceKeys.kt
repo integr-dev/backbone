@@ -13,6 +13,20 @@
 
 package net.integr.backbone.systems.persistence
 
+import org.jetbrains.annotations.ApiStatus
+
+/**
+ * A collection of keys used for persisting data to various storage mechanisms,
+ * primarily [org.bukkit.persistence.PersistentDataContainer] for [org.bukkit.inventory.ItemStack]s
+ * and entities. Each key is associated with a unique string identifier.
+ *
+ * These keys are used internally by Backbone to store metadata about custom items,
+ * custom entities, and other system-specific data.
+ *
+ * @property key The string identifier for the persistence key.
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 enum class PersistenceKeys(val key: String) {
     BACKBONE_CUSTOM_ITEM_UID("bbciuid"), // Backbone Custom Item UID
     BACKBONE_CUSTOM_ITEM_INSTANCE_UID("bbciiuid"), // Backbone Custom Item Instance UID

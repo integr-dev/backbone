@@ -13,7 +13,6 @@
 
 package net.integr.backbone
 
-import org.bukkit.plugin.java.JavaPlugin
 import java.nio.file.Path
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -22,7 +21,18 @@ import kotlin.io.path.appendText
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createFile
 
-class BackboneLogger(name: String, private val plugin: JavaPlugin?) : Logger(name, null) {
+/**
+
+ * A custom logger for the Backbone plugin.
+ *
+ * This logger provides colored console output and logs severe messages to a file.
+ * It also allows for deriving sub-loggers with specific names.
+ *
+ * @param name The name of the logger.
+ *
+ * @since 1.0.0
+ */
+class BackboneLogger(name: String) : Logger(name, null) {
     private val logFile = Path.of("./logs/backbone.log")
     private val customFormat = CustomFormat(name, true)
     private val customFileFormat = CustomFormat(name, false)
@@ -39,13 +49,22 @@ class BackboneLogger(name: String, private val plugin: JavaPlugin?) : Logger(nam
         addHandler(CustomHandler())
     }
 
+
+    /**
+     * Derive a new logger with a sub-name.
+     *
+     * @param subName The sub-name for the new logger.
+     * @return A new `BackboneLogger` instance.
+     *
+     * @since 1.0.0
+     */
     fun derive(subName: String): BackboneLogger {
-        return BackboneLogger("$name.$subName", plugin)
+        return BackboneLogger("$name.$subName")
     }
 
     private inner class CustomHandler : Handler() {
         override fun publish(record: LogRecord) {
-            if (!isLoggable(record) || plugin == null) return
+            if (!isLoggable(record)) return
             val message = customFormat.format(record)
             val fileMessage = customFileFormat.format(record)
             println(message)

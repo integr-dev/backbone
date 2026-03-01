@@ -21,10 +21,30 @@ import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryInteractEvent
+import org.jetbrains.annotations.ApiStatus
 
+/**
+ * Handles GUI interactions and manages open GUIs.
+ *
+ * This object acts as a central point for managing GUIs, including handling inventory close, click, and interact events,
+ * as well as ticking open GUIs.
+ *
+ * @since 1.0.0
+ */
 object GuiHandler : Listener {
+
+    /**
+     * A map of currently open GUIs, where the key is the player and the value is the [GuiState] of the GUI.
+     *
+     * @since 1.0.0
+     */
     val openInventories: MutableMap<Player, GuiState> = mutableMapOf()
 
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     @EventHandler
     fun onCloseInventory(event: InventoryCloseEvent) {
         val playersInv = openInventories[event.player as Player] ?: return
@@ -34,6 +54,11 @@ object GuiHandler : Listener {
         }
     }
 
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     @EventHandler
     fun onClickInventory(event: InventoryClickEvent) {
         val playersInv = openInventories[event.whoClicked as Player] ?: return
@@ -42,6 +67,11 @@ object GuiHandler : Listener {
         }
     }
 
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     @EventHandler
     fun onInteractInventory(event: InventoryInteractEvent) {
         val playersInv = openInventories[event.whoClicked as Player] ?: return
@@ -50,6 +80,11 @@ object GuiHandler : Listener {
         }
     }
 
+    /**
+     * Called by backbone.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     @BackboneEventHandler
     fun onTick(event: TickEvent) {
         for ((_, guiState) in openInventories) {

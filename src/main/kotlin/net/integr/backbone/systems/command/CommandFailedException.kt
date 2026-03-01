@@ -15,4 +15,10 @@ package net.integr.backbone.systems.command
 
 import java.lang.Exception
 
+/**
+ * Represents an exception that occurs when a command should fail for various reasons.
+ * **Important:** When failing because of argument errors, use [CommandArgumentException] instead.
+ *
+ * @since 1.0.0
+ */
 class CommandFailedException(message: String) : Exception(message)

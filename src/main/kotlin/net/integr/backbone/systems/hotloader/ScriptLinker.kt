@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
 import net.integr.backbone.systems.hotloader.configuration.Script
+import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.name
@@ -34,11 +35,41 @@ import kotlin.script.experimental.jvm.updateClasspath
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 
+/**
+ * The central object for managing the compilation, linking, and hot-reloading of scripts.
+ *
+ * This object orchestrates the entire hot-reloading process, including:
+ * - Discovering and compiling utility scripts (`.bbu.kts`) and regular scripts (`.bb.kts`).
+ * - Creating a custom classloader hierarchy to isolate script dependencies and enable hot-swapping.
+ * - Transferring sustained states between old and new script instances during reloads.
+ * - Managing the lifecycle (loading, unloading, enabling) of scripts.
+ *
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 object ScriptLinker {
     private val logger = ScriptEngine.logger.derive("linker")
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
+    /**
+     * Compiles and links all scripts found in the [Backbone.SCRIPT_POOL] directory.
+     *
+     * This method performs the following steps:
+     * 1. Discovers all utility scripts (`.bbu.kts`) and regular scripts (`.bb.kts`).
+     * 2. Compiles utility scripts, creating a custom classloader and temporary JAR files for their classes and dependencies.
+     * 3. Creates a unified `ExtendableClassLoader` that includes all utility script classes and their dependencies.
+     * 4. Compiles regular scripts using the unified classloader.
+     * 5. If a script was previously loaded, its sustained state is transferred to the new instance.
+     * 6. Unloads all previously active scripts.
+     * 7. Loads and enables all newly compiled scripts.
+     *
+     * Any errors encountered during compilation, linking, or loading are logged, and the process
+     * continues for other scripts.
+     *
+     * @return `true` if any errors occurred during the entire process, `false` otherwise.
+     * @since 1.0.0
+     */
     suspend fun compileAndLink(): Boolean {
         var errs = false
 

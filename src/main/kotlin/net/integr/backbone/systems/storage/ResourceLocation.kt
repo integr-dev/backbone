@@ -15,14 +15,41 @@ package net.integr.backbone.systems.storage
 
 import java.io.File
 
+/**
+ * Represents a specific resource location within a `ResourcePool`.
+ *
+ * @param pool The `ResourcePool` this location belongs to.
+ * @param id The identifier for this resource location.
+ *
+ * @since 1.0.0
+ */
 class ResourceLocation(val pool: ResourcePool, id: String) {
+    /**
+     * The backing file for this resource location.
+     *
+     * @since 1.0.0
+     */
     val location: File = pool.location.resolve(id).toFile()
 
+    /**
+     * Creates the file for this resource location if it doesn't already exist.
+     *
+     * @return `true` if the file was created, `false` if it already existed.
+     *
+     * @since 1.0.0
+     */
     fun create(): Boolean {
         pool.create()
         return location.createNewFile()
     }
 
+    /**
+     * Checks if the file for this resource location exists.
+     *
+     * @return `true` if the file exists, `false` otherwise.
+     *
+     * @since 1.0.0
+     */
     fun exists(): Boolean {
         return location.exists()
     }
