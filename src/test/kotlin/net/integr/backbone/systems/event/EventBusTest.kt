@@ -101,6 +101,78 @@ class EventBusTest {
         assertEquals("Callback from handler", event.callback())
     }
 
+    @Test
+    fun testSamePriorityHandlers() {
+        var handler1Called = false
+        var handler2Called = false
+
+        class TestListener {
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onEvent1(event: TestEvent) {
+                handler1Called = true
+            }
+
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onEvent2(event: TestEvent) {
+                handler2Called = true
+            }
+        }
+
+        val listener = TestListener()
+        EventBus.register(listener)
+        EventBus.post(TestEvent())
+
+        assertTrue(handler1Called, "Handler 1 should have been called")
+        assertTrue(handler2Called, "Handler 2 should have been called")
+    }
+
+    @Test
+    fun testHandlersInDifferentInstances() {
+        var callCount = 0
+
+        class TestListener {
+            @BackboneEventHandler
+            fun onEvent(event: TestEvent) {
+                callCount++
+            }
+        }
+
+        val listener1 = TestListener()
+        val listener2 = TestListener()
+
+        EventBus.register(listener1)
+        EventBus.register(listener2)
+        EventBus.post(TestEvent())
+
+        assertEquals(2, callCount, "Handler should have been called for both instances")
+    }
+
+    @Test
+    fun testMultipleInstancesWithSamePriorityHandlers() {
+        var callCount = 0
+
+        class TestListener {
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onEvent1(event: TestEvent) {
+                callCount++
+            }
+
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onEvent2(event: TestEvent) {
+                callCount++
+            }
+        }
+
+        val listener1 = TestListener()
+        val listener2 = TestListener()
+
+        EventBus.register(listener1)
+        EventBus.register(listener2)
+        EventBus.post(TestEvent())
+
+        assertEquals(4, callCount, "All handlers across all instances should have been called")
+    }
+
     @AfterEach
     fun tearDown() {
         EventBus.clear()

@@ -80,18 +80,6 @@ abstract class Argument<T : Any>(val name: String, val description: String) {
         }
 
         /**
-         * Read the next part of the input until a specific token is encountered.
-         *
-         * @param token The token to search for.
-         * @return A [SubInputWithResult] containing the extracted string, its end index, and whether the token was found.
-         * @since 1.0.0
-         */
-        fun getNextToToken(token: Char): SubInputWithResult {
-            val str = value.substringBefore(token)
-            return SubInputWithResult(str, str.length, str.length == value.length)
-        }
-
-        /**
          * Read the next part of the input greedily until a specific bound character is encountered.
          *
          * @param token The bound character to search for.

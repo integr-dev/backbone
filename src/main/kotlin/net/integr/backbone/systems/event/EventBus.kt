@@ -57,12 +57,12 @@ object EventBus {
 
         override fun compareTo(other: EventHandler): Int {
             val priorityComparison = priority.compareTo(other.priority)
-            val callableComparison = callable.hashCode().compareTo(other.callable.hashCode())
-            val instanceComparison = instance.hashCode().compareTo(other.instance.hashCode())
+            if (priorityComparison != 0) return priorityComparison
 
-            return if (priorityComparison != 0) priorityComparison
-            else if (callableComparison != 0) callableComparison
-            else instanceComparison
+            val callableComparison = callable.toString().compareTo(other.callable.toString())
+            if (callableComparison != 0) return callableComparison
+
+            return System.identityHashCode(instance).compareTo(System.identityHashCode(other.instance))
         }
     }
 
@@ -73,14 +73,16 @@ object EventBus {
      *
      * @param klass The class to register.
      * @param instance The instance of the class to use for non-static methods.
+     * @throws IllegalArgumentException if a handler in the class does not have exactly one parameter
      * @since 1.0.0
      */
     fun register(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
-                if (member.parameters.size > 2) throw IllegalArgumentException(
-                    "Only one parameter is allowed at ${member.javaClass.declaringClass?.kotlin?.simpleName}.${member.name}()"
-                )
+                // include the default "this" parameter
+                if (member.parameters.size > 2 || member.parameters.size <= 1)
+                    throw IllegalArgumentException("Member must have exactly one parameter " +
+                            "${member.javaClass.declaringClass?.kotlin?.simpleName}.${member.name}()")
 
                 val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
 
@@ -101,6 +103,7 @@ object EventBus {
      * Registers all event handlers in the given instance.
      *
      * @param instance The instance to register.
+     * @throws IllegalArgumentException if a handler in the class does not have exactly one parameter
      * @since 1.0.0
      */
     fun register(instance: Any) = register(instance::class, instance)

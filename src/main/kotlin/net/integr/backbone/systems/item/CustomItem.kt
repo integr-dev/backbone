@@ -66,11 +66,11 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
      * @param instanceId A unique identifier for this specific instance of the item.
      *                   If not provided, a new UID will be generated.
      * @return The newly created and configured [ItemStack].
-     * @throws IllegalArgumentException if the provided `instanceId` is not in snake_case.
+     * @throws IllegalArgumentException if the provided `instanceId` is not a valid uid.
      * @since 1.0.0
      */
     fun generate(state: CustomItemState, instanceId: String = PersistenceHelper.genUid()): ItemStack {
-        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be snake_case")
+        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be a valid uid")
 
         val stack = state.generate()
 
