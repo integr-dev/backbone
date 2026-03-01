@@ -36,7 +36,15 @@ import kotlin.reflect.full.hasAnnotation
 object EventBus {
     private val logger = Backbone.LOGGER.derive("event-system")
 
-    class EventHandler(var priority: Int, var callable: KCallable<*>, var instance: Any) : Comparable<EventHandler> {
+    /**
+     * Represents a singular handler with its priority, member and containing class instance.
+     *
+     * @param priority the priority of the handler
+     * @param callable the method to invoke when firing
+     * @param instance the instance of the containing class to call the member in
+     * @since 1.0.0
+     */
+    private class EventHandler(var priority: Int, var callable: KCallable<*>, var instance: Any) : Comparable<EventHandler> {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false

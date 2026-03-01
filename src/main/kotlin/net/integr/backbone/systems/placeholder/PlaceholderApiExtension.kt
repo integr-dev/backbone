@@ -17,7 +17,7 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.entity.Player
 
 /**
- * Wraps a [PlaceholderApiExtension] for use with PlaceholderAPI.
+ * Represents an Extension for use with PlaceholderAPI.
  *
  * This class extends PlaceholderAPI's `PlaceholderExpansion` to allow for custom
  * placeholder logic to be defined. It takes an ID, author, version, and a lambda

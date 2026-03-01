@@ -42,7 +42,7 @@ object BStatHandler {
      * @since 1.1.0
      */
     fun init() {
-        logger.info("Initializing BStats...")
+        logger.info("Initializing bStats...")
         metrics = Metrics(Backbone.PLUGIN, PLUGIN_ID)
     }
 }

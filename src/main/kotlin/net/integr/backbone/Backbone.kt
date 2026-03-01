@@ -37,7 +37,6 @@ import org.jetbrains.annotations.ApiStatus
  */
 object Backbone {
     //TODO: dialogues, command help builder
-    @ApiStatus.Internal
     /**
      * Backbones internal storage pool. **Important:** Do not use this.
      * Create a new pool instead:
@@ -47,9 +46,9 @@ object Backbone {
      *
      * @since 1.0.0
      */
+    @ApiStatus.Internal
     val STORAGE_POOL = ResourcePool.fromStorage("backbone")
 
-    @ApiStatus.Internal
     /**
      * Backbones internal config pool. **Important:** Do not use this.
      * Create a new pool instead:
@@ -59,6 +58,7 @@ object Backbone {
      *
      * @since 1.0.0
      */
+    @ApiStatus.Internal
     val CONFIG_POOL = ResourcePool.fromConfig("backbone")
 
     /**

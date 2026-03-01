@@ -19,7 +19,7 @@ import net.integr.backbone.systems.command.argument.Argument
 /**
  * A command argument that parses a boolean value.
  *
- *  * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
+ * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
  * It provides completions for "true" and "false" when the argument is being typed.
  *
  * @param name The name of the argument.
@@ -33,7 +33,7 @@ fun booleanArgument(name: String, description: String): Argument<Boolean> {
 /**
  * A command argument that parses a boolean value.
  *
- *  * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
+ * This argument accepts "true" or "false" (case-insensitive) as valid inputs.
  * It provides completions for "true" and "false" when the argument is being typed.
  *
  * @param name The name of the argument.
