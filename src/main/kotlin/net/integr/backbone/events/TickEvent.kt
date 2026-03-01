@@ -21,4 +21,4 @@ import net.integr.backbone.systems.event.Event
  * Use the scheduler instead.
  * @since 1.0.0
  */
-object TickEvent : Event()
+class TickEvent : Event()

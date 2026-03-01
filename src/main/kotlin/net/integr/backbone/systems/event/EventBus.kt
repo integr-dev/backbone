@@ -43,30 +43,32 @@ object EventBus {
 
             other as EventHandler
 
-            if (callable != other.callable) return false
-            if (instance != other.instance) return false
-
-            return true
+            return compareTo(other) == 0
         }
 
         override fun hashCode(): Int {
-            var result = callable.hashCode()
-            result = 31 * result + instance.hashCode()
+            var result = priority
+            result = 31 * result + callable.toString().hashCode()
+            result = 31 * result + System.identityHashCode(instance)
             return result
         }
 
         override fun compareTo(other: EventHandler): Int {
-            val priorityComparison = priority.compareTo(other.priority)
+            return compareTo(other.priority, other.callable, other.instance)
+        }
+
+        fun compareTo(otherPriority: Int, otherCallable: KCallable<*>, otherInstance: Any): Int {
+            val priorityComparison = priority.compareTo(otherPriority)
             if (priorityComparison != 0) return priorityComparison
 
-            val callableComparison = callable.toString().compareTo(other.callable.toString())
+            val callableComparison = callable.toString().compareTo(otherCallable.toString())
             if (callableComparison != 0) return callableComparison
 
-            return System.identityHashCode(instance).compareTo(System.identityHashCode(other.instance))
+            return System.identityHashCode(instance).compareTo(System.identityHashCode(otherInstance))
         }
     }
 
-    private var eventHandlers: ConcurrentHashMap<String, ConcurrentSkipListSet<EventHandler>> = ConcurrentHashMap()
+    private val eventHandlers: ConcurrentHashMap<String, ConcurrentSkipListSet<EventHandler>> = ConcurrentHashMap()
 
     /**
      * Registers all event handlers in the given class.
@@ -90,7 +92,7 @@ object EventBus {
                     ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
                 val newHandler = EventHandler(priority, member, instance)
-                val eventHandlersForEventTarget = eventHandlers.getOrPut(targetEventId) { ConcurrentSkipListSet() }
+                val eventHandlersForEventTarget = eventHandlers.computeIfAbsent(targetEventId) { ConcurrentSkipListSet() }
 
                 logger.info("Registering event handler ${klass.simpleName}.${member.name}()")
                 eventHandlersForEventTarget += newHandler
@@ -117,11 +119,14 @@ object EventBus {
     fun unregister(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
+                val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
+
                 val targetEventId = member.parameters[1].type.classifier
                     ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
                 val eventHandlersForEventTarget = eventHandlers[targetEventId] ?: continue
-                val handler = eventHandlersForEventTarget.find { it.callable == member && it.instance == instance } ?: continue
+
+                val handler = eventHandlersForEventTarget.find { it.compareTo(priority, member, instance) == 0 } ?: continue
 
                 logger.info("Unregistering event handler ${klass.simpleName}.${member.name}()")
                 eventHandlersForEventTarget.remove(handler)
