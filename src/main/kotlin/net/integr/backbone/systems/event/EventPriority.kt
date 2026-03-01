@@ -15,6 +15,11 @@
 
 package net.integr.backbone.systems.event
 
+/**
+ * Represents the priority of an event handler. Handlers with higher priority (lower ordinal value) are called first.
+ *
+ * @since 1.0.0
+ */
 enum class EventPriority {
     THREE_BEFORE,
     TWO_BEFORE,

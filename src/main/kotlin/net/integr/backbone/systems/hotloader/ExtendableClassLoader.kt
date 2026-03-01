@@ -13,16 +13,43 @@
 
 package net.integr.backbone.systems.hotloader
 
+import org.jetbrains.annotations.ApiStatus
 import java.net.URL
 import java.net.URLClassLoader
 
+/**
+ * A custom [URLClassLoader] that allows adding new classes and URLs dynamically.
+ *
+ * This class is used by the hot-reloading system to load compiled script classes and their dependencies
+ * without restarting the entire application. It extends [URLClassLoader] to provide methods for
+ * adding new class definitions as byte arrays and new URLs to the classpath.
+ *
+ * @param parent The parent class loader.
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 class ExtendableClassLoader(parent: ClassLoader) : URLClassLoader(emptyArray(), parent) {
     private val extraClasses = mutableMapOf<String, ByteArray>()
 
+    /**
+     *
+     * Adds a map of class names to their byte array definitions to this class loader.
+     * These classes can then be loaded dynamically.
+     *
+     * @param entries A map where keys are fully qualified class names (e.g., "com.example.MyClass")
+     *                and values are the byte arrays representing the class definitions.
+     * @since 1.0.0
+     */
     fun addClasses(entries: Map<String, ByteArray>) {
         extraClasses.putAll(entries)
     }
 
+    /**
+     * Adds a URL to the search path for classes and resources.
+     *
+     * @param url The URL to add.
+     * @since 1.0.0
+     */
     public override fun addURL(url: URL) {
         super.addURL(url)
     }

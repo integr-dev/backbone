@@ -16,23 +16,59 @@
 package net.integr.backbone.systems.event
 
 import net.integr.backbone.Backbone
+import org.jetbrains.annotations.ApiStatus
 import java.lang.reflect.InvocationTargetException
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.iterator
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 
+/**
+ * A simple event bus for publishing and subscribing to events.
+ *
+ * This class provides methods for registering and unregistering event handlers,
+ * and for posting events to be handled by registered handlers.
+ *
+ * @since 1.0.0
+ */
 object EventBus {
     private val logger = Backbone.LOGGER.derive("event-system")
 
-    /* event_id to (priority to (handler to instance)) */
-    private var eventHandlers: ConcurrentHashMap<String, SortedMap<Int, ConcurrentHashMap<KCallable<*>, Any>>> =
-        ConcurrentHashMap()
+    class EventHandler(var priority: Int, var callable: KCallable<*>, var instance: Any) : Comparable<EventHandler> {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
 
+            other as EventHandler
+
+            if (callable != other.callable) return false
+            if (instance != other.instance) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = callable.hashCode()
+            result = 31 * result + instance.hashCode()
+            return result
+        }
+
+        override fun compareTo(other: EventHandler): Int {
+            return priority - other.priority
+        }
+    }
+
+    private var eventHandlers: ConcurrentHashMap<String, SortedSet<EventHandler>> = ConcurrentHashMap()
+
+    /**
+     * Registers all event handlers in the given class.
+     *
+     * @param klass The class to register.
+     * @param instance The instance of the class to use for non-static methods.
+     * @since 1.0.0
+     */
     fun register(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
@@ -45,77 +81,99 @@ object EventBus {
                 val targetEventId = member.parameters[1].type.classifier
                     ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
-                val entry = eventHandlers.getOrPut(targetEventId) { sortedMapOf() }
-                val priorityEntry = entry.getOrPut(priority) { ConcurrentHashMap() }
+                val newHandler = EventHandler(priority, member, instance)
+                val eventHandlersForEventTarget = eventHandlers.getOrPut(targetEventId) { sortedSetOf() }
 
                 logger.info("Registering event handler ${klass.simpleName}.${member.name}()")
-                priorityEntry[member] = instance
+                eventHandlersForEventTarget += newHandler
             }
         }
     }
 
-    fun register(klass: KClass<*>) = register(klass, klass.createInstance())
+    /**
+     *
+     * Registers all event handlers in the given instance.
+     *
+     * @param instance The instance to register.
+     * @since 1.0.0
+     */
     fun register(instance: Any) = register(instance::class, instance)
 
-    fun unregister(klass: KClass<*>) {
+    /**
+     * Removes all event handlers in the given class.
+     *
+     * @param klass The class to unregister.
+     * @since 1.0.0
+     */
+    fun unregister(klass: KClass<*>, instance: Any) {
         for (member in klass.members) {
             if (member.hasAnnotation<BackboneEventHandler>()) {
                 val targetEventId = member.parameters[1].type.classifier
                     ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
-                val priority = member.findAnnotation<BackboneEventHandler>()?.priority?.ordinal ?: 0
-
-                val entry = eventHandlers[targetEventId] ?: continue
-                val priorityEntry = entry[priority] ?: continue
+                val eventHandlersForEventTarget = eventHandlers[targetEventId] ?: continue
+                val handler = eventHandlersForEventTarget.find { it.callable == member && it.instance == instance } ?: continue
 
                 logger.info("Unregistering event handler ${klass.simpleName}.${member.name}()")
-                priorityEntry.remove(member)
+                eventHandlersForEventTarget.remove(handler)
             }
         }
     }
 
-    fun unregister(instance: Any) = unregister(instance::class)
+    /**
+     * Removes all event handlers in the given class.
+     *
+     * @param instance The instance of the class to unregister.
+     * @since 1.0.0
+     */
+    fun unregister(instance: Any) = unregister(instance::class, instance)
 
+    /**
+     * Clears all event handlers.
+     *
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     fun clear() {
         logger.info("Clearing all event handlers")
         eventHandlers.clear()
     }
 
+    /**
+     * Posts an event to the bus, notifying all registered handlers.
+     *
+     * @param event The event to post.
+     * @return The callback object from the event, or null if no callback was set.
+     * @since 1.0.0
+     */
     fun post(event: Event): Any? {
         val eventId = event::class.qualifiedName ?: return null
-        val priorityEntries = eventHandlers[eventId] ?: return null
+        val eventHandlers = eventHandlers[eventId] ?: return null
 
-        for ((_, handlersInPriority) in priorityEntries) callOnPriority(event, handlersInPriority)
-
-        return event.getCallback()
-    }
-
-    fun postToPriority(event: Event, priority: EventPriority): Any? {
-        val eventId = event::class.qualifiedName ?: return null
-        val priorityEntries = eventHandlers[eventId] ?: return null
-        val handlersInPriority = priorityEntries[priority.ordinal] ?: return null
-
-        callOnPriority(event, handlersInPriority)
-
-        return event.getCallback()
-    }
-
-    private fun callOnPriority(event: Event, entry: ConcurrentHashMap<KCallable<*>, Any>) {
-        for ((handler, instance) in entry) {
-            try {
-                if (handler.parameters[1].type.classifier?.let { (it as? KClass<*>)?.qualifiedName } != event::class.qualifiedName) {
-                    logger.warning("Skipping event handler ${handler.name} due to class loader mismatch.")
-                    continue
-                }
-
-                handler.call(instance, event)
-            } catch (e: InvocationTargetException) {
-                val handlerName = handler.name
-                val declaringClass = handler.javaClass.declaringClass?.name ?: handler.javaClass.name
-                logger.severe("Fatal Error during event in handler: $declaringClass.$handlerName")
-                e.printStackTrace()
-            }
+        for (handler in eventHandlers) {
+            callHandler(event, handler)
         }
+
+        return event.callback()
+    }
+
+
+    private fun callHandler(event: Event, handler: EventHandler) {
+        val callable = handler.callable
+
+        try {
+            if (callable.parameters[1].type.classifier?.let { (it as? KClass<*>)?.qualifiedName } != event::class.qualifiedName) {
+                logger.warning("Skipping event handler ${callable.name} due to class loader mismatch.")
+                return
+            }
+
+            callable.call(handler.instance, event)
+        } catch (e: InvocationTargetException) {
+            val declaringClass = callable.javaClass.declaringClass?.name ?: callable.javaClass.name
+            logger.severe("Fatal Error during event in handler: $declaringClass.${callable.name}")
+            e.printStackTrace()
+        }
+
     }
 
 }

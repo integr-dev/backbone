@@ -83,12 +83,6 @@ All script files should be placed in the `scripts/` directory in your server's r
 Every script file must evaluate to an object that extends `ManagedLifecycle`. This class provides the necessary hooks for the script engine to manage the script's lifecycle.
 
 ```kotlin
-import net.integr.backbone.Backbone
-import net.integr.backbone.events.TickEvent
-import net.integr.backbone.systems.event.BackboneEventHandler
-import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
-import net.integr.backbone.systems.hotloader.lifecycle.sustained
-
 // Each script must return an object that extends ManagedLifecycle.
 object : ManagedLifecycle() {
     // 'sustained' properties persist their values across script reloads.
@@ -150,10 +144,6 @@ You can pull in external libraries directly from Maven repositories using the `@
 @file:Repository("https://jitpack.io")
 // Depend on a library from that repository
 @file:DependsOn("com.github.javafaker:javafaker:1.0.2")
-
-import com.github.javafaker.Faker
-import kotlin.script.experimental.dependencies.DependsOn
-import kotlin.script.experimental.dependencies.Repository
 
 // ... inside your script
 val faker = Faker()
@@ -260,10 +250,11 @@ class MyCustomEvent(val message: String) : Event()
 @BackboneEventHandler(EventPriority.THREE_BEFORE)
 fun onMyCustomEvent(event: MyCustomEvent) {
     println("Received custom event: ${event.message}")
+    event.setCallback("yay!")
 }
 
 // Fire the custom event from anywhere in your code
-EventBus.post(MyCustomEvent("Hello, world!"))
+val callback = EventBus.post(MyCustomEvent("Hello, world!")) // "yay!"
 ```
 
 ### Commands
@@ -365,11 +356,13 @@ object MyItem : CustomItem("my_item", MyItemState) {
 // Define the state for the custom item
 object MyItemState : CustomItemState("default") {
     override fun generate(): ItemStack {
-        return ItemStack(Material.DIAMOND_SWORD).apply {
-            itemMeta = itemMeta.apply {
-                setDisplayName("My Custom Sword")
-            }
+        val itemStack = ItemStack(Material.DIAMOND_SWORD)
+        
+        itemStack.applyMeta {
+            isUnbreakable = true
         }
+        
+        return itemStack
     }
 }
 

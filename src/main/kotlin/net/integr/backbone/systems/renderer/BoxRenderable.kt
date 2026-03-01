@@ -19,25 +19,42 @@ import org.bukkit.entity.BlockDisplay
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * A renderable that draws a wireframe box using [BlockDisplay] entities.
+ *
+ * This class provides a convenient way to create, spawn, despawn, and update a wireframe box
+ * defined by two corner locations. It uses multiple [BlockDisplay] entities to form the
+ * edges of the box, allowing for dynamic resizing and repositioning.
+ *
+ * @since 1.0.0
+ */
 class BoxRenderable : Renderable() {
     // Top
-    val tN = blockDisplay()
-    val tE = blockDisplay()
-    val tS = blockDisplay()
-    val tW = blockDisplay()
+    private val tN = blockDisplay()
+    private val tE = blockDisplay()
+    private val tS = blockDisplay()
+    private val tW = blockDisplay()
 
     // Bottom
-    val bN = blockDisplay()
-    val bE = blockDisplay()
-    val bS = blockDisplay()
-    val bW = blockDisplay()
+    private val bN = blockDisplay()
+    private val bE = blockDisplay()
+    private val bS = blockDisplay()
+    private val bW = blockDisplay()
 
     // Sides
-    val sNE = blockDisplay()
-    val sNW = blockDisplay()
-    val sSE = blockDisplay()
-    val sSW = blockDisplay()
+    private val sNE = blockDisplay()
+    private val sNW = blockDisplay()
+    private val sSE = blockDisplay()
+    private val sSW = blockDisplay()
 
+    /**
+     * Update the [BlockDisplay] entities to form a wireframe box between two locations.
+
+     * @param p1 The first corner of the box.
+     * @param p2 The second corner of the box.
+     * @param block The [BlockData] to use for the wireframe.
+     * @since 1.0.0
+     */
     fun update(p1: Location, p2: Location, block: BlockData) {
         val beamThickness = 0.03
         val beamOffset = beamThickness / 2.0

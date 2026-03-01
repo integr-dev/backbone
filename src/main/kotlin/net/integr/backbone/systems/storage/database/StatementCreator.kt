@@ -21,9 +21,24 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
 
+/**
+ * A utility class for creating and executing SQL statements and prepared statements.
+ *
+ * @param connection The `Connection` object to use for creating statements.
+ *
+ * @since 1.0.0
+ */
 class StatementCreator(private val connection: Connection) {
     private val logger = Backbone.LOGGER.derive("statement-creator")
 
+    /**
+     * Creates and executes a `Statement`, then processes its result.
+     *
+     * @param block The block of code to execute with the `Statement` object.
+     * @return The result of the `block` execution, or `null` if an SQL exception occurs.
+     *
+     * @since 1.0.0
+     */
     fun <T> statement(block: Statement.() -> T): T? {
         try {
             val statement = connection.createStatement()
@@ -36,6 +51,13 @@ class StatementCreator(private val connection: Connection) {
         }
     }
 
+    /**
+     * Executes a raw SQL query.
+     *
+     * @param sql The SQL query string.
+     * @return `true` if the first result is a `ResultSet` object; `false` if the first result is an update count or there is no result.
+     * @since 1.0.0
+     */
     fun execute(@Language("SQL") sql: String): Boolean? {
         logger.info("Executing SQL: $sql")
         return statement {
@@ -44,6 +66,15 @@ class StatementCreator(private val connection: Connection) {
         }
     }
 
+    /**
+     * Runs a query and maps the results to an object.
+     *
+     * @param sql The SQL query string.
+     * @param mapper A function to map the `ResultSet` to an object of type `T`.
+     * @return The mapped object, or `null` if no result is found or an SQL exception occurs.
+     *
+     * @since 1.0.0
+     */
     fun <T> query(@Language("SQL") sql: String, mapper: (ResultSet) -> T?): T? {
         logger.info("Executing SQL: $sql")
         return statement {
@@ -59,6 +90,15 @@ class StatementCreator(private val connection: Connection) {
         }
     }
 
+    /**
+     * Create a prepared statement.
+     *
+     * @param sql The SQL query string.
+     * @param block The block of code to execute with the `PreparedStatement` object.
+     * @return The result of the `block` execution, or `null` if an SQL exception occurs.
+     *
+     * @since 1.0.0
+     */
     fun <T> preparedStatement(@Language("SQL") sql: String, block: PreparedStatement.() -> T): T? {
         logger.info("Executing SQL: $sql")
         try {

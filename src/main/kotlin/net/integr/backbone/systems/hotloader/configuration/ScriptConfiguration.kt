@@ -15,6 +15,7 @@ package net.integr.backbone.systems.hotloader.configuration
 
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.hotloader.annotations.CompilerOptions
+import org.jetbrains.annotations.ApiStatus
 import kotlin.script.experimental.api.ScriptAcceptedLocation
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
@@ -28,6 +29,18 @@ import kotlin.script.experimental.dependencies.Repository
 import kotlin.script.experimental.jvm.dependenciesFromClassloader
 import kotlin.script.experimental.jvm.jvm
 
+/**
+ * Defines the compilation configuration for Backbone scripts.
+ *
+ * This object configures the Kotlin script compilation process, including:
+ * - JVM settings: Specifies the classloader for dependencies and sets the JVM target version.
+ * - IDE settings: Allows scripts to be accepted in any location within the IDE.
+ * - Refinement: Uses [RefinementHandler] to process annotations like [DependsOn], [Repository], and [CompilerOptions]
+ *   to dynamically adjust the compilation configuration.
+ *
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
 object ScriptConfiguration : ScriptCompilationConfiguration({
     jvm {
@@ -52,5 +65,13 @@ object ScriptConfiguration : ScriptCompilationConfiguration({
     }
 })
 
+/**
+ * Defines the evaluation configuration for Backbone scripts.
+ * This object currently uses the default evaluation configuration provided by the Kotlin scripting API.
+ * It is marked as internal and suppressible for Java serialization warnings.
+ *
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
 object EvaluationConfiguration : ScriptEvaluationConfiguration()

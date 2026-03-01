@@ -15,4 +15,9 @@ package net.integr.backbone.systems.command
 
 import java.lang.Exception
 
+/**
+ * Represents an exception that occurs when a command argument is invalid.
+ *
+ * @since 1.0.0
+ */
 class CommandArgumentException(message: String) : Exception(message)

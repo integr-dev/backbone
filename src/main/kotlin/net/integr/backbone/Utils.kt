@@ -13,19 +13,44 @@
 
 package net.integr.backbone
 
+/**
+ * Utility functions for various tasks.
+ * @since 1.0.0
+ */
 object Utils {
+    /**
+     * Executes the given block and returns its result, or null if an exception occurs.
+     *
+     * @param block The block to execute.
+     * @return The result of the block, or null if an exception occurred.
+     * @since 1.0.0
+     */
     fun <T> tryOrNull(block: () -> T): T? {
         return try {
             block()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
+    /**
+     * Checks if the given string is valid snake_case.
+     *
+     * @param string The string to check.
+     * @return True if the string is valid snake_case, false otherwise.
+     * @since 1.0.0
+     */
     fun isSnakeCase(string: String): Boolean {
         return string.matches("^[a-z0-9]+(_[a-z0-9]+)*$".toRegex())
     }
 
+    /**
+     * Checks if the given string is a valid UID.
+     *
+     * @param string The string to check.
+     * @return True if the string is a valid UID, false otherwise.
+     * @since 1.0.0
+     */
     fun isUid(string: String): Boolean {
         return string.matches("^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$".toRegex())
     }

@@ -15,7 +15,6 @@ package net.integr.backbone
 
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
-import net.integr.backbone.entities.JumperEntity
 import net.integr.backbone.events.TickEvent
 import net.integr.backbone.systems.bstats.BStatHandler
 import net.integr.backbone.systems.entity.EntityHandler
@@ -25,11 +24,21 @@ import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.item.ItemHandler
 import org.bukkit.plugin.java.JavaPlugin
+import org.jetbrains.annotations.ApiStatus
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.PrintStream
 
+/**
+ * The main plugin class for the Backbone API.
+ * @since 1.0.0
+ */
+@ApiStatus.Internal
 class BackboneServer : JavaPlugin() {
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
     override fun onEnable() {
         val fdOut = FileOutputStream(FileDescriptor.out)
         val originalOut = PrintStream(fdOut, true)
@@ -52,7 +61,6 @@ class BackboneServer : JavaPlugin() {
         Backbone.registerListener(EntityHandler)
 
         Backbone.Handler.COMMAND.register(BackboneCommand)
-        Backbone.Handler.ENTITY.register(JumperEntity)
 
         Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
             EventBus.post(TickEvent)
@@ -60,13 +68,21 @@ class BackboneServer : JavaPlugin() {
 
     }
 
+    /**
+     * Called by bukkit.
+     * @since 1.0.0
+     */
     override fun onDisable() {
         runBlocking {
             ScriptEngine.unloadScripts() // Cleanup
         }
     }
 
-    fun setPlaceholders() {
+    /**
+     * Sets placeholders for the plugin.
+     * @since 1.0.0
+     */
+    private fun setPlaceholders() {
         Backbone.PLACEHOLDER_GROUP.create("backbone_version") { _, _ ->
             return@create Backbone.VERSION
         }

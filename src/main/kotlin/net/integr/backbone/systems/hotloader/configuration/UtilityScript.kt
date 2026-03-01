@@ -13,11 +13,21 @@
 
 package net.integr.backbone.systems.hotloader.configuration
 
+import org.jetbrains.annotations.ApiStatus
 import kotlin.script.experimental.annotations.KotlinScript
 
+/**
+ * Base class for Backbone utility scripts.
+ *
+ * This class serves as the entry point for all Kotlin utility scripts intended to be loaded and executed by Backbone.
+ * It defines the file extension, compilation configuration, and evaluation configuration for these scripts.
+ *
+ * @since 1.0.0
+ */
 @KotlinScript(
     fileExtension = "bbu.kts",
     compilationConfiguration = ScriptConfiguration::class,
     evaluationConfiguration = EvaluationConfiguration::class
 )
+@ApiStatus.Internal
 abstract class UtilityScript

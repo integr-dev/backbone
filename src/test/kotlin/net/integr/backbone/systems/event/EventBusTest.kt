@@ -84,39 +84,6 @@ class EventBusTest {
     }
 
     @Test
-    fun testPostToPriority() {
-        var lowHandled = false
-        var normalHandled = false
-        var highHandled = false
-
-        class TestListener {
-            @BackboneEventHandler(priority = EventPriority.THREE_AFTER)
-            fun onLow(event: TestEvent) {
-                lowHandled = true
-            }
-
-            @BackboneEventHandler(priority = EventPriority.NORMAL)
-            fun onNormal(event: TestEvent) {
-                normalHandled = true
-            }
-
-            @BackboneEventHandler(priority = EventPriority.THREE_BEFORE)
-            fun onHigh(event: TestEvent) {
-                highHandled = true
-            }
-        }
-
-        val listener = TestListener()
-        EventBus.register(listener)
-
-        EventBus.postToPriority(TestEvent(), EventPriority.NORMAL)
-
-        assertFalse(lowHandled)
-        assertTrue(normalHandled)
-        assertFalse(highHandled)
-    }
-
-    @Test
     fun testEventCallback() {
         class TestListener {
             @BackboneEventHandler
@@ -131,7 +98,7 @@ class EventBusTest {
         val result = EventBus.post(event)
 
         assertEquals("Callback from handler", result)
-        assertEquals("Callback from handler", event.getCallback())
+        assertEquals("Callback from handler", event.callback())
     }
 
     @AfterEach

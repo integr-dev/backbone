@@ -15,41 +15,105 @@ package net.integr.backbone.systems.storage
 
 import net.integr.backbone.systems.storage.config.ConfigHandler
 import net.integr.backbone.systems.storage.database.DatabaseConnection
+import org.jetbrains.annotations.ApiStatus
 import java.nio.file.Path
 import kotlin.io.path.createDirectories
-import kotlin.reflect.typeOf
 
+/**
+ * Represents a pool of resources, providing methods to allocate and manage files, databases, and configurations.
+ *
+ * @param origin The base path for this resource pool.
+ * @param id The identifier for this resource pool, which will be a subdirectory within the origin.
+ *
+ * @since 1.0.0
+ */
 class ResourcePool(val origin: Path, id: String) {
+    /**
+     * The backing path for this resource pool.
+     *
+     * @since 1.0.0
+     */
     val location: Path = origin.resolve(id)
 
+    /**
+     * Allocate a new resource location within this pool.
+     *
+     * @param id The identifier for the new resource location.
+     * @return A `ResourceLocation` object representing the new resource.
+     *
+     * @since 1.0.0
+     */
     fun allocate(id: String): ResourceLocation {
         return ResourceLocation(this, id)
     }
 
+    /**
+     * Allocates a new file within this resource pool, ensuring its creation.
+     *
+     * @param id The identifier for the new file.
+     * @return A `ResourceLocation` object representing the new file.
+     *
+     * @since 1.0.0
+     */
     fun file(id: String): ResourceLocation {
         val location = allocate(id)
         location.create()
         return location
     }
 
+    /**
+     * Create the directory for this resource pool if it doesn't already exist.
+     *
+     * @since 1.0.0
+     */
     fun create() {
         location.createDirectories()
     }
 
+    /**
+     * Checks if the directory for this resource pool exists.
+     *
+     * @return `true` if the directory exists, `false` otherwise.
+     *
+     * @since 1.0.0
+     */
     fun exists(): Boolean {
         return location.toFile().exists()
     }
 
+    /**
+     * Allocates a new database within this resource pool, ensuring its creation.
+     *
+     * @param id The identifier for the new database.
+     * @return A `DatabaseConnection` object representing the new database.
+     *
+     * @since 1.0.0
+     */
     fun database(id: String): DatabaseConnection {
         val location = allocate(id)
         location.create()
         return DatabaseConnection(location)
     }
 
+    /**
+     * Lists all files and directories directly within this resource pool.
+     *
+     * @return A list of `Path` objects representing the files and directories.
+     *
+     * @since 1.0.0
+     */
     fun listFiles(): List<Path> {
         return location.toFile().listFiles()?.map { it.toPath() } ?: emptyList()
     }
 
+    /**
+     * Allocates a new configuration file within this resource pool, ensuring its creation.
+     *
+     * @param id The identifier for the new configuration file.
+     * @return A `ConfigHandler` object representing the new configuration.
+     *
+     * @since 1.0.0
+     */
     inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
@@ -70,18 +134,50 @@ class ResourcePool(val origin: Path, id: String) {
     }
 
     companion object {
+        /**
+         * Creates a resource pool from the root directory of the server.
+         *
+         * @param id The identifier for the resource pool.
+         * @return A `ResourcePool` object.
+         *
+         * @since 1.0.0
+         */
         fun fromRoot(id: String): ResourcePool {
             return ResourcePool(Path.of("."), id)
         }
 
+        /**
+         * Creates a resource pool from the storage directory of the server.
+         *
+         * @param id The identifier for the resource pool.
+         * @return A `ResourcePool` object.
+         *
+         * @since 1.0.0
+         */
         fun fromStorage(id: String): ResourcePool {
             return ResourcePool(Path.of("./storage"), id)
         }
 
+        /**
+         * Creates a resource pool from the config directory of the server.
+         *
+         * @param id The identifier for the resource pool.
+         * @return A `ResourcePool` object.
+         *
+         * @since 1.0.0
+         */
         fun fromConfig(id: String): ResourcePool {
             return ResourcePool(Path.of("./config"), id)
         }
 
+        /**
+         * Creates a resource pool from the scripts directory of the server.
+         *
+         * @return A `ResourcePool` object.
+         *
+         * @since 1.0.0
+         */
+        @ApiStatus.Internal
         fun getScripts(): ResourcePool {
             return ResourcePool(Path.of("./"), "scripts")
         }

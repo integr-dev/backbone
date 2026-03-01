@@ -18,14 +18,30 @@ import kotlinx.coroutines.Dispatchers
 import net.integr.backbone.Backbone
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandMap
+import org.jetbrains.annotations.ApiStatus
 import java.awt.Color
 import java.lang.reflect.Field
 
-
+/**
+ * Handles the registration and unregistration of commands.
+ *
+ * @since 1.0.0
+ */
 object CommandHandler {
-    val logger = Backbone.LOGGER.derive("command-handler")
+    private val logger = Backbone.LOGGER.derive("command-handler")
+
+    /**
+     * The backbone specific default command format.
+     * **Important:** When creating your own commands, create a new instance:
+     * ```kotlin
+     * val myFormat = CommandFeedbackFormat("myPlugin", Color.BLUE)
+     * ```
+     *
+     * @since 1.0.0
+     */
     val defaultFeedbackFormat = CommandFeedbackFormat("backbone", Color(141, 184, 130))
 
+    @ApiStatus.Internal
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val map: CommandMap by lazy {
@@ -36,7 +52,13 @@ object CommandHandler {
         map
     }
 
-
+    /**
+     * Register a command to the server.
+     *
+     * @param command The command to register.
+     * @param prefix The prefix for the command (default: "backbone").
+     * @since 1.0.0
+     */
     fun register(command: Command, prefix: String = "backbone") {
         command.build()
         map.register(prefix, command)
@@ -45,6 +67,13 @@ object CommandHandler {
         }
     }
 
+    /**
+     * Unregister a command from the server.
+     *
+     * @param command The command to unregister.
+     * @param prefix The prefix for the command (default: "backbone").
+     * @since 1.0.0
+     */
     fun unregister(command: Command, prefix: String = "backbone") {
         unregisterCommand(command.name, prefix)
 
@@ -53,7 +82,7 @@ object CommandHandler {
         }
     }
 
-    fun unregisterCommand(commandName: String, prefix: String = "backbone") {
+    private fun unregisterCommand(commandName: String, prefix: String = "backbone") {
         try {
             val knownCommandsField = map.javaClass.getSuperclass().getDeclaredField("knownCommands")
             knownCommandsField.setAccessible(true)

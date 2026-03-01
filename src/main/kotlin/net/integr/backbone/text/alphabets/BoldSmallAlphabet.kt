@@ -16,7 +16,15 @@ package net.integr.backbone.text.alphabets
 import net.integr.backbone.systems.text.Alphabet
 import kotlin.text.iterator
 
+/**
+ * A custom alphabet that encodes strings into a bold small-caps style.
+ * @since 1.0.0
+ */
 object BoldSmallAlphabet : Alphabet {
+    /**
+     * The bold small-caps alphabet characters.
+     * @since 1.0.0
+     */
     const val ALPHABET = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢ"
 
     override fun encode(str: String): String {

@@ -18,10 +18,30 @@ import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 import org.bukkit.entity.Player
 
+/**
+ * A command argument that parses a player.
+ *
+ * This argument accepts any valid online player's name as input.
+ * It provides completions for all online players.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun playerArgument(name: String, description: String): Argument<Player> {
     return PlayerArgument(name, description)
 }
 
+/**
+ * A command argument that parses a player.
+ *
+ * This argument accepts any valid online player's name as input.
+ * It provides completions for all online players.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class PlayerArgument(name: String, description: String) : Argument<Player>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()

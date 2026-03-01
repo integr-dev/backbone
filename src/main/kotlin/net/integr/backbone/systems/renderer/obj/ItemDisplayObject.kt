@@ -18,7 +18,13 @@ import org.bukkit.World
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemDisplay
 
-
+/**
+ * A concrete implementation of [EntityBackedObject] for managing a single [ItemDisplay] entity.
+ *
+ * This class provides the specific spawning logic for an [ItemDisplay] entity, allowing it to be
+ * created in a given [World] at a specified [Location].
+ * @since 1.0.0
+ */
 class ItemDisplayObject : EntityBackedObject<ItemDisplay>() {
     override fun spawn(world: World, location: Location) {
         entity = world.spawnEntity(location, EntityType.ITEM_DISPLAY) as ItemDisplay

@@ -16,10 +16,30 @@ package net.integr.backbone.commands.arguments
 import net.integr.backbone.systems.command.CommandArgumentException
 import net.integr.backbone.systems.command.argument.Argument
 
+/**
+ * A command argument that parses a float value.
+ *
+ * This argument accepts any valid float as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 fun floatArgument(name: String, description: String): Argument<Float> {
     return FloatArgument(name, description)
 }
 
+/**
+ * A command argument that parses a float value.
+ *
+ * This argument accepts any valid float as input.
+ * It does not provide specific completions beyond the argument's placeholder.
+ *
+ * @param name The name of the argument.
+ * @param description A brief description of the argument's purpose.
+ * @since 1.0.0
+ */
 class FloatArgument(name: String, description: String) : Argument<Float>(name, description) {
     override fun getCompletions(current: ArgumentInput): CompletionResult {
         val arg = current.getNextSingle()

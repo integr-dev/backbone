@@ -16,9 +16,24 @@ package net.integr.backbone.systems.renderer
 import org.bukkit.Location
 import org.bukkit.entity.TextDisplay
 
+/**
+ * A renderable that manages a single [TextDisplay] object.
+ *
+ * This class provides a convenient way to create, spawn, despawn, and update a single
+ * [TextDisplay] entity, making it easier to render dynamic text in the world.
+ *
+ * @since 1.0.0
+ */
 class TextRenderable : Renderable() {
-    val text = textDisplay()
+    private val text = textDisplay()
 
+    /**
+     * Updates the [TextDisplay] entity with the given location and applies the provided block of code.
+
+     * @param location The new location for the text display.
+     * @param block A lambda function to apply additional properties to the [TextDisplay] entity.
+     * @since 1.0.0
+     */
     fun update(location: Location, block: TextDisplay.() -> Unit) {
         this.text.entity?.let {
             it.teleport(location)
