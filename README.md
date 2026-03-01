@@ -354,21 +354,17 @@ object MyItem : CustomItem("my_item", MyItemState) {
 }
 
 // Define the state for the custom item
-object MyItemState : CustomItemState("default") {
-    override fun generate(): ItemStack {
-        val itemStack = ItemStack(Material.DIAMOND_SWORD)
-        
-        itemStack.applyMeta {
+object MyItemState : CustomItemState(Material.DIAMOND_SWORD, "default") {
+    override fun populate(stack: ItemStack) {
+        stack.applyMeta {
             isUnbreakable = true
         }
-        
-        return itemStack
     }
 }
 
 // In your ManagedLifecycle's onLoad:
 override fun onLoad() {
-    Backbone.Handlers.ITEM.register(MyItem)
+    Backbone.Handler.ITEM.register(MyItem)
 }
 ```
 

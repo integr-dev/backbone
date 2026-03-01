@@ -17,7 +17,7 @@ import net.integr.backbone.Backbone
 import org.bukkit.entity.Player
 
 /**
- * Group multiple placeholders together.  *
+ * Group multiple placeholders together.
  * This class allows for the creation and management of multiple [PlaceholderApiExtension] instances
  * under a common version and author. It simplifies the registration and unregistration process
  * for groups of placeholders, especially useful for scripts or modules that provide several

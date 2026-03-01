@@ -21,7 +21,7 @@ import org.bukkit.event.inventory.InventoryInteractEvent
 import org.bukkit.inventory.Inventory
 
 /**
- *  * Represents a graphical user interface (GUI) for players.
+ * Represents a graphical user interface (GUI) for players.
  *
  * This abstract class provides a framework for creating custom GUIs with inventory-based interactions.
  * Subclasses should implement the [prepare] method to define the GUI's layout.

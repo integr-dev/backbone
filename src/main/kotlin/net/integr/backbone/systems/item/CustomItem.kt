@@ -98,11 +98,11 @@ abstract class CustomItem(val id: String, val defaultState: CustomItemState) {
      *
      * @param stack The [ItemStack] to attach the data to.
      * @param instanceId The unique instance ID for this specific item stack.
-     * @throws IllegalArgumentException if the provided `instanceId` is not in snake_case.
+     * @throws IllegalArgumentException if the provided `instanceId` is not a valid uid.
      * @since 1.0.0
      */
     private fun attach(stack: ItemStack, instanceId: String) {
-        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be snake_case")
+        if (!Utils.isUid(instanceId)) throw IllegalArgumentException("Instance ID must be a valid uid")
 
         PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING, id)
         PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING, instanceId)

@@ -18,8 +18,8 @@ package net.integr.backbone.systems.event
 import net.integr.backbone.Backbone
 import org.jetbrains.annotations.ApiStatus
 import java.lang.reflect.InvocationTargetException
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.full.findAnnotation
@@ -56,11 +56,17 @@ object EventBus {
         }
 
         override fun compareTo(other: EventHandler): Int {
-            return priority - other.priority
+            val priorityComparison = priority.compareTo(other.priority)
+            val callableComparison = callable.hashCode().compareTo(other.callable.hashCode())
+            val instanceComparison = instance.hashCode().compareTo(other.instance.hashCode())
+
+            return if (priorityComparison != 0) priorityComparison
+            else if (callableComparison != 0) callableComparison
+            else instanceComparison
         }
     }
 
-    private var eventHandlers: ConcurrentHashMap<String, SortedSet<EventHandler>> = ConcurrentHashMap()
+    private var eventHandlers: ConcurrentHashMap<String, ConcurrentSkipListSet<EventHandler>> = ConcurrentHashMap()
 
     /**
      * Registers all event handlers in the given class.
@@ -82,7 +88,7 @@ object EventBus {
                     ?.let { (it as? KClass<*>)?.qualifiedName } ?: continue
 
                 val newHandler = EventHandler(priority, member, instance)
-                val eventHandlersForEventTarget = eventHandlers.getOrPut(targetEventId) { sortedSetOf() }
+                val eventHandlersForEventTarget = eventHandlers.getOrPut(targetEventId) { ConcurrentSkipListSet() }
 
                 logger.info("Registering event handler ${klass.simpleName}.${member.name}()")
                 eventHandlersForEventTarget += newHandler
@@ -152,6 +158,7 @@ object EventBus {
 
         for (handler in eventHandlers) {
             callHandler(event, handler)
+            if (event.isCancelled()) return event.callback()
         }
 
         return event.callback()
