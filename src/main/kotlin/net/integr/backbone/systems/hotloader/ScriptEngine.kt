@@ -46,7 +46,7 @@ object ScriptEngine {
 
         for ((name, state) in ScriptStore.scripts) {
             try {
-                state.lifecycle.onUnload()
+                state.lifecycle.unload()
                 state.enabled = false
                 logger.info("Unloading script: $name")
             } catch (e: Exception) {
@@ -84,7 +84,7 @@ object ScriptEngine {
         }
 
         try {
-            script.onUnload()
+            script.unload()
             state.enabled = false
             logger.info("Disabled script: '$name'")
         } catch (e: Exception) {
@@ -118,7 +118,7 @@ object ScriptEngine {
         }
 
         try {
-            script.onLoad()
+            script.load()
             state.enabled = true
             logger.info("Enabled script: '$name'")
         } catch (e: Exception) {

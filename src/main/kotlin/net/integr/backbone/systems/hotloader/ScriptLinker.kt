@@ -203,7 +203,7 @@ object ScriptLinker {
 
         for ((name, state) in newScripts) {
             try {
-                state.lifecycle.onLoad()
+                state.lifecycle.load()
                 state.enabled = true
                 logger.info("[$name] Enabled script")
             } catch (e: Exception) {

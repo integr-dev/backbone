@@ -102,6 +102,11 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
 
     /**
      * Dangerously get the raw state of this property.
+     *
+     * This method is intended for internal use by the hotloader to retrieve the state after a reload.
+     * It bypasses type checking and returns the raw value of the state.
+     *
+     * @return The raw state value.
      * @since 1.0.0
      */
     @ApiStatus.Internal
@@ -111,6 +116,9 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
 
     /**
      * Resets the state of this property to its default value.
+     *
+     * This method is intended for internal use by the hotloader to restore state after a reload.
+     * It sets the state to the default value without type checking.
      * @since 1.0.0
      */
     @ApiStatus.Internal

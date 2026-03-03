@@ -13,6 +13,7 @@
 
 package net.integr.backbone.systems.hotloader.lifecycle
 
+import net.integr.backbone.Backbone
 import org.bukkit.event.Listener
 import org.jetbrains.annotations.ApiStatus
 
@@ -37,7 +38,7 @@ abstract class ManagedLifecycle : Listener {
      * functionality.
      * @since 1.0.0
      */
-    abstract fun onLoad()
+    protected abstract fun onLoad()
 
     /**
      * Called when the component is unloaded.
@@ -47,7 +48,26 @@ abstract class ManagedLifecycle : Listener {
      * should contain logic for cleaning up resources and de-initializing the component.
      * @since 1.0.0
      */
-    abstract fun onUnload()
+    protected abstract fun onUnload()
+
+    /**
+     * Used internally by the hot-reloader to trigger loading of the lifecycle.
+     *
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
+    fun load() {
+        onLoad()
+    }
+
+    /**
+     * Used internally by the hot-reloader to trigger unloading of the lifecycle.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
+    fun unload() {
+        onUnload()
+    }
 
     /**
      * Add a [LifecycleSustainedState] to be tracked by this [ManagedLifecycle] instance.

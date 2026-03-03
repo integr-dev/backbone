@@ -144,28 +144,28 @@ object Backbone {
 
     /**
      * Registers a listener to the server's plugin manager and the internal event bus.
+     * 1. Registers the listener with the internal event bus.
+     * 2. Registers the listener with the plugin manager.
      *
      * @param listener The listener to register.
      *
      * @since 1.0.0
      */
     fun registerListener(listener: Listener) {
-        LOGGER.info("Registering listener: ${listener.javaClass.name}")
-        SERVER.pluginManager.registerEvents(listener, PLUGIN)
         EventBus.register(listener)
+        SERVER.pluginManager.registerEvents(listener, PLUGIN)
     }
 
     /**
      * Removes a listener from the server's plugin manager and the internal event bus.
      *
-     * @param listener The listener to register.
+     * @param listener The listener to unregister.
      *
      * @since 1.0.0
      */
     fun unregisterListener(listener: Listener) {
-        LOGGER.info("Unregistering listener: ${listener.javaClass.name}")
-        HandlerList.unregisterAll(listener)
         EventBus.unregister(listener)
+        HandlerList.unregisterAll(listener)
     }
 
     /**

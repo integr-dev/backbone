@@ -71,7 +71,26 @@ class BackboneLogger(name: String) : Logger(name, null) {
             if (record.level == Level.SEVERE) logFile.appendText(fileMessage + "\n")
         }
 
+        /**
+         * Flushes any buffered output.
+         *
+         * This implementation is intentionally empty as the handler writes directly to
+         * the console (via `println`) and file (via `appendText`), both of which handle
+         * their own flushing automatically.
+         *
+         * @since 1.0.0
+         */
         override fun flush() {}
+
+        /**
+         * Closes the handler and releases any associated resources.
+         *
+         * This implementation is intentionally empty as the handler does not maintain
+         * any resources that require explicit cleanup. The log file is opened and closed
+         * on each write operation, and console output requires no cleanup.
+         *
+         * @since 1.0.0
+         */
         override fun close() {}
     }
 
