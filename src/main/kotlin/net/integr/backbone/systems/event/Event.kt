@@ -18,42 +18,71 @@ package net.integr.backbone.systems.event
  *
  * @since 1.0.0
  */
-open class Event {
-    private var callback: Any? = null
-    private var isCancelled: Boolean = false
-
+abstract class Event {
     /**
-     * Sets the callback for the event.
+     * The callback for this event.
      *
-     * @param value The callback object.
+     * Internally uses the [GLOBAL_CALLBACK] key on the callback-map.
+     *
      * @since 1.0.0
      */
-    fun setCallback(value: Any?) {
-        callback = value
+    var callback: Any?
+        get() = callbacks[GLOBAL_CALLBACK]
+        set(value) {
+            callbacks[GLOBAL_CALLBACK] = value
+        }
+
+    /**
+     * The callbacks for this event.
+     * @since 1.3.0
+     */
+    private var callbacks: MutableMap<String, Any?> = mutableMapOf()
+
+    /**
+     * Adds a callback to this event.
+     *
+     * @param key The key to store the callback under.
+     * @param value The callback to store.
+    */
+    operator fun set(key: String, value: Any?) {
+        callbacks[key] = value
     }
 
     /**
-     * Cancels the event and stops it from spreading in the bus.
-     *
-     * @since 1.0.0
+     * Gets a callback from this event.
+     * @since 1.3.0
      */
-    fun cancel() {
-        isCancelled = true
+    operator fun get(key: String): Any? {
+        return callbacks[key]
+    }
+
+    companion object {
+        /**
+         * The global callback key.
+         *
+         * This is the default callback key used by Backbone.
+         * It is used to store the callback for the event.
+         *
+         * @since 1.3.0
+         */
+        const val GLOBAL_CALLBACK = "global"
     }
 
     /**
-     * Get the callback object for the event.
+     * Represents a cancelable Backbone event. Extend this class to create an event.
      *
-     * @return The callback object, or null if not set.
-     * @since 1.0.0
+     * @since 1.3.0
      */
-    fun callback(): Any? = callback
+    abstract class Cancelable : Event() {
+        var canceled: Boolean = false
 
-    /**
-     * Checks if the event has been cancelled.
-     *
-     * @return True if the event has been cancelled, false otherwise.
-     * @since 1.0.0
-     */
-    fun isCancelled() = isCancelled
+        /**
+         * Cancels the event and stops it from spreading in the bus.
+         *
+         * @since 1.3.0
+         */
+        fun cancel() {
+            canceled = true
+        }
+    }
 }

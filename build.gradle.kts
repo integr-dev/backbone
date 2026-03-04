@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.integr"
-version = "1.2.0"
+version = "1.3.0"
 
 repositories {
     mavenCentral()
@@ -41,7 +41,7 @@ dependencies {
 
     implementation("org.apache.ivy:ivy:2.5.2")
 
-    implementation("tools.jackson.core:jackson-databind:3.0.4")
+    implementation("tools.jackson.core:jackson-databind:3.1.0")
     implementation("tools.jackson.dataformat:jackson-dataformat-yaml:3.0.4")
     implementation("tools.jackson.module:jackson-module-kotlin:3.0.4")
 

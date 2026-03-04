@@ -58,7 +58,7 @@ fun component(block: ComponentBuilder.() -> Unit): Component {
  * @since 1.0.0
  */
 class ComponentBuilder {
-    private val base = Component.text()
+    val base = Component.text()
 
     /**
      * Appends a text component with optional styling.
@@ -71,6 +71,18 @@ class ComponentBuilder {
         val style = ComponentStyleBuilder()
         style.block()
         base.append(Component.text(text, style.build()))
+    }
+
+    fun newLine() {
+        base.append(Component.newline())
+    }
+
+    fun space() {
+        base.append(Component.space())
+    }
+
+    fun append(component: Component) {
+        base.append(component)
     }
 
     /**
@@ -90,7 +102,7 @@ class ComponentBuilder {
  * @since 1.0.0
  */
 class ComponentStyleBuilder {
-    private val base = Style.style()
+    val base = Style.style()
 
     /**
      * Sets the color of the component.

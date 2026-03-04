@@ -17,6 +17,7 @@ import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.systems.command.argument.Argument
+import net.integr.backbone.systems.command.help.HelpNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
@@ -35,10 +36,45 @@ import org.jetbrains.annotations.ApiStatus
 abstract class Command(name: String, description: String, aliases: List<String> = listOf<String>(), val format: CommandFeedbackFormat = CommandHandler.defaultFeedbackFormat) : BukkitCommand(name, description, "See backbone help", aliases) {
     private val logger = Backbone.LOGGER.derive("command")
 
-    private val subCommands = mutableListOf<Command>()
+    /**
+     * The list of sub-commands registered for this command.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
+    val subCommands = mutableListOf<Command>()
+
+    /**
+     * The list of arguments registered for this command.
+     * @since 1.0.0
+     */
+    @ApiStatus.Internal
     private val arguments = mutableListOf<Argument<*>>()
 
     private var subCommandNames: List<String> = listOf()
+
+    /**
+     * The parent command of this command, if any.
+     * @since 1.3.0
+     */
+    var parent: Command? = null
+        private set
+
+    /**
+     * The full name of this command, including any parent commands.
+     * @since 1.3.0
+     */
+    var fullName: String? = null
+        private set
+
+    /**
+     * The help node for this command.
+     *
+     * Help nodes are used to display the structure of the command tree.
+     *
+     * @since 1.3.0
+     */
+    var helpNode: HelpNode? = null
+        private set
 
     /**
      * Registers one or more sub-commands to this command.
@@ -48,6 +84,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
      */
     fun subCommands(vararg commands: Command) {
         commands.forEach {
+            it.parent = this
             it.build()
         }
 
@@ -65,12 +102,40 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     }
 
     /**
+     * Computes the help node for this command.
+     *
+     * This method recursively builds the help node for all sub-commands and their arguments.
+     * It is used by the help command to display the command structure.
+     *
+     * @since 1.3.0
+     */
+    private fun computeHelpNode() {
+        val subCommandNodes = subCommands.map { it.helpNode ?: throw IllegalStateException("Subcommand ${it.name} has not been built yet.") }
+
+        val contents = mutableListOf<HelpNode.Content>()
+
+        contents.add(HelpNode.Content(description, HelpNode.Content.Type.TEXT))
+
+        if (arguments.isNotEmpty()) contents.add(HelpNode.Content("Arguments", HelpNode.Content.Type.TITLE))
+        arguments.forEach { contents.add(it.getHelpText()) }
+
+        if (aliases.isNotEmpty()) contents.add(HelpNode.Content("Aliases", HelpNode.Content.Type.TITLE))
+        aliases.forEach { contents.add(HelpNode.Content(it, HelpNode.Content.Type.LIST)) }
+
+        helpNode = HelpNode(name, contents, subCommandNodes)
+    }
+
+    /**
      * Builds the command and its sub-commands.
      * @since 1.0.0
      */
     @ApiStatus.Internal
     fun build() {
+        fullName = if (parent == null) name else "${parent!!.fullName}.$name"
+
         onBuild()
+        computeHelpNode()
+
         subCommandNames = subCommands.map { it.name } + subCommands.flatMap { it.aliases }
     }
 

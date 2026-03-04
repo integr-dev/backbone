@@ -1,4 +1,5 @@
 
+<!--suppress CheckImageSize -->
 <img alt="logo.png" src="logo.png" width="20%"/>
 
 # Backbone
@@ -7,7 +8,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/integr-dev/backbone)
 [![GitHub license](https://img.shields.io/github/license/integr-dev/backbone)](https://github.com/integr-dev/backbone/blob/master/LICENSE)
 
-Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically accelerating the development lifecycle.
+Backbone is a powerful and flexible plugin for Spigot-based Minecraft servers, designed to supercharge server customization. Its core philosophy is to enable server administrators and developers to write, test, and update server logic on a live server without requiring restarts, dramatically speeding up the development lifecycle.
 
 Whether you're a server administrator looking to add custom features with simple scripts or a developer prototyping new ideas, Backbone provides the tools you need to be more productive and creative.
 
@@ -17,7 +18,7 @@ Whether you're a server administrator looking to add custom features with simple
 - **Advanced Scripting:** Go beyond simple scripts with support for inter-script imports, Maven dependencies, and custom compiler options.
 - **Event System:** A custom event bus that complements Bukkit's event system, offering more control and flexibility within your scripts.
 - **Command Framework:** A simple yet powerful command system to create custom commands directly from your scripts.
-- **Storage Abstraction:** Easily manage data with a flexible storage system that supports SQLite databases and typed configuration files.
+- **Storage Abstraction:** Manage data with a flexible storage system that supports SQLite databases and typed configuration files.
 - **GUI Framework:** A declarative GUI framework for creating complex and interactive inventories from your scripts.
 - **Text Formatting:** A flexible text formatting system with support for custom alphabets and color codes.
 - **Entity Framework:** Custom entity utility for adding custom entities via the goals api.
@@ -26,11 +27,11 @@ Whether you're a server administrator looking to add custom features with simple
 
 ## Getting Started
 
-Getting started with Backbone is simple. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
+Getting started with Backbone is straightforward. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
 
 ### Requirements
 - Minecraft Java Edition Server version 1.21 or higher.
-- [PlaceholderAPI](https://www.spigotmc.org/resources/placeholderapi.62/) (optional, for placeholder support).
+- [PlaceholderAPI](https://modrinth.com/plugin/placeholderapi) (optional, for placeholder support).
 
 ### Installation
 1.  **Download:** Download the latest release from the [official releases page](https://github.com/integr-dev/backbone/releases).
@@ -186,7 +187,7 @@ This will create directories at `storage/mystorage/` and `config/myconfig/` in y
 
 #### Configuration
 
-You can easily manage typed configuration files. Backbone handles the serialization and deserialization of your data classes automatically.
+You can manage typed configuration files. Backbone handles the serialization and deserialization of your data classes automatically.
 
 First, define a serializable data class for your configuration:
 
@@ -215,7 +216,6 @@ configHandler.writeState(currentConfig.copy(settingB = 20))
 #### Databases
 
 Backbone provides a simple and efficient way to work with SQLite databases from within your scripts.
-
 ```kotlin
 // Get a connection to a database file named 'playerdata.db'
 val dbConnection = myScriptStorage.database("playerdata.db")
@@ -239,7 +239,7 @@ dbConnection.useConnection {
 
 ### Custom Events
 
-Backbone's event system allows you to create and listen for custom events, giving you more control over your script's behavior.
+Backbone's event system allows you to create and listen to custom events, giving you more control over your script's behavior.
 
 ```kotlin
 // Define a custom event
@@ -250,7 +250,7 @@ class MyCustomEvent(val message: String) : Event()
 @BackboneEventHandler(EventPriority.THREE_BEFORE)
 fun onMyCustomEvent(event: MyCustomEvent) {
     println("Received custom event: ${event.message}")
-    event.setCallback("yay!")
+    event.callback = "yay!"
 }
 
 // Fire the custom event from anywhere in your code
@@ -279,14 +279,14 @@ object MyCommand : Command("mycommand", "My first command") {
     }
 
     override suspend fun exec(ctx: Execution) {
-        // Require a permission for this command
+        // Require permission for this command
         ctx.requirePermission(perm.derive("mycommand")) // "myplugin.mycommand"
 
         val text = ctx.get<String>("text")
 
         ctx.respond("Hello ${ctx.sender.name}: $text")
 
-        // To affect server state, dispatch to the main thread for the next tick.
+        // To affect the server state, dispatch to the main thread for the next tick.
         Backbone.dispatchMain {
             val player = ctx.getPlayer() // Get the sender as a player (and require it to be one)
             player.world.spawnEntity(player.location, EntityType.BEE)
@@ -382,7 +382,7 @@ Backbone allows you to create custom entities with unique AI goals.
 // Define a custom entity that is a non-moving zombie
 object GuardEntity : CustomEntity<Zombie>("guard", EntityType.ZOMBIE) {
     override fun prepare(mob: Zombie) {
-        // Set up for example armor
+        // Set up, for example, armor
     }
 
     override fun setupGoals(mob: Zombie) {
@@ -398,7 +398,7 @@ override fun onLoad() {
     Backbone.Handlers.ENTITY.register(GuardEntity)
 }
 
-// You can then spawn the entity for example using a command
+// You can then spawn the entity, for example, using a command
 // In a command's exec method:
 GuardEntity.spawn(ctx.getPlayer().location, ctx.getPlayer().world)
 ```
@@ -467,7 +467,7 @@ component {
 
 #### Command Feedback Format
 
-You can create a custom `CommandFeedbackFormat` to change how command responses are displayed. Or simply inherit from it to unlock even more customisation via the component system.
+You can create a custom `CommandFeedbackFormat` to change how command responses are displayed. Or inherit from it to unlock even more customization via the component system.
 
 ```kotlin
 val myFormat = CommandFeedbackFormat("MyPlugin", Color.RED)
@@ -486,12 +486,7 @@ You can create your own custom alphabets by implementing the `Alphabet` interfac
 
 ```kotlin
 object MyAlphabet : Alphabet {
-    const val ALPHABET = "..." // Your custom alphabet characters
-
-    override fun encode(str: String): String {
-        // Your encoding logic here
-        return "encoded_string"
-    }
+    override val alphabet = "..." // Your custom alphabet characters
 }
 ```
 

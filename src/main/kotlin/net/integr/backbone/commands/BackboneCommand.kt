@@ -14,11 +14,14 @@
 package net.integr.backbone.commands
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.commands.arguments.ValidatedArgument.ValidationResult.Companion.fail
+import net.integr.backbone.commands.arguments.commandArgument
 import net.integr.backbone.commands.arguments.customEntityArgument
 import net.integr.backbone.commands.arguments.customItemArgument
 import net.integr.backbone.commands.arguments.scriptArgument
 import net.integr.backbone.commands.arguments.stringArgument
 import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.command.Execution
 import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
@@ -37,18 +40,42 @@ import java.awt.Color
  *
  * @since 1.0.0
  */
-object BackboneCommand : Command("backbone", "Base command for Backbone", listOf("bb")) {
+object BackboneCommand : Command("backbone", "Base command for backbone", listOf("bb")) {
     val perm = Backbone.ROOT_PERMISSION.derive("command")
 
     override fun onBuild() {
-        subCommands(Scripting, Item, Entity)
+        subCommands(Scripting, Item, Entity, Help)
     }
 
     override suspend fun exec(ctx: Execution) {
         ctx.respond("Backbone v${Backbone.VERSION}")
     }
 
-    object Scripting : Command("scripting", "Commands for Backbone scripting system") {
+    object Help : Command("help", "Shows help for a specific command") {
+        val helpPerm = perm.derive("help")
+
+        override fun onBuild() {
+            arguments(
+                commandArgument("command", "The command to get help for")
+            )
+        }
+
+        override suspend fun exec(ctx: Execution) {
+            ctx.requirePermission(helpPerm)
+
+            val command = ctx.get<String>("command")
+            val help = CommandHandler.getHelp(command)
+
+            if (help == null) {
+                fail("No help found for command: $command")
+            } else {
+                ctx.respond("Displaying help for: $command")
+                ctx.respondComponent(help.buildComponent())
+            }
+        }
+    }
+
+    object Scripting : Command("scripting", "Commands for the backbone scripting system") {
         val scriptingPerm = perm.derive("scripting")
 
         override fun onBuild() {
@@ -84,7 +111,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             }
         }
 
-        object Reload : Command("reload", "Reload all Backbone scripts") {
+        object Reload : Command("reload", "Reload all backbone scripts") {
             val scriptingReloadPerm = scriptingPerm.derive("reload")
 
             override suspend fun exec(ctx: Execution) {
@@ -100,7 +127,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             }
         }
 
-        object Enable : Command("enable", "Enable a Backbone script") {
+        object Enable : Command("enable", "Enable a backbone script") {
             val scriptingEnablePerm = scriptingPerm.derive("enable")
 
             override fun onBuild() {
@@ -125,7 +152,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             }
         }
 
-        object Disable : Command("disable", "Disable a Backbone script") {
+        object Disable : Command("disable", "Disable a backbone script") {
             val scriptingDisablePerm = scriptingPerm.derive("disable")
 
             override fun onBuild() {
@@ -180,7 +207,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         }
     }
 
-    object Item : Command("item", "Commands for Backbone item system") {
+    object Item : Command("item", "Commands for the backbone item system") {
         val itemPerm = perm.derive("item")
 
         override fun onBuild() {
@@ -200,12 +227,12 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             }
         }
 
-        object Give : Command("give", "Gives a custom item") {
+        object Give : Command("give", "Gives you a custom item") {
             val itemGivePerm = itemPerm.derive("give")
 
             override fun onBuild() {
                 arguments(
-                    customItemArgument("item", "The custom item to give")
+                    customItemArgument("item", "The custom item to give you")
                 )
             }
 
@@ -249,7 +276,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
             }
         }
 
-        object Read : Command("read", "Reads all meta tags from an item.") {
+        object Read : Command("read", "Reads all meta tags from the held item.") {
             val itemReadPerm = itemPerm.derive("read")
 
             override suspend fun exec(ctx: Execution) {
@@ -281,7 +308,7 @@ object BackboneCommand : Command("backbone", "Base command for Backbone", listOf
         }
     }
 
-    object Entity : Command("entity", "Commands for Backbone entity system") {
+    object Entity : Command("entity", "Commands for the backbone entity system") {
         val entityPerm = perm.derive("entity")
 
         override fun onBuild() {

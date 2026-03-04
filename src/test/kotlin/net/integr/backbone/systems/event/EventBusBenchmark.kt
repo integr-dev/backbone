@@ -17,7 +17,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 /**
  * Comprehensive benchmark suite for the EventBus system.
@@ -130,17 +129,17 @@ class EventBusBenchmark {
         EventBus.register(listener)
         
         val iterations = 100_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
             }
         }
         
         println("Single handler, single event:")
-        println("  Total time: ${timeMs}ms")
+        println("  Total time: ${timeNs}ns")
         println("  Iterations: $iterations")
-        println("  Avg per event: ${timeMs.toDouble() / iterations}ms")
-        println("  Events/sec: ${(iterations / (timeMs.toDouble() / 1000)).toLong()}")
+        println("  Avg per event: ${timeNs.toDouble() / iterations}ns")
+        println("  Events/sec: ${(iterations / (timeNs.toDouble() / 1_000_000_000)).toLong()}")
         println("  Calls: ${listener.callCount}")
     }
     
@@ -150,17 +149,17 @@ class EventBusBenchmark {
         listeners.forEach { EventBus.register(it) }
         
         val iterations = 50_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
             }
         }
         
         println("10 handlers, single event:")
-        println("  Total time: ${timeMs}ms")
+        println("  Total time: ${timeNs}ns")
         println("  Iterations: $iterations")
-        println("  Avg per event: ${timeMs.toDouble() / iterations}ms")
-        println("  Events/sec: ${(iterations / (timeMs.toDouble() / 1000)).toLong()}")
+        println("  Avg per event: ${timeNs.toDouble() / iterations}ns")
+        println("  Events/sec: ${(iterations / (timeNs.toDouble() / 1_000_000_000)).toLong()}")
         println("  Total handler invocations: ${listeners.sumOf { it.callCount }}")
     }
     
@@ -178,16 +177,16 @@ class EventBusBenchmark {
             val listeners = List(count) { SimpleListener() }
             listeners.forEach { EventBus.register(it) }
             
-            val timeMs = measureTimeMillis {
+            val timeNs = measureNanoTime {
                 repeat(iterations) {
                     EventBus.post(SimpleEvent())
                 }
             }
             
-            val avgPerEvent = timeMs.toDouble() / iterations
-            val eventsPerSec = (iterations / (timeMs.toDouble() / 1000)).toLong()
+            val avgPerEvent = timeNs.toDouble() / iterations
+            val eventsPerSec = (iterations / (timeNs.toDouble() / 1_000_000_000)).toLong()
             
-            println("  $count handlers: ${timeMs}ms total, ${String.format("%.4f", avgPerEvent)}ms/event, $eventsPerSec events/sec")
+            println("  $count handlers: ${timeNs}ns total, ${String.format("%.2f", avgPerEvent)}ns/event, $eventsPerSec events/sec")
         }
     }
     
@@ -197,7 +196,7 @@ class EventBusBenchmark {
         EventBus.register(listener)
         
         val iterations = 30_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
                 EventBus.post(MediumEvent())
@@ -206,10 +205,10 @@ class EventBusBenchmark {
         }
         
         println("Multiple event types (3 types):")
-        println("  Total time: ${timeMs}ms")
+        println("  Total time: ${timeNs}ns")
         println("  Iterations: ${iterations * 3} (${iterations} of each type)")
-        println("  Avg per event: ${timeMs.toDouble() / (iterations * 3)}ms")
-        println("  Events/sec: ${((iterations * 3) / (timeMs.toDouble() / 1000)).toLong()}")
+        println("  Avg per event: ${timeNs.toDouble() / (iterations * 3)}ns")
+        println("  Events/sec: ${((iterations * 3) / (timeNs.toDouble() / 1_000_000_000)).toLong()}")
         println("  Simple: ${listener.simpleCount}, Medium: ${listener.mediumCount}, Complex: ${listener.complexCount}")
     }
     
@@ -222,14 +221,14 @@ class EventBusBenchmark {
         val count = 1_000
         val listeners = List(count) { SimpleListener() }
         
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             listeners.forEach { EventBus.register(it) }
         }
         
         println("Registration performance:")
         println("  Registered: $count listeners")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per registration: ${timeMs.toDouble() / count}ms")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per registration: ${timeNs.toDouble() / count}ns")
     }
     
     @Test
@@ -238,21 +237,21 @@ class EventBusBenchmark {
         val listeners = List(count) { SimpleListener() }
         listeners.forEach { EventBus.register(it) }
         
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             listeners.forEach { EventBus.unregister(it) }
         }
         
         println("Unregistration performance:")
         println("  Unregistered: $count listeners")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per unregistration: ${timeMs.toDouble() / count}ms")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per unregistration: ${timeNs.toDouble() / count}ns")
     }
     
     @Test
     fun benchmarkChurnRegistrationUnregistration() {
         val iterations = 100
         
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 val listener = SimpleListener()
                 EventBus.register(listener)
@@ -263,8 +262,8 @@ class EventBusBenchmark {
         
         println("Churn test (register -> post -> unregister):")
         println("  Iterations: $iterations")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per cycle: ${timeMs.toDouble() / iterations}ms")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per cycle: ${timeNs.toDouble() / iterations}ns")
     }
     
     // ============================================
@@ -277,7 +276,7 @@ class EventBusBenchmark {
         listeners.forEach { EventBus.register(it) }
         
         val iterations = 10_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
                 EventBus.post(MediumEvent())
@@ -288,8 +287,8 @@ class EventBusBenchmark {
         println("Priority sorting overhead:")
         println("  Listeners: ${listeners.size} (each with 3 different priority handlers)")
         println("  Total events: ${iterations * 3}")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per event: ${timeMs.toDouble() / (iterations * 3)}ms")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per event: ${timeNs.toDouble() / (iterations * 3)}ns")
     }
     
     // ============================================
@@ -316,7 +315,7 @@ class EventBusBenchmark {
         Thread.sleep(100)
         
         val iterations = 10_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
             }
@@ -326,8 +325,8 @@ class EventBusBenchmark {
         println("  Live handlers: ${liveListeners.size}")
         println("  Dead handlers: ~10 (GC-dependent)")
         println("  Iterations: $iterations")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per event: ${timeMs.toDouble() / iterations}ms")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per event: ${timeNs.toDouble() / iterations}ns")
         println("  Total live calls: ${liveListeners.sumOf { it.callCount }}")
     }
     
@@ -362,9 +361,9 @@ class EventBusBenchmark {
         val avgSubsequent = subsequentTimes.average()
         
         println("Dead handler cleanup impact:")
-        println("  First post (with cleanup): ${firstPostTime / 1_000}µs")
-        println("  Avg subsequent posts: ${String.format("%.2f", avgSubsequent / 1_000)}µs")
-        println("  Cleanup overhead: ${String.format("%.2f", (firstPostTime - avgSubsequent) / 1_000)}µs")
+        println("  First post (with cleanup): ${firstPostTime}ns")
+        println("  Avg subsequent posts: ${String.format("%.2f", avgSubsequent)}ns")
+        println("  Cleanup overhead: ${String.format("%.2f", (firstPostTime - avgSubsequent))}ns")
     }
     
     // ============================================
@@ -383,7 +382,7 @@ class EventBusBenchmark {
         heavyListeners.forEach { EventBus.register(it) }
         
         val iterations = 5_000
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             repeat(iterations) {
                 EventBus.post(SimpleEvent())
                 if (it % 2 == 0) EventBus.post(MediumEvent())
@@ -398,9 +397,9 @@ class EventBusBenchmark {
         println("  Multi listeners: ${multiListeners.size}")
         println("  Heavy listeners: ${heavyListeners.size}")
         println("  Total events posted: $totalEvents")
-        println("  Total time: ${timeMs}ms")
-        println("  Avg per event: ${timeMs.toDouble() / totalEvents}ms")
-        println("  Events/sec: ${(totalEvents / (timeMs.toDouble() / 1000)).toLong()}")
+        println("  Total time: ${timeNs}ns")
+        println("  Avg per event: ${timeNs.toDouble() / totalEvents}ns")
+        println("  Events/sec: ${(totalEvents / (timeNs.toDouble() / 1_000_000_000)).toLong()}")
     }
     
     @Test
@@ -418,49 +417,19 @@ class EventBusBenchmark {
         println()
         
         repeat(bursts) { burstNum ->
-            val timeMs = measureTimeMillis {
+            val timeNs = measureNanoTime {
                 repeat(eventsPerBurst) {
                     EventBus.post(SimpleEvent())
                 }
             }
-            results.add(timeMs)
-            println("  Burst ${burstNum + 1}: ${timeMs}ms, ${(eventsPerBurst / (timeMs.toDouble() / 1000)).toLong()} events/sec")
+            results.add(timeNs)
+            println("  Burst ${burstNum + 1}: ${timeNs}ns, ${(eventsPerBurst / (timeNs.toDouble() / 1_000_000_000)).toLong()} events/sec")
         }
         
         println()
-        println("  Avg burst time: ${results.average()}ms")
-        println("  Min: ${results.minOrNull()}ms, Max: ${results.maxOrNull()}ms")
+        println("  Avg burst time: ${results.average()}ns")
+        println("  Min: ${results.minOrNull()}ns, Max: ${results.maxOrNull()}ns")
         println("  Total calls: ${listener.callCount}")
-    }
-    
-    // ============================================
-    // MEMORY AND OVERHEAD BENCHMARKS
-    // ============================================
-    
-    @Test
-    fun benchmarkMemoryOverhead() {
-        val runtime = Runtime.getRuntime()
-        
-        // Baseline memory
-        System.gc()
-        Thread.sleep(100)
-        val baselineMemory = runtime.totalMemory() - runtime.freeMemory()
-        
-        // Register many handlers
-        val listeners = List(1000) { MultiHandlerListener() }
-        listeners.forEach { EventBus.register(it) }
-        
-        System.gc()
-        Thread.sleep(100)
-        val afterRegistrationMemory = runtime.totalMemory() - runtime.freeMemory()
-        
-        val memoryUsed = (afterRegistrationMemory - baselineMemory) / 1024 / 1024
-        
-        println("Memory overhead estimation:")
-        println("  Baseline memory: ${baselineMemory / 1024 / 1024}MB")
-        println("  After registering 1000 listeners: ${afterRegistrationMemory / 1024 / 1024}MB")
-        println("  Memory used by handlers: ~${memoryUsed}MB")
-        println("  Avg per listener: ~${memoryUsed.toDouble() / 1000}MB")
     }
     
     @Test
@@ -471,7 +440,7 @@ class EventBusBenchmark {
         val threads = 4
         val iterationsPerThread = 25_000
         
-        val timeMs = measureTimeMillis {
+        val timeNs = measureNanoTime {
             val threadList = List(threads) {
                 Thread {
                     repeat(iterationsPerThread) {
@@ -490,8 +459,8 @@ class EventBusBenchmark {
         println("  Threads: $threads")
         println("  Events per thread: $iterationsPerThread")
         println("  Total events: $totalEvents")
-        println("  Total time: ${timeMs}ms")
-        println("  Events/sec: ${(totalEvents / (timeMs.toDouble() / 1000)).toLong()}")
+        println("  Total time: ${timeNs}ns")
+        println("  Events/sec: ${(totalEvents / (timeNs.toDouble() / 1_000_000_000)).toLong()}")
         println("  Handler calls: ${listener.callCount}")
     }
 }

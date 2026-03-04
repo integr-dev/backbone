@@ -16,10 +16,10 @@ package net.integr.backbone.text.alphabets
 import net.integr.backbone.systems.text.Alphabet
 
 /**
- * A custom alphabet that encodes strings into a bold small-caps style.
+ * A custom alphabet that encodes strings into a tiny letter style.
  * **Important:** This alphabet will not handle 'Q' and 'q' correctly since there is no char for it.
- * @since 1.0.0
+ * @since 1.3.0
  */
-object BoldSmallAlphabet : Alphabet {
-    override val alphabet = "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘQʀꜱᴛᴜᴠᴡxʏᴢ"
+object TinyAlphabet : Alphabet {
+    override val alphabet = "ᴬᴮᶜᴰᴱᶠᴳᴴᴵᴶᴷᴸᴹᴺᴼᴾQᴿˢᵀᵁⱽᵂˣʸᶻᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖQʳˢᵗᵘᵛʷˣʸᶻ"
 }

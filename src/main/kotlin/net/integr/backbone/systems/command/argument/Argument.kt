@@ -13,6 +13,8 @@
 
 package net.integr.backbone.systems.command.argument
 
+import net.integr.backbone.systems.command.help.HelpNode
+
 /**
  * Represents a command argument.
  *
@@ -41,6 +43,16 @@ abstract class Argument<T : Any>(val name: String, val description: String) {
      * @since 1.0.0
      */
     abstract fun parse(current: ArgumentInput): ParseResult<T>
+
+    /**
+     * Returns a string representation of the argument's help text.
+     * @return A string containing the argument's name and description.
+     *
+     * @since 1.3.0
+     */
+    fun getHelpText(): HelpNode.Content {
+        return HelpNode.Content("  $name - $description", HelpNode.Content.Type.LIST)
+    }
 
     /**
      * Represents a finished completion.

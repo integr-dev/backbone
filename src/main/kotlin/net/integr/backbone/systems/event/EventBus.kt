@@ -24,7 +24,6 @@ import java.util.concurrent.ConcurrentSkipListSet
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
-import kotlin.reflect.full.defaultType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.starProjectedType
@@ -238,8 +237,12 @@ object EventBus {
     /**
      * Posts an event to the bus, notifying all registered handlers.
      *
+     * Returns the global callback object from the event, if any.
+     * If you need to get a non-global callback, please use map
+     * access on the event itself.
+     *
      * @param event The event to post.
-     * @return The callback object from the event, or null if no callback was set.
+     * @return The global callback object from the event, or null if no global callback was set.
      * @since 1.0.0
      */
     fun post(event: Event): Any? {
@@ -248,10 +251,10 @@ object EventBus {
 
         for (handler in eventHandlers) {
             callHandler(event, handler)
-            if (event.isCancelled()) return event.callback()
+            if (event is Event.Cancelable && event.canceled) return event.callback
         }
 
-        return event.callback()
+        return event.callback
     }
 
     /**

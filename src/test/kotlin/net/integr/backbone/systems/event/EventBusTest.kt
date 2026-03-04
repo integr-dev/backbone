@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("unused", "AssignedValueIsNeverRead")
+
 package net.integr.backbone.systems.event
 
 import org.junit.jupiter.api.AfterEach
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test
 
 class EventBusTest {
     class TestEvent : Event()
+    class CancelableTestEvent : Event.Cancelable()
 
     @Test
     fun testRegisterAndPost() {
@@ -88,7 +91,7 @@ class EventBusTest {
         class TestListener {
             @BackboneEventHandler
             fun onEvent(event: TestEvent) {
-                event.setCallback("Callback from handler")
+                event.callback = "Callback from handler"
             }
         }
 
@@ -98,7 +101,7 @@ class EventBusTest {
         val result = EventBus.post(event)
 
         assertEquals("Callback from handler", result)
-        assertEquals("Callback from handler", event.callback())
+        assertEquals("Callback from handler", event.callback)
     }
 
     @Test
@@ -184,11 +187,11 @@ class EventBusTest {
             }
         }
 
-        // Create listener and register it
+        // Create a listener and register it
         var listener: TestListener? = TestListener()
         EventBus.register(listener!!)
         
-        // First post should work
+        // The first post should work
         EventBus.post(TestEvent())
         assertEquals(1, callCount, "Handler should have been called")
 
@@ -218,7 +221,7 @@ class EventBusTest {
             }
         }
 
-        // Create listener, register it, then clear reference
+        // Create a listener, register it, then clear a reference
         var listener: TestListener? = TestListener()
         EventBus.register(listener!!)
         listener = null
@@ -229,10 +232,10 @@ class EventBusTest {
         System.gc()
         Thread.sleep(100)
 
-        // Post event - should detect dead handler
+        // Post-event - should detect a dead handler
         EventBus.post(TestEvent())
         
-        // Post again - dead handler should have been removed from first post
+        // Post again - dead handler should have been removed from the first post
         EventBus.post(TestEvent())
         
         // No exceptions should be thrown
@@ -254,11 +257,11 @@ class EventBusTest {
         val listener = TestListener()
         EventBus.register(listener)
         
-        // First post should throw and increment count
+        // The first post should throw and increment count
         EventBus.post(TestEvent())
         assertEquals(1, callCount, "Handler should have been called once")
 
-        // Second post should not call handler (it was removed due to exception)
+        // The second post should not call handler (it was removed due to an exception)
         EventBus.post(TestEvent())
         assertEquals(1, callCount, "Handler should have been removed after exception")
     }
@@ -282,7 +285,7 @@ class EventBusTest {
             }
         }
 
-        // Register alive listener (keep strong reference)
+        // Register a live listener (keep strong reference)
         val aliveListener = AliveListener()
         EventBus.register(aliveListener)
 
@@ -300,10 +303,10 @@ class EventBusTest {
         // Post event
         EventBus.post(TestEvent())
         
-        // Alive handler should be called
+        // Live handler should be called
         assertEquals(1, aliveCallCount, "Alive handler should have been called")
         
-        // Post again to ensure system still works after cleanup
+        // Post again to ensure a system still works after cleanup
         EventBus.post(TestEvent())
         assertEquals(2, aliveCallCount, "Alive handler should have been called again")
     }
@@ -319,7 +322,7 @@ class EventBusTest {
             }
         }
 
-        // Keep strong reference to listener
+        // Keep strong reference to the listener
         val listener = TestListener()
         EventBus.register(listener)
         
@@ -384,11 +387,11 @@ class EventBusTest {
             }
         }
 
-        // Register first instance and keep it alive
+        // Register the first instance and keep it alive
         val listener1 = TestListener().apply { id = 1 }
         EventBus.register(listener1)
 
-        // Register second instance and let it die
+        // Register the second instance and let it die
         var listener2: TestListener? = TestListener().apply { id = 2 }
         EventBus.register(listener2!!)
         listener2 = null
@@ -402,12 +405,181 @@ class EventBusTest {
         // Post event
         EventBus.post(TestEvent())
         
-        // First instance should be called
+        // The first instance should be called
         assertEquals(1, instance1Calls, "Alive instance should be called")
         
-        // Post again to verify first instance still works
+        // Post again to verify the first instance still works
         EventBus.post(TestEvent())
         assertEquals(2, instance1Calls, "Alive instance should continue working")
+    }
+
+    @Test
+    fun testCancelableEventBasicCancellation() {
+        class TestListener {
+            @BackboneEventHandler
+            fun onEvent(event: CancelableTestEvent) {
+                event.cancel()
+            }
+        }
+
+        val listener = TestListener()
+        EventBus.register(listener)
+        val event = CancelableTestEvent()
+        EventBus.post(event)
+
+        assertTrue(event.canceled, "Event should be canceled")
+    }
+
+    @Test
+    fun testCancelableEventStopsPropagation() {
+        val callOrder = mutableListOf<Int>()
+
+        class TestListener {
+            @BackboneEventHandler(priority = EventPriority.THREE_BEFORE)
+            fun onFirst(event: CancelableTestEvent) {
+                callOrder.add(1)
+                event.cancel()
+            }
+
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onSecond(event: CancelableTestEvent) {
+                callOrder.add(2)
+            }
+
+            @BackboneEventHandler(priority = EventPriority.THREE_AFTER)
+            fun onThird(event: CancelableTestEvent) {
+                callOrder.add(3)
+            }
+        }
+
+        val listener = TestListener()
+        EventBus.register(listener)
+        EventBus.post(CancelableTestEvent())
+
+        assertEquals(listOf(1), callOrder, "Only the first handler should be called before cancellation")
+    }
+
+    @Test
+    fun testCancelableEventWithPriorities() {
+        var highPriorityCalled = false
+        var lowPriorityCalled = false
+
+        class HighPriorityListener {
+            @BackboneEventHandler(priority = EventPriority.THREE_BEFORE)
+            fun onEvent(event: CancelableTestEvent) {
+                highPriorityCalled = true
+                event.cancel()
+            }
+        }
+
+        class LowPriorityListener {
+            @BackboneEventHandler(priority = EventPriority.THREE_AFTER)
+            fun onEvent(event: CancelableTestEvent) {
+                lowPriorityCalled = true
+            }
+        }
+
+        val highListener = HighPriorityListener()
+        val lowListener = LowPriorityListener()
+        EventBus.register(highListener)
+        EventBus.register(lowListener)
+        EventBus.post(CancelableTestEvent())
+
+        assertTrue(highPriorityCalled, "High priority handler should be called")
+        assertFalse(lowPriorityCalled, "Low priority handler should not be called after cancellation")
+    }
+
+    @Test
+    fun testCancelableEventWithCallback() {
+        class TestListener {
+            @BackboneEventHandler
+            fun onEvent(event: CancelableTestEvent) {
+                event.callback = "Callback value"
+                event.cancel()
+            }
+        }
+
+        val listener = TestListener()
+        EventBus.register(listener)
+        val event = CancelableTestEvent()
+        val result = EventBus.post(event)
+
+        assertEquals("Callback value", result, "Callback should be returned when event is canceled")
+        assertEquals("Callback value", event.callback, "Event callback should be set")
+        assertTrue(event.canceled, "Event should be canceled")
+    }
+
+    @Test
+    fun testCancelableEventNotCanceled() {
+        val callOrder = mutableListOf<Int>()
+
+        class TestListener {
+            @BackboneEventHandler(priority = EventPriority.THREE_BEFORE)
+            fun onFirst(event: CancelableTestEvent) {
+                callOrder.add(1)
+            }
+
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onSecond(event: CancelableTestEvent) {
+                callOrder.add(2)
+            }
+
+            @BackboneEventHandler(priority = EventPriority.THREE_AFTER)
+            fun onThird(event: CancelableTestEvent) {
+                callOrder.add(3)
+            }
+        }
+
+        val listener = TestListener()
+        EventBus.register(listener)
+        val event = CancelableTestEvent()
+        EventBus.post(event)
+
+        assertEquals(listOf(1, 2, 3), callOrder, "All handlers should be called when event is not canceled")
+        assertFalse(event.canceled, "Event should not be canceled")
+    }
+
+    @Test
+    fun testMultipleListenersWithMixedCancellation() {
+        var listener1Called = false
+        var listener2Called = false
+        var listener3Called = false
+
+        class CancelingListener {
+            @BackboneEventHandler(priority = EventPriority.NORMAL)
+            fun onEvent(event: CancelableTestEvent) {
+                listener1Called = true
+                event.cancel()
+            }
+        }
+
+        class NonCancelingListener1 {
+            @BackboneEventHandler(priority = EventPriority.THREE_BEFORE)
+            fun onEvent(event: CancelableTestEvent) {
+                listener2Called = true
+            }
+        }
+
+        class NonCancelingListener2 {
+            @BackboneEventHandler(priority = EventPriority.THREE_AFTER)
+            fun onEvent(event: CancelableTestEvent) {
+                listener3Called = true
+            }
+        }
+
+        val cancelingListener = CancelingListener()
+        val nonCancelingListener1 = NonCancelingListener1()
+        val nonCancelingListener2 = NonCancelingListener2()
+
+        EventBus.register(cancelingListener)
+        EventBus.register(nonCancelingListener1)
+        EventBus.register(nonCancelingListener2)
+
+        EventBus.post(CancelableTestEvent())
+
+        assertTrue(listener2Called, "Higher priority non-canceling listener should be called")
+        assertTrue(listener1Called, "Canceling listener should be called")
+        assertFalse(listener3Called, "Lower priority listener should not be called after cancellation")
     }
 
     @AfterEach
