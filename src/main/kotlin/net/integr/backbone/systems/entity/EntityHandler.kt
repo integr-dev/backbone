@@ -22,6 +22,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.Mob
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.persistence.PersistentDataType
 import org.jetbrains.annotations.ApiStatus
@@ -88,6 +89,27 @@ object EntityHandler : Listener {
                 logger.info("Re-creating goals for entity: ${entity.entityId} is '$id' at ${entity.location}")
                 customEntity.recreateGoals(entity as Mob)
             }
+        }
+    }
+
+
+    /**
+     * Called by bukkit.
+     * @since 1.4.0
+     */
+    @ApiStatus.Internal
+    @EventHandler
+    fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
+        val entity = event.rightClicked
+        val id = PersistenceHelper.read(entity, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
+        if (id != null) {
+            val customEntity = entities[id]
+            if (customEntity == null) {
+                logger.warning("Custom entity not found for entity: ${entity.entityId} is '$id' at ${entity.location}")
+                return
+            }
+
+            customEntity.onInteract(event)
         }
     }
 }

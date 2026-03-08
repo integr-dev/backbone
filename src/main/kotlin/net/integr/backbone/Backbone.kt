@@ -36,7 +36,6 @@ import org.jetbrains.annotations.ApiStatus
  * @since 1.0.0
  */
 object Backbone {
-    //TODO: dialogues
     /**
      * Backbones internal storage pool. **Important:** Do not use this.
      * Create a new pool instead:

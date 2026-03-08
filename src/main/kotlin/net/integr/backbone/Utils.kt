@@ -13,6 +13,9 @@
 
 package net.integr.backbone
 
+import net.kyori.adventure.builder.AbstractBuilder
+import kotlin.reflect.full.declaredMemberFunctions
+
 /**
  * Utility functions for various tasks.
  * @since 1.0.0
@@ -53,5 +56,42 @@ object Utils {
      */
     fun isUid(string: String): Boolean {
         return string.matches("^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$".toRegex())
+    }
+
+    /**
+     * Used to more easily get the result of a builder with applied block.
+     *
+     * Example:
+     * ```kotlin
+     * val builder = Something.builder()
+     * builder.block()
+     * val result = builder.build()
+     * ```
+     *
+     * is changed to
+     *
+     * ```kotlin
+     *  val result = blockBuild(Something.builder(), block)
+     *  ```
+     *
+     * Invokes a builders build method via reflection.
+     * Does not run any safety checks. It is your job to figure out
+     * if this will work or not.
+     *
+     * @param T the builder class
+     * @param U the builders result class
+     * @param builder the builder instance
+     * @param block the block to apply to the builder
+     * @since 1.4.0
+     */
+    inline fun <reified T : Any, U> blockBuild(builder: T, block: T.() -> Unit): U {
+        builder.block()
+        // Assume a build method is there
+        val method = builder::class.java.getDeclaredMethod("build")
+
+        // It is the users duty to only call this on builders with this signature
+        @Suppress("UNCHECKED_CAST")
+        val result = method.invoke(builder) as U
+        return result
     }
 }

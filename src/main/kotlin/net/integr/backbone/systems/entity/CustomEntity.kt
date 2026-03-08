@@ -22,6 +22,7 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Mob
+import org.bukkit.event.player.PlayerInteractEntityEvent
 import org.bukkit.persistence.PersistentDataType
 import org.jetbrains.annotations.ApiStatus
 
@@ -69,6 +70,15 @@ abstract class CustomEntity<T : Mob>(val id: String, val type: EntityType, val s
         @Suppress("UNCHECKED_CAST")
         setupGoals(mob as T)
     }
+
+    /**
+     * Called when a player interacts with the entity. Override this method to define custom interaction behavior.
+     * This method is called from the [EntityHandler] when a player interacts with an entity that has the custom entity ID tag.
+     *
+     * @param event The event that was fired.
+     * @since 1.4.0
+     */
+    open fun onInteract(event: PlayerInteractEntityEvent) {}
 
     /**
      * Spawn the custom entity at the given location in the specified world.
