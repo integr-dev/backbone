@@ -36,7 +36,6 @@ import org.jetbrains.annotations.ApiStatus
  * @since 1.0.0
  */
 object Backbone {
-    //TODO: dialogues, command help builder
     /**
      * Backbones internal storage pool. **Important:** Do not use this.
      * Create a new pool instead:
@@ -109,12 +108,15 @@ object Backbone {
 
     /**
      * The internally checked plugin instance.
-     * Null if we are in a testing environment.
+     * Null if we are not in a plugin environment.
+     *
+     * This is used to avoid null checks in the codebase.
+     * If you are not in a plugin environment, you can safely ignore this.
      *
      * @since 1.0.0
      */
     private val pluginInternal: JavaPlugin? by lazy {
-        Utils.tryOrNull { JavaPlugin.getPlugin(BackboneServer::class.java) } // For testing purposes
+        Utils.tryOrNull { JavaPlugin.getPlugin(BackboneServer::class.java) } // For testing purposes we allow null here
     }
 
     /**
@@ -144,28 +146,28 @@ object Backbone {
 
     /**
      * Registers a listener to the server's plugin manager and the internal event bus.
+     * 1. Registers the listener with the internal event bus.
+     * 2. Registers the listener with the plugin manager.
      *
      * @param listener The listener to register.
      *
      * @since 1.0.0
      */
     fun registerListener(listener: Listener) {
-        LOGGER.info("Registering listener: ${listener.javaClass.name}")
-        SERVER.pluginManager.registerEvents(listener, PLUGIN)
         EventBus.register(listener)
+        SERVER.pluginManager.registerEvents(listener, PLUGIN)
     }
 
     /**
      * Removes a listener from the server's plugin manager and the internal event bus.
      *
-     * @param listener The listener to register.
+     * @param listener The listener to unregister.
      *
      * @since 1.0.0
      */
     fun unregisterListener(listener: Listener) {
-        LOGGER.info("Unregistering listener: ${listener.javaClass.name}")
-        HandlerList.unregisterAll(listener)
         EventBus.unregister(listener)
+        HandlerList.unregisterAll(listener)
     }
 
     /**

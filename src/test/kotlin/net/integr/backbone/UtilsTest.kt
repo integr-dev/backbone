@@ -41,4 +41,24 @@ class UtilsTest {
         assertFalse(Utils.isUid("not-a-uuid"))
         assertFalse(Utils.isUid(""))
     }
+
+    private class TestBuilder {
+        private var value: String = ""
+
+        fun setValue(v: String) {
+            value = v
+        }
+
+        fun build(): String {
+            return "Built: $value"
+        }
+    }
+
+    @Test
+    fun testBlockBuild() {
+        val result: String = Utils.blockBuild(TestBuilder()) {
+            setValue("Hello, World!")
+        }
+        assertEquals("Built: Hello, World!", result)
+    }
 }

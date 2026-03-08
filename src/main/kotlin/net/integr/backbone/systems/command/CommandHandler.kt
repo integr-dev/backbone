@@ -16,11 +16,13 @@ package net.integr.backbone.systems.command
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.command.help.HelpNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandMap
 import org.jetbrains.annotations.ApiStatus
 import java.awt.Color
 import java.lang.reflect.Field
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Handles the registration and unregistration of commands.
@@ -44,12 +46,32 @@ object CommandHandler {
     @ApiStatus.Internal
     val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val map: CommandMap by lazy {
+    private val bukkitMap: CommandMap by lazy {
         val bukkitCommandMap: Field = Backbone.SERVER.javaClass.getDeclaredField("commandMap")
         bukkitCommandMap.isAccessible = true
         val map = bukkitCommandMap.get(Backbone.SERVER) as CommandMap
         logger.info("Got command map via reflection.")
         map
+    }
+
+    /**
+     * The map of registered commands by their full name.
+     *
+     * @since 1.3.0
+     */
+    @ApiStatus.Internal
+    val commands: ConcurrentHashMap<String, Command> = ConcurrentHashMap()
+
+    /**
+     * Get the help node for a command.
+     *
+     * @param command The command to get the help node for.
+     * @return The help node for the command, or null if not found.
+     * @since 1.3.0
+     */
+    fun getHelp(command: String): HelpNode? {
+        val found = commands[command] ?: return null
+        return found.helpNode
     }
 
     /**
@@ -61,9 +83,28 @@ object CommandHandler {
      */
     fun register(command: Command, prefix: String = "backbone") {
         command.build()
-        map.register(prefix, command)
+        push(command)
+
+        bukkitMap.register(prefix, command)
         Backbone.SERVER.onlinePlayers.forEach {
             it.updateCommands()
+        }
+    }
+
+    private fun push(command: Command) {
+        commands[command.fullName!!] = command
+        command.subCommands.forEach {
+            push(it)
+        }
+    }
+
+    private fun pop(command: Command) {
+        command.subCommands.forEach {
+            pop(it)
+        }
+        commands.remove(command.fullName)
+        command.aliases.forEach { alias ->
+            commands.remove(alias)
         }
     }
 
@@ -75,8 +116,8 @@ object CommandHandler {
      * @since 1.0.0
      */
     fun unregister(command: Command, prefix: String = "backbone") {
+        commands.remove(command.fullName)
         unregisterCommand(command.name, prefix)
-
         Backbone.SERVER.onlinePlayers.forEach {
             it.updateCommands()
         }
@@ -84,9 +125,9 @@ object CommandHandler {
 
     private fun unregisterCommand(commandName: String, prefix: String = "backbone") {
         try {
-            val knownCommandsField = map.javaClass.getSuperclass().getDeclaredField("knownCommands")
+            val knownCommandsField = bukkitMap.javaClass.getSuperclass().getDeclaredField("knownCommands")
             knownCommandsField.setAccessible(true)
-            val knownCommands = knownCommandsField.get(map) as MutableMap<*, *>
+            val knownCommands = knownCommandsField.get(bukkitMap) as MutableMap<*, *>
 
             knownCommands.remove(commandName)
             knownCommands.remove("$prefix:$commandName")
