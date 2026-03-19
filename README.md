@@ -299,12 +299,12 @@ object MyCommand : Command("mycommand", "My first command") {
 
 // In your ManagedLifecycle's onLoad:
 override fun onLoad() {
-    Backbone.Handlers.COMMAND.register(MyCommand)
+    Backbone.Handler.COMMAND.register(MyCommand)
 }
 
 // In your ManagedLifecycle's onUnload:
 override fun onUnload() {
-    Backbone.Handlers.COMMAND.unregister(MyCommand)
+    Backbone.Handler.COMMAND.unregister(MyCommand)
 }
 ```
 
@@ -395,7 +395,7 @@ object GuardEntity : CustomEntity<Zombie>("guard", EntityType.ZOMBIE) {
 
 // In your ManagedLifecycle's onLoad:
 override fun onLoad() {
-    Backbone.Handlers.ENTITY.register(GuardEntity)
+    Backbone.Handler.ENTITY.register(GuardEntity)
 }
 
 // You can then spawn the entity, for example, using a command

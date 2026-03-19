@@ -55,6 +55,16 @@ object ItemHandler : Listener {
     }
 
     /**
+     * Unregisters a [CustomItem] from the system.
+     *
+     * @param item The [CustomItem] to register.
+     * @since 1.0.0
+     */
+    fun unregister(item: CustomItem) {
+        items.remove(item.id)
+    }
+
+    /**
      * Creates a new [ItemStack] for a registered custom item using its default state.
      *
      * @param item The ID of the custom item to generate.

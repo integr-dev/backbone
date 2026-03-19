@@ -56,6 +56,18 @@ object EntityHandler : Listener {
     }
 
     /**
+     *
+     * Unregisters a custom entity.
+     *
+     * @param entity The custom entity to register.
+     * @since 1.5.0
+     */
+    fun <T : Mob> unregister(entity: CustomEntity<T>) {
+        entities.remove(entity.id)
+    }
+
+
+    /**
      * Spawns a custom entity by its ID at the given location in the specified world.
      *
      * @param entity The ID of the custom entity to spawn.
