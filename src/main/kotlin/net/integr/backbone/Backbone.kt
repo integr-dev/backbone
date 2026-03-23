@@ -143,6 +143,14 @@ object Backbone {
     val VERSION
         get() = PLUGIN.pluginMeta.version
 
+    /**
+     * The global event bus instance.
+     *
+     * @since 1.6.0
+     */
+    val EVENT_BUS
+        get() = EventBus
+
 
     /**
      * Registers a listener to the server's plugin manager and the internal event bus.

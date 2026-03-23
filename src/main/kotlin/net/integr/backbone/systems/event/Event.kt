@@ -43,8 +43,20 @@ abstract class Event {
      *
      * @param key The key to store the callback under.
      * @param value The callback to store.
+     * @since 1.3.0
     */
-    operator fun set(key: String, value: Any?) {
+    open operator fun set(key: String, value: Any?) {
+        callbacks[key] = value
+    }
+
+    /**
+     * Adds a callback to this event.
+     *
+     * @param key The key to store the callback under.
+     * @param value The callback to store.
+     * @since 1.6.0
+     */
+    fun setCallback(key: String, value: Any?) {
         callbacks[key] = value
     }
 
@@ -52,7 +64,15 @@ abstract class Event {
      * Gets a callback from this event.
      * @since 1.3.0
      */
-    operator fun get(key: String): Any? {
+    open operator fun get(key: String): Any? {
+        return callbacks[key]
+    }
+
+    /**
+     * Gets a callback from this event.
+     * @since 1.6.0
+     */
+    fun getCallback(key: String): Any? {
         return callbacks[key]
     }
 
