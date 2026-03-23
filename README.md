@@ -1,4 +1,3 @@
-
 <!--suppress CheckImageSize -->
 <img alt="logo.png" src="logo.png" width="20%"/>
 
@@ -81,29 +80,25 @@ All script files should be placed in the `scripts/` directory in your server's r
 
 #### Script Structure
 
-Every script file must evaluate to an object that extends `ManagedLifecycle`. This class provides the necessary hooks for the script engine to manage the script's lifecycle.
+Every script file must use the new lifecycle DSL, which provides a concise and modern way to define script lifecycle hooks and event listeners.
 
 ```kotlin
-// Each script must return an object that extends ManagedLifecycle.
-object : ManagedLifecycle() {
+lifecycle {
     // 'sustained' properties persist their values across script reloads.
     var counter by sustained(0)
     // Standard variables are reset every time the script is reloaded.
     var otherCounter = 0
 
-    // Called when the script is loaded or enabled
-    override fun onLoad() {
+    onLoad {
         Backbone.registerListener(this)
     }
 
-    // Called when the script is unloaded or disabled
-    override fun onUnload() {
+    onUnload {
         Backbone.unregisterListener(this)
     }
 
     // This event fires every server tick while the script is enabled.
-    @BackboneEventHandler
-    fun onTick(event: TickEvent) {
+    listener<TickEvent> { event ->
         counter++
         otherCounter++
         if (counter % 20 == 0) {
@@ -119,6 +114,8 @@ object : ManagedLifecycle() {
 You can make your scripts even more powerful by using file-level annotations to manage dependencies and compiler settings.
 
 #### Sharing Code Between Scripts
+Shared logic MUST be placed in utility scripts with the `.bbu.kts` extension. These scripts are automatically compiled and their classes and functions are injected into the classpath and default imports of all main `.bb.kts` scripts, allowing you to easily share code across multiple scripts.
+If this is not done, the classes and functions defined in a script will only be available to that script. Utility scripts must not be a lifecycle object and cannot contain event listeners or lifecycle hooks. They are purely for defining shared code.
 You can define utility scripts with the `.bbu.kts` file extension. These scripts function as shared libraries. Backbone automatically compiles them and injects their classes and functions into the classpath and default imports of all main `.bb.kts` scripts.
 
 **`utils.bbu.kts`**
@@ -166,6 +163,29 @@ fun greet() {
     println("Hello, $this")
 }
 ```
+
+
+#### Script Syntax: Classic and Modern
+
+Backbone supports two ways to write scripts:
+
+- **Modern DSL (Recommended):** The new `lifecycle { ... }` syntax is concise, declarative, and covers most use cases for event handling, lifecycle hooks, and inter-script communication. All examples in this README use the new DSL.
+- **Classic API (Still Supported):** The old style, where you inherit from `ManagedLifecycle` and override `onLoad`/`onUnload`, is still fully supported. This approach is more flexible and powerful for advanced users, as it allows you to write imperative code and manage the lifecycle yourself. You can mix and match both styles as needed.
+
+Example of the classic style:
+
+```kotlin
+class MyScript : ManagedLifecycle() {
+    override fun onLoad() {
+        // Custom initialization logic
+    }
+    override fun onUnload() {
+        // Cleanup logic
+    }
+}
+```
+
+For most scripts, the new DSL is recommended for its simplicity, but the classic approach remains available for complex or non-declarative scenarios.
 
 ### Storage and Configuration
 
@@ -245,17 +265,54 @@ Backbone's event system allows you to create and listen to custom events, giving
 // Define a custom event
 class MyCustomEvent(val message: String) : Event()
 
-// Register a listener for the custom event.
-// Priority ranges from -3 to 3, with 0 being normal. Lower values execute first.
-@BackboneEventHandler(EventPriority.THREE_BEFORE)
-fun onMyCustomEvent(event: MyCustomEvent) {
-    println("Received custom event: ${event.message}")
-    event.callback = "yay!"
+lifecycle {
+    // Register a listener for the custom event.
+    // Priority ranges from -3 to 3, with 0 being normal. Lower values execute first.
+    listener<MyCustomEvent>(priority = EventPriority.THREE_BEFORE) { event ->
+        println("Received custom event: ${event.message}")
+        event.callback = "yay!"
+    }
 }
 
 // Fire the custom event from anywhere in your code
 val callback = EventBus.post(MyCustomEvent("Hello, world!")) // "yay!"
 ```
+
+### Inter-Script Communication
+
+Backbone allows scripts to communicate with each other using inter-script messages. This is useful for modular scripts, decoupled features, or sharing data/events between scripts at runtime.
+
+#### Sending a Message
+
+Use `dispatchInterScript` to send a message with a string id and a data map:
+
+```kotlin
+lifecycle {
+    listener<PlayerBucketFillEvent> { event ->
+        dispatchInterScript("abc") {
+            put("abc", "Hello from the sender script!")
+        }
+    }
+}
+```
+
+#### Receiving a Message
+
+Use `interScript` to listen for messages with a specific id. The handler receives an `IscMap` for type-safe data access:
+
+```kotlin
+lifecycle {
+    interScript("abc") { map ->
+        val abc = map.pull<String>("abc")
+        println("Received inter-script message: $abc")
+    }
+}
+```
+
+#### How it Works
+- Messages are delivered synchronously to all scripts listening for the given id.
+- The data is passed as an immutable `IscMap`, which supports type-safe retrieval with `pull<T>(key)`.
+- This system is ideal for modular scripts, cross-script events, and decoupled communication.
 
 ### Commands
 
@@ -298,13 +355,13 @@ object MyCommand : Command("mycommand", "My first command") {
 }
 
 // In your ManagedLifecycle's onLoad:
-override fun onLoad() {
-    Backbone.Handler.COMMAND.register(MyCommand)
-}
-
-// In your ManagedLifecycle's onUnload:
-override fun onUnload() {
-    Backbone.Handler.COMMAND.unregister(MyCommand)
+lifecycle {
+    onLoad {
+        Backbone.Handler.COMMAND.register(MyCommand)
+    }
+    onUnload {
+        Backbone.Handler.COMMAND.unregister(MyCommand)
+    }
 }
 ```
 
@@ -363,8 +420,10 @@ object MyItemState : CustomItemState(Material.DIAMOND_SWORD, "default") {
 }
 
 // In your ManagedLifecycle's onLoad:
-override fun onLoad() {
-    Backbone.Handler.ITEM.register(MyItem)
+lifecycle {
+    onLoad {
+        Backbone.Handler.ITEM.register(MyItem)
+    }
 }
 ```
 
@@ -394,8 +453,10 @@ object GuardEntity : CustomEntity<Zombie>("guard", EntityType.ZOMBIE) {
 }
 
 // In your ManagedLifecycle's onLoad:
-override fun onLoad() {
-    Backbone.Handler.ENTITY.register(GuardEntity)
+lifecycle {
+    onLoad {
+        Backbone.Handler.ENTITY.register(GuardEntity)
+    }
 }
 
 // You can then spawn the entity, for example, using a command
@@ -411,27 +472,27 @@ Here is an example of how to create a glowing box around a player:
 // Create a renderable object
 val playerBox = BoxRenderable()
 
-// In your ManagedLifecycle's onLoad:
-override fun onLoad() {
-    // Spawn the box when the script loads
-    val player = Backbone.SERVER.onlinePlayers.firstOrNull()
-    if (player != null) {
-        playerBox.spawn(player.world, player.location)
+lifecycle {
+    onLoad {
+        // Spawn the box when the script loads
+        val player = Backbone.SERVER.onlinePlayers.firstOrNull()
+        if (player != null) {
+            playerBox.spawn(player.world, player.location)
+        }
+    }
+    onUnload {
+        // Despawn the box when the script unloads
+        playerBox.despawn()
     }
 }
 
-// In your ManagedLifecycle's onUnload:
-override fun onUnload() {
-    // Despawn the box when the script unloads
-    playerBox.despawn()
-}
-
 // In a tick event, update the box's position and appearance
-@BackboneEventHandler
-fun onTick(event: TickEvent) {
-    val player = Backbone.SERVER.onlinePlayers.firstOrNull()
-    if (player != null) {
-        playerBox.update(player.location, player.location.clone().add(0.0, 1.0, 0.0), Material.GLASS.createBlockData())
+lifecycle {
+    listener<TickEvent> { event ->
+        val player = Backbone.SERVER.onlinePlayers.firstOrNull()
+        if (player != null) {
+            playerBox.update(player.location, player.location.clone().add(0.0, 1.0, 0.0), Material.GLASS.createBlockData())
+        }
     }
 }
 ```
@@ -544,3 +605,4 @@ Backbone provides a set of placeholders through its soft dependency on Placehold
 - `%backbone_version%`: Displays the current version of the Backbone plugin.
 
 More placeholders are planned for future releases.
+
