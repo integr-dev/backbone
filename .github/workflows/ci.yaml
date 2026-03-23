@@ -70,3 +70,25 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find release "-all.jar"
+        id: find_release
+        run: |
+          echo "release_file=$(ls build/libs/*-all.jar)" >> $GITHUB_OUTPUT
+
+      - name: Publish to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2
+        with:
+          token: ${{ secrets.MODRINTH_SECRET }}
+          name: ${{ steps.get_version.outputs.version }}
+          changelog: |
+            Automated release v${{ steps.get_version.outputs.version }}
+            Commit: ${{ github.sha }} - ${{ github.event.head_commit.message }}
+            See the GitHub release for more details:
+            https://github.com/integr-dev/backbone/releases/tag/v${{ steps.get_version.outputs.version }}
+          channel: release
+          project: C7VBofq0
+          version: ${{ steps.get_version.outputs.version }}
+          loaders: paper
+          game-versions: 1.21.11
+          files: ${{ steps.find_release.outputs.release_file }}
