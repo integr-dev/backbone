@@ -28,15 +28,14 @@ import kotlin.reflect.KProperty
  * @property value The current value of the state.
  * @since 1.0.0
  */
-class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<ManagedLifecycle, T> {
+class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Nothing?, T> {
     /**
-     * The unique identifier for this sustained state.
-     * This is typically the name of the property it's delegated to.
+     * The unique identifier for this sustained state. This is assigned counting up from 0 for each `ManagedLifecycle` instance, based on the order of declaration.
      *
      * @since 1.0.0
      */
-    var id: String? = null
-        private set
+    var id: Int? = null
+        internal set
 
     /**
      * The default value of the state.
@@ -53,7 +52,7 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
      * @return The current value of the state.
      * @since 1.0.0
      */
-    override fun getValue(thisRef: ManagedLifecycle, property: KProperty<*>): T {
+    override fun getValue(thisRef: Nothing?, property: KProperty<*>): T {
         return value
     }
 
@@ -65,26 +64,8 @@ class LifecycleSustainedState<T>(private var value: T) : ReadWriteProperty<Manag
      * @param value The new value to set.
      * @since 1.0.0
      */
-    override fun setValue(thisRef: ManagedLifecycle, property: KProperty<*>, value: T) {
+    override fun setValue(thisRef: Nothing?, property: KProperty<*>, value: T) {
         this.value = value
-    }
-
-    /**
-     * Creates a [LifecycleSustainedState] instance and registers it with the [ManagedLifecycle] instance.
-     *
-     * This operator is called automatically when a `LifecycleSustainedState` is declared as a property
-     * within a `ManagedLifecycle` class. It assigns an ID to the state based on the property name
-     * and adds the state to the `ManagedLifecycle`'s tracking mechanism.
-     *
-     * @param thisRef The [ManagedLifecycle] instance that owns this property.
-     * @param property The [KProperty] representing this state property.
-     * @return This [ReadWriteProperty] instance.
-     * @since 1.0.0
-     */
-    operator fun provideDelegate(thisRef: ManagedLifecycle, property: KProperty<*>): ReadWriteProperty<ManagedLifecycle, T> {
-        id = property.name
-        thisRef.trackState(this)
-        return this
     }
 
     /**

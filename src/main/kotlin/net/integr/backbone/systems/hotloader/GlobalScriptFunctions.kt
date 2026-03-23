@@ -14,11 +14,18 @@
 package net.integr.backbone.systems.hotloader
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.event.BackboneEventHandler
 import net.integr.backbone.systems.hotloader.isc.InterScriptDuckTypedEvent
 import net.integr.backbone.systems.hotloader.isc.IscMap
 import net.integr.backbone.systems.hotloader.isc.IscMapBuilder
+import net.integr.backbone.systems.hotloader.lifecycle.LifecycleSustainedState
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
+import net.integr.backbone.systems.hotloader.lifecycle.sustained
+import net.integr.backbone.systems.text.component
+import java.awt.Color
+import kotlin.inc
 import kotlin.reflect.full.starProjectedType
+import kotlin.toString
 
 /**
  * DSL entrypoint for defining a script lifecycle.

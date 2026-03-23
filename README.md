@@ -164,29 +164,6 @@ fun greet() {
 }
 ```
 
-
-#### Script Syntax: Classic and Modern
-
-Backbone supports two ways to write scripts:
-
-- **Modern DSL (Recommended):** The new `lifecycle { ... }` syntax is concise, declarative, and covers most use cases for event handling, lifecycle hooks, and inter-script communication. All examples in this README use the new DSL.
-- **Classic API (Still Supported):** The old style, where you inherit from `ManagedLifecycle` and override `onLoad`/`onUnload`, is still fully supported. This approach is more flexible and powerful for advanced users, as it allows you to write imperative code and manage the lifecycle yourself. You can mix and match both styles as needed.
-
-Example of the classic style:
-
-```kotlin
-class MyScript : ManagedLifecycle() {
-    override fun onLoad() {
-        // Custom initialization logic
-    }
-    override fun onUnload() {
-        // Cleanup logic
-    }
-}
-```
-
-For most scripts, the new DSL is recommended for its simplicity, but the classic approach remains available for complex or non-declarative scenarios.
-
 ### Storage and Configuration
 
 Backbone provides a simple and powerful way to manage your plugin's data and configuration through `ResourcePool`s. This system allows you to easily handle databases and configuration files in a structured manner.

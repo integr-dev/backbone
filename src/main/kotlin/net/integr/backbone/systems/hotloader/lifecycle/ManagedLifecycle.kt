@@ -29,6 +29,8 @@ import org.jetbrains.annotations.ApiStatus
  */
 abstract class ManagedLifecycle : Listener {
     private var sustainedStates: Set<LifecycleSustainedState<*>> = mutableSetOf()
+    private var sustainedNextId = 0
+
 
     /**
      * Called when the component is loaded.
@@ -67,6 +69,24 @@ abstract class ManagedLifecycle : Listener {
     @ApiStatus.Internal
     fun unload() {
         onUnload()
+    }
+
+    /**
+     * Creates a new [LifecycleSustainedState] with the given initial value and tracks it for state persistence.
+     *
+     * This method should be used within `ManagedLifecycle` classes to create sustained state properties.
+     * The returned `LifecycleSustainedState` can be delegated to a property to enable state persistence across reloads.
+     *
+     * @param T The type of the value being sustained.
+     * @param value The initial value of the sustained state.
+     * @return A new `LifecycleSustainedState` instance initialized with the given value.
+     * @since 1.6.0
+     */
+    fun <T> sustained(value: T): LifecycleSustainedState<T> {
+        val s = LifecycleSustainedState(value)
+        s.id = sustainedNextId++
+        trackState(s)
+        return s
     }
 
     /**
