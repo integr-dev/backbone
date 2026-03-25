@@ -35,8 +35,8 @@ fun lifecycle(block: LifecycleBuilder.() -> Unit): ManagedLifecycle {
  * @since 1.6.0
  */
 class LifecycleBuilder : ManagedLifecycle() {
-    val onLoadCalls: MutableList<() -> Unit> = mutableListOf()
-    val onUnloadCalls: MutableList<() -> Unit> = mutableListOf()
+    private val onLoadCalls: MutableList<() -> Unit> = mutableListOf()
+    private val onUnloadCalls: MutableList<() -> Unit> = mutableListOf()
 
     override fun onLoad() {
         onLoadCalls.forEach { it() }
