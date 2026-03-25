@@ -90,11 +90,11 @@ lifecycle {
     var otherCounter = 0
 
     onLoad {
-        Backbone.registerListener(this)
+        println("Script loaded! Counter: $counter | Other Counter: $otherCounter")
     }
 
     onUnload {
-        Backbone.unregisterListener(this)
+        println("Script unloaded! Counter: $counter | Other Counter: $otherCounter")
     }
 
     // This event fires every server tick while the script is enabled.
@@ -279,7 +279,7 @@ Use `interScript` to listen for messages with a specific id. The handler receive
 
 ```kotlin
 lifecycle {
-    interScript("abc") { map ->
+    interScriptListener("abc") { map ->
         val abc = map.pull<String>("abc")
         println("Received inter-script message: $abc")
     }
@@ -290,6 +290,34 @@ lifecycle {
 - Messages are delivered synchronously to all scripts listening for the given id.
 - The data is passed as an immutable `IscMap`, which supports type-safe retrieval with `pull<T>(key)`.
 - This system is ideal for modular scripts, cross-script events, and decoupled communication.
+
+### HTTP Requests in Scripts
+
+Backbone scripts can easily make HTTP requests and handle responses using the built-in DSL. This is useful for integrating with web APIs, fetching data, or interacting with external services directly from your scripts.
+
+#### Example: Making an HTTP Request in a Script
+
+You can use the `requestAndThen` function inside your script's lifecycle to perform HTTP requests asynchronously. The response is provided to a callback, where you can process the result and interact with the server.
+
+```kotlin
+lifecycle {
+    onLoad {
+        requestAndThen("https://httpbin.org/get", HttpMethod.GET, {
+            header("User-Agent", "Backbone Script Handler")
+        }) { response ->
+            Backbone.SERVER.broadcast(component {
+                append("HTTP Response: ${response.json()}") {
+                    color(Color.GREEN)
+                }
+            })
+        }
+    }
+}
+```
+
+- `requestAndThen(url, method, { ...headers... }) { response -> ... }` performs an HTTP request and provides the response to the callback.
+- The `response` object supports JSON parsing and mapping, making it easy to work with API responses.
+- You can use this in any lifecycle hook, such as `onLoad`, or in event listeners.
 
 ### Commands
 
@@ -331,14 +359,9 @@ object MyCommand : Command("mycommand", "My first command") {
     }
 }
 
-// In your ManagedLifecycle's onLoad:
+// In your ManagedLifecycle:
 lifecycle {
-    onLoad {
-        Backbone.Handler.COMMAND.register(MyCommand)
-    }
-    onUnload {
-        Backbone.Handler.COMMAND.unregister(MyCommand)
-    }
+    useCommand(MyCommand)
 }
 ```
 
@@ -396,11 +419,9 @@ object MyItemState : CustomItemState(Material.DIAMOND_SWORD, "default") {
     }
 }
 
-// In your ManagedLifecycle's onLoad:
+// In your ManagedLifecycle:
 lifecycle {
-    onLoad {
-        Backbone.Handler.ITEM.register(MyItem)
-    }
+    useItem(MyItem)
 }
 ```
 
@@ -429,11 +450,9 @@ object GuardEntity : CustomEntity<Zombie>("guard", EntityType.ZOMBIE) {
     }
 }
 
-// In your ManagedLifecycle's onLoad:
+// In your ManagedLifecycle:
 lifecycle {
-    onLoad {
-        Backbone.Handler.ENTITY.register(GuardEntity)
-    }
+    useEntity(GuardEntity)
 }
 
 // You can then spawn the entity, for example, using a command
@@ -582,4 +601,3 @@ Backbone provides a set of placeholders through its soft dependency on Placehold
 - `%backbone_version%`: Displays the current version of the Backbone plugin.
 
 More placeholders are planned for future releases.
-

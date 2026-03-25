@@ -14,114 +14,141 @@
 package net.integr.backbone.systems.hotloader
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.event.BackboneEventHandler
-import net.integr.backbone.systems.hotloader.isc.InterScriptDuckTypedEvent
+import net.integr.backbone.events.IscEvent
+import net.integr.backbone.systems.command.Command
+import net.integr.backbone.systems.entity.CustomEntity
 import net.integr.backbone.systems.hotloader.isc.IscMap
 import net.integr.backbone.systems.hotloader.isc.IscMapBuilder
-import net.integr.backbone.systems.hotloader.lifecycle.LifecycleSustainedState
-import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
-import net.integr.backbone.systems.hotloader.lifecycle.sustained
-import net.integr.backbone.systems.text.component
-import java.awt.Color
-import kotlin.inc
+import net.integr.backbone.systems.item.CustomItem
+import net.integr.backbone.systems.network.http.HttpMethod
+import net.integr.backbone.systems.network.http.Requestor
+import net.integr.backbone.systems.network.http.request.RequestBuilder
+import net.integr.backbone.systems.network.http.response.Response
+import org.bukkit.entity.Mob
 import kotlin.reflect.full.starProjectedType
-import kotlin.toString
 
 /**
- * DSL entrypoint for defining a script lifecycle.
+ * Makes an asynchronous HTTP request to the given URI with the specified method and request builder block.
  *
- * @param block The lifecycle configuration block.
- * @return The constructed [ManagedLifecycle].
+ * @param uri The target URI for the HTTP request.
+ * @param method The HTTP method to use (e.g., GET, POST).
+ * @param builderBlock An optional block to configure the request using a [RequestBuilder].
+ * @return A [Response] containing the response data as a string.
  * @since 1.6.0
  */
-fun lifecycle(block: LifecycleBuilder.() -> Unit): ManagedLifecycle {
-    val builder = LifecycleBuilder()
-    block(builder)
-    return builder
+suspend fun request(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}) =
+    Requestor.request(uri, method, builderBlock)
+
+/**
+ * Makes a synchronous HTTP request to the given URI with the specified method and request builder block.
+ *
+ * @param uri The target URI for the HTTP request.
+ * @param method The HTTP method to use (e.g., GET, POST).
+ * @param builderBlock An optional block to configure the request using a [RequestBuilder].
+ * @return A [Response] containing the response data as a string.
+ * @since 1.6.0
+ */
+fun requestSync(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}) =
+    Requestor.requestSync(uri, method, builderBlock)
+
+/**
+ * Makes an asynchronous HTTP request to the given URI with the specified method and request builder block, then executes a callback with the response.
+ *
+ * @param uri The target URI for the HTTP request.
+ * @param method The HTTP method to use (e.g., GET, POST).
+ * @param builderBlock An optional block to configure the request using a [RequestBuilder].
+ * @param then A callback block that receives the [Response] containing the response data as a string.
+ * @since 1.6.0
+ */
+fun requestAndThen(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}, then: (Response<String>) -> Unit)
+    = Requestor.requestAndThen(uri, method, builderBlock, then)
+
+/**
+ * Registers a Bukkit event listener for the given event type.
+ *
+ * @param priority The Bukkit event priority (default: NORMAL).
+ * @param block The event handler block.
+ * @since 1.6.0
+ */
+inline fun <reified T : org.bukkit.event.Event> LifecycleBuilder.listener(
+    priority: org.bukkit.event.EventPriority = org.bukkit.event.EventPriority.NORMAL,
+    noinline block: (T) -> Unit
+) {
+    onLoad { Backbone.SERVER.pluginManager.registerEvent(T::class.java, this, priority, { _, event -> if (event is T) block(event) }, Backbone.PLUGIN) }
+    onUnload { Backbone.unregisterListener(this) }
 }
 
 /**
- * Builder for script lifecycle and event/listener registration DSL.
+ * Registers a Backbone event listener for the given event type.
  *
- * Provides methods for registering load/unload hooks, event listeners, and inter-script communication handlers.
+ * @param priority The Backbone event priority (default: NORMAL).
+ * @param block The event handler block.
  * @since 1.6.0
  */
-class LifecycleBuilder : ManagedLifecycle() {
-    val onLoadCalls: MutableList<() -> Unit> = mutableListOf()
-    val onUnloadCalls: MutableList<() -> Unit> = mutableListOf()
+inline fun <reified T : net.integr.backbone.systems.event.Event> LifecycleBuilder.backboneListener(
+    priority: net.integr.backbone.systems.event.EventPriority = net.integr.backbone.systems.event.EventPriority.NORMAL,
+    noinline block: (T) -> Unit
+) {
+    onLoad { Backbone.EVENT_BUS.registerLambda(T::class.starProjectedType, priority, this) { event -> if (event is T) block(event) } }
+    onUnload { Backbone.unregisterListener(this) }
+}
 
-    override fun onLoad() {
-        onLoadCalls.forEach { it() }
+/**
+ * Registers a handler for inter-script communication events with the given id.
+ *
+ * @param id The message id to listen for.
+ * @param block The handler block, receiving the message data as [IscMap].
+ * @since 1.6.0
+ */
+fun LifecycleBuilder.interScriptListener(id: String, block: (IscMap) -> Unit) {
+    backboneListener<IscEvent> {
+        if (it.id == id) block(it.data)
     }
+}
 
-    override fun onUnload() {
-        onUnloadCalls.forEach { it() }
-    }
+/**
+ * Dispatches an inter-script communication event with the given id and data.
+ *
+ * @param id The message id to send.
+ * @param data The data builder block for the message.
+ * @since 1.6.0
+ */
+fun dispatchInterScript(id: String, data: IscMapBuilder.() -> Unit) {
+    val builder = IscMapBuilder()
+    builder.data()
+    val isc = builder.build()
+    Backbone.EVENT_BUS.post(IscEvent(id, isc))
+}
 
-    /**
-     * Registers a block to run when the script is loaded.
-     * @since 1.6.0
-     */
-    fun onLoad(block: () -> Unit) {
-        onLoadCalls += block
-    }
+/**
+ * Registers a command handler for the given command.
+ *
+ * @param command The command to register.
+ * @since 1.6.0
+ */
+fun LifecycleBuilder.useCommand(command: Command) {
+    onLoad { Backbone.Handler.COMMAND.register(command) }
+    onUnload { Backbone.Handler.COMMAND.unregister(command) }
+}
 
-    /**
-     * Registers a block to run when the script is unloaded.
-     * @since 1.6.0
-     */
-    fun onUnload(block: () -> Unit) {
-        onUnloadCalls += block
-    }
+/**
+ * Registers an entity handler for the given custom entity.
+ *
+ * @param entity The custom entity to register.
+ * @since 1.6.0
+ */
+fun <T : Mob> LifecycleBuilder.useEntity(entity: CustomEntity<T>) {
+    onLoad { Backbone.Handler.ENTITY.register(entity) }
+    onUnload { Backbone.Handler.ENTITY.unregister(entity) }
+}
 
-    /**
-     * Registers a Bukkit event listener for the given event type.
-     *
-     * @param priority The Bukkit event priority (default: NORMAL).
-     * @param block The event handler block.
-     * @since 1.6.0
-     */
-    inline fun <reified T : org.bukkit.event.Event> listener(priority: org.bukkit.event.EventPriority = org.bukkit.event.EventPriority.NORMAL, crossinline block: (T) -> Unit) {
-        onLoadCalls += { Backbone.SERVER.pluginManager.registerEvent(T::class.java, this, priority, { _, event -> if (event is T) block(event) }, Backbone.PLUGIN) }
-        onUnloadCalls += { Backbone.unregisterListener(this) }
-    }
-
-    /**
-     * Registers a Backbone event listener for the given event type.
-     *
-     * @param priority The Backbone event priority (default: NORMAL).
-     * @param block The event handler block.
-     * @since 1.6.0
-     */
-    inline fun <reified T : net.integr.backbone.systems.event.Event> backboneListener(priority: net.integr.backbone.systems.event.EventPriority = net.integr.backbone.systems.event.EventPriority.NORMAL, noinline block: (T) -> Unit) {
-        onLoadCalls += { Backbone.EVENT_BUS.registerLambda(T::class.starProjectedType, priority, this) { event -> if (event is T) block(event) } }
-        onUnloadCalls += { Backbone.unregisterListener(this) }
-    }
-
-    /**
-     * Registers a handler for inter-script communication events with the given id.
-     *
-     * @param id The message id to listen for.
-     * @param block The handler block, receiving the message data as [IscMap].
-     * @since 1.6.0
-     */
-    fun interScript(id: String, block: (IscMap) -> Unit) {
-        backboneListener<InterScriptDuckTypedEvent> {
-            if (it.id == id) block(it.data)
-        }
-    }
-
-    /**
-     * Dispatches an inter-script communication event with the given id and data.
-     *
-     * @param id The message id to send.
-     * @param data The data builder block for the message.
-     * @since 1.6.0
-     */
-    fun dispatchInterScript(id: String, data: IscMapBuilder.() -> Unit) {
-        val builder = IscMapBuilder()
-        builder.data()
-        val isc = builder.build()
-        Backbone.EVENT_BUS.post(InterScriptDuckTypedEvent(id, isc))
-    }
+/**
+ * Registers an item handler for the given custom item.
+ *
+ * @param item The custom item to register.
+ * @since 1.6.0
+ */
+fun LifecycleBuilder.useItem(item: CustomItem) {
+    onLoad { Backbone.Handler.ITEM.register(item) }
+    onUnload { Backbone.Handler.ITEM.unregister(item) }
 }

@@ -18,18 +18,23 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.storage.ResourceLocation
+import tools.jackson.core.PrettyPrinter
+import tools.jackson.core.util.DefaultPrettyPrinter
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
 import tools.jackson.dataformat.yaml.YAMLMapper
 import kotlin.reflect.KClass
 
 /**
- * Handles the serialization and deserialization of configuration files using YAML.
+ * Handles the serialization and deserialization of configuration files using an object mapper.
  *
  * @param file The `ResourceLocation` representing the configuration file.
  * @param klass The Kotlin class representing the structure of the configuration.
+ * @param mapper The `ObjectMapper` used for serialization and deserialization.
  *
  * @since 1.0.0
  */
-class ConfigHandler<T : Any>(private val file: ResourceLocation, private val klass: KClass<T>) {
+class ConfigHandler<T : Any>(private val file: ResourceLocation, private val klass: KClass<T>, private val mapper: ObjectMapper) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val logger = Backbone.LOGGER.derive("config-handler")
@@ -48,7 +53,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
         cachedState = obj
 
         coroutineScope.launch {
-            val str = yaml.writeValueAsString(obj)
+            val str = mapper.writeValueAsString(obj)
             file.location.writeText(str)
         }
     }
@@ -64,7 +69,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
         logger.info("Writing config state to ${file.location.absolutePath}")
         cachedState = obj
 
-        val str = yaml.writeValueAsString(obj)
+        val str = mapper.writeValueAsString(obj)
         file.location.writeText(str)
     }
 
@@ -77,7 +82,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      */
     fun updateAndGetStateSync(): T {
         val str = file.location.readText()
-        val state = yaml.readValue<T>(str, klass.java)
+        val state = mapper.readValue(str, klass.java)
         cachedState = state
         return state
     }
@@ -89,7 +94,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      */
     fun updateSync() {
         val str = file.location.readText()
-        val state = yaml.readValue<T>(str, klass.java)
+        val state = mapper.readValue(str, klass.java)
         cachedState = state
     }
 
@@ -101,7 +106,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
     fun update() {
         coroutineScope.launch {
             val str = file.location.readText()
-            val state = yaml.readValue<T>(str, klass.java)
+            val state = mapper.readValue(str, klass.java)
             cachedState = state
         }
     }
@@ -119,7 +124,12 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
     fun getState() = cachedState
 
     companion object {
-        private val yaml: YAMLMapper = YAMLMapper
+        val YAML: YAMLMapper = YAMLMapper
+            .builder()
+            .findAndAddModules()
+            .build()
+
+        val JSON: JsonMapper = JsonMapper
             .builder()
             .findAndAddModules()
             .build()

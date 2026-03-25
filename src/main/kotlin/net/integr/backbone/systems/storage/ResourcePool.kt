@@ -117,7 +117,22 @@ class ResourcePool(val origin: Path, id: String) {
     inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
-        return ConfigHandler(location, T::class)
+        return ConfigHandler(location, T::class, ConfigHandler.YAML)
+    }
+
+    /**
+     * Allocates a new configuration file within this resource pool, ensuring its creation.
+     * This method uses JSON for serialization instead of YAML.
+     *
+     * @param id The identifier for the new configuration file.
+     * @return A `ConfigHandler` object representing the new configuration.
+     *
+     * @since 1.7.0
+     */
+    inline fun <reified T : Any> configJson(id: String): ConfigHandler<T> {
+        val location = allocate(id)
+        location.create()
+        return ConfigHandler(location, T::class, ConfigHandler.YAML)
     }
 
     override fun equals(other: Any?): Boolean {
