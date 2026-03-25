@@ -11,16 +11,17 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.hotloader.isc
+package net.integr.backbone.events
 
 import net.integr.backbone.systems.event.Event
+import net.integr.backbone.systems.hotloader.isc.IscMap
 
 /**
  * Event for inter-script communication, carrying a message id and data.
  *
  * Used internally by the lifecycle DSL for inter-script messaging.
  * @property id The message id.
- * @property data The message data as [IscMap].
+ * @property data The message data as [net.integr.backbone.systems.hotloader.isc.IscMap].
  * @since 1.6.0
  */
-class InterScriptDuckTypedEvent(val id: String, val data: IscMap) : Event()
+class IscEvent(val id: String, val data: IscMap) : Event()

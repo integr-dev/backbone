@@ -23,7 +23,7 @@ class ConfigHandlerTest {
     fun testWriteAndReadState() {
         val pool = ResourcePool.fromConfig("test")
         val location = pool.file("test.yml")
-        val configHandler = ConfigHandler(location, TestConfig::class)
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.YAML)
 
         val testConfig = TestConfig("testValue", 123)
         configHandler.writeStateSync(testConfig)
@@ -38,7 +38,7 @@ class ConfigHandlerTest {
     fun testUpdateAndGetStateSync() {
         val pool = ResourcePool.fromConfig("test")
         val location = pool.file("test.yml")
-        val configHandler = ConfigHandler(location, TestConfig::class)
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.YAML)
 
         val initialConfig = TestConfig("initial", 1)
         configHandler.writeStateSync(initialConfig)
@@ -56,11 +56,58 @@ class ConfigHandlerTest {
     fun testGetState() {
         val pool = ResourcePool.fromConfig("test")
         val location = pool.file("test.yml")
-        val configHandler = ConfigHandler(location, TestConfig::class)
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.YAML)
 
         assertNull(configHandler.getState())
 
         val testConfig = TestConfig("cached", 789)
+        configHandler.writeStateSync(testConfig)
+
+        assertEquals(testConfig, configHandler.getState())
+    }
+
+    @Test
+    fun testWriteAndReadStateWithJson() {
+        val pool = ResourcePool.fromConfig("test")
+        val location = pool.file("test.json")
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.JSON)
+
+        val testConfig = TestConfig("jsonTest", 321)
+        configHandler.writeStateSync(testConfig)
+
+        val readConfig = configHandler.updateAndGetStateSync()
+
+        assertEquals(testConfig.testField, readConfig.testField)
+        assertEquals(testConfig.testNumber, readConfig.testNumber)
+    }
+
+    @Test
+    fun testUpdateAndGetStateSyncWithJson() {
+        val pool = ResourcePool.fromConfig("test")
+        val location = pool.file("test.json")
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.JSON)
+
+        val initialConfig = TestConfig("jsonInitial", 10)
+        configHandler.writeStateSync(initialConfig)
+
+        // Manually change the file content to simulate external modification
+        location.location.writeText("{\"testField\": \"jsonUpdated\", \"testNumber\": 654}")
+
+        val updatedConfig = configHandler.updateAndGetStateSync()
+
+        assertEquals("jsonUpdated", updatedConfig.testField)
+        assertEquals(654, updatedConfig.testNumber)
+    }
+
+    @Test
+    fun testGetStateWithJson() {
+        val pool = ResourcePool.fromConfig("test")
+        val location = pool.file("test.json")
+        val configHandler = ConfigHandler(location, TestConfig::class, ConfigHandler.JSON)
+
+        assertNull(configHandler.getState())
+
+        val testConfig = TestConfig("jsonCached", 987)
         configHandler.writeStateSync(testConfig)
 
         assertEquals(testConfig, configHandler.getState())
