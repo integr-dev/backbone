@@ -13,6 +13,8 @@
 
 package net.integr.backbone.systems.hotloader
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.events.IscEvent
 import net.integr.backbone.systems.command.Command
@@ -24,7 +26,9 @@ import net.integr.backbone.systems.network.http.HttpMethod
 import net.integr.backbone.systems.network.http.Requestor
 import net.integr.backbone.systems.network.http.request.RequestBuilder
 import net.integr.backbone.systems.network.http.response.Response
+import net.integr.backbone.systems.placeholder.PlaceholderGroup
 import org.bukkit.entity.Mob
+import org.bukkit.entity.Player
 import kotlin.reflect.full.starProjectedType
 
 /**
@@ -151,4 +155,21 @@ fun <T : Mob> LifecycleBuilder.useEntity(entity: CustomEntity<T>) {
 fun LifecycleBuilder.useItem(item: CustomItem) {
     onLoad { Backbone.Handler.ITEM.register(item) }
     onUnload { Backbone.Handler.ITEM.unregister(item) }
+}
+
+/**
+ * Registers a placeholder group with the given id, author, version, and block to define placeholders.
+ *
+ * @param id The unique identifier for the placeholder group.
+ * @param author The author of the placeholder group.
+ * @param version The version of the placeholder group.
+ * @param block A block to define the placeholders within the group using a [PlaceholderGroup].
+ * @since 1.7.1
+ */
+fun LifecycleBuilder.usePlaceholder(id: String, author: String, version: String, block: PlaceholderGroup.() -> Unit) {
+    val group = PlaceholderGroup(id, author, version)
+    group.block()
+
+    onLoad { group.registerPlaceholders() }
+    onUnload { group.unregisterPlaceholders() }
 }

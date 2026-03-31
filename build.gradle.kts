@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.integr"
-version = "1.7.0"
+version = "1.7.1"
 
 repositories {
     mavenCentral()
@@ -26,7 +26,7 @@ dependencies {
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    implementation("me.clip:placeholderapi:2.12.2")
+    compileOnly("me.clip:placeholderapi:2.12.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 
@@ -46,6 +46,8 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin:3.0.4")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+    testImplementation("me.clip:placeholderapi:2.12.2")
 
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")

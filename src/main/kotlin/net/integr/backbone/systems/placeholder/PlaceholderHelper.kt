@@ -50,4 +50,26 @@ object PlaceholderHelper {
             return text
         }
     }
+
+    /**
+     * Matches the longest placeholder id from the provided list of holders against the given params string.
+     * This method is used to determine which placeholder should be invoked based on the input parameters.
+     *
+     * @param holders A list of placeholder ids.
+     * @param params The input string containing the parameters to match against the placeholder ids.
+     * @return The matched placeholder id if a match is found, or null if no match is found.
+     */
+    fun match(holders: Set<String>, params: String): String? {
+        var matched: String? = null
+        for (holder in holders) {
+            if (params.startsWith(holder)) {
+                if (params.length == holder.length || params.getOrNull(holder.length) == '_') {
+                    if (matched == null || holder.length > matched.length) {
+                        matched = holder
+                    }
+                }
+            }
+        }
+        return matched
+    }
 }

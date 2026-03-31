@@ -25,6 +25,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitTask
 import org.jetbrains.annotations.ApiStatus
 
 /**
@@ -103,7 +104,7 @@ object Backbone {
      */
     @get:ApiStatus.Internal
     val PLACEHOLDER_GROUP by lazy {
-        PlaceholderGroup(VERSION, "backbone")
+        PlaceholderGroup("backbone", "Integr", VERSION)
     }
 
     /**
@@ -185,8 +186,8 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    fun dispatchMain(block: () -> Unit) {
-        SERVER.scheduler.runTask(PLUGIN, block)
+    fun dispatchMain(block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTask(PLUGIN, block)
     }
 
     /**
@@ -196,8 +197,58 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    fun dispatch(block: () -> Unit) {
-        SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
+    fun dispatch(block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
+    }
+
+    /**
+     * Dispatches a task to be run asynchronously on the server after a delay.
+     *
+     * @param delay The delay in ticks before the task is run.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchLater(delay: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskLaterAsynchronously(PLUGIN, block, delay)
+    }
+
+    /**
+     * Dispatches a task to be run asynchronously on the server repeatedly with a fixed delay between each run.
+     *
+     * @param delay The delay in ticks before the first run of the task.
+     * @param period The delay in ticks between each run of the task.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchTimer(delay: Long, period: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskTimerAsynchronously(PLUGIN, block, delay, period)
+    }
+
+    /**
+     * Dispatches a task to be run on the main thread of the server after a delay.
+     *
+     * @param delay The delay in ticks before the task is run.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchMainLater(delay: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskLater(PLUGIN, block, delay)
+    }
+
+    /**
+     * Dispatches a task to be run on the main thread of the server repeatedly with a fixed delay between each run.
+     *
+     * @param delay The delay in ticks before the first run of the task.
+     * @param period The delay in ticks between each run of the task.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchMainTimer(delay: Long, period: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskTimer(PLUGIN, block, delay, period)
     }
 
     /**
