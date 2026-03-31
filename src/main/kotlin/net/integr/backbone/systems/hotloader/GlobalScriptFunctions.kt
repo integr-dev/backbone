@@ -13,6 +13,8 @@
 
 package net.integr.backbone.systems.hotloader
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.events.IscEvent
 import net.integr.backbone.systems.command.Command
@@ -168,6 +170,6 @@ fun LifecycleBuilder.usePlaceholder(id: String, author: String, version: String,
     val group = PlaceholderGroup(id, author, version)
     group.block()
 
-    onLoad { Backbone.dispatchMain { group.registerPlaceholders() } }
-    onUnload { Backbone.dispatchMain { group.unregisterPlaceholders() } }
+    onLoad { group.registerPlaceholders() }
+    onUnload { group.unregisterPlaceholders() }
 }

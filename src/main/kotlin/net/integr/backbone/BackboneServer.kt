@@ -24,6 +24,7 @@ import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.item.ItemHandler
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitTask
 import org.jetbrains.annotations.ApiStatus
 import java.io.FileDescriptor
 import java.io.FileOutputStream
@@ -35,17 +36,24 @@ import java.io.PrintStream
  */
 @ApiStatus.Internal
 class BackboneServer : JavaPlugin() {
+    private var tickTask: BukkitTask? = null
+    private var beforeOut: PrintStream? = null
+    private var beforeErr: PrintStream? = null
+
     /**
      * Called by bukkit.
      * @since 1.0.0
      */
     override fun onEnable() {
-        val fdOut = FileOutputStream(FileDescriptor.out)
-        val originalOut = PrintStream(fdOut, true)
+        val out = PrintStream(FileOutputStream(FileDescriptor.out), true)
+        val err = PrintStream(FileOutputStream(FileDescriptor.err), true)
+
+        beforeOut = System.out
+        beforeErr = System.err
 
         // Bypass papers println intercept
-        System.setOut(originalOut)
-        System.setErr(PrintStream(FileOutputStream(FileDescriptor.err), true))
+        System.setOut(out)
+        System.setErr(err)
 
         Backbone.SCRIPT_POOL.create()
 
@@ -61,12 +69,14 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.Handler.COMMAND.register(BackboneCommand)
 
-        Backbone.dispatchMainTimer(0L, 1L) {
+        tickTask = Backbone.dispatchMainTimer(0L, 1L) {
             EventBus.post(TickEvent())
         }
 
         Backbone.dispatchMain {
             setPlaceholders()
+
+            Backbone.PLACEHOLDER_GROUP.registerPlaceholders()
         }
     }
 
@@ -75,9 +85,24 @@ class BackboneServer : JavaPlugin() {
      * @since 1.0.0
      */
     override fun onDisable() {
-        runBlocking {
-            ScriptEngine.unloadScripts() // Cleanup
-        }
+        tickTask?.cancel() // Stop the tick task
+
+        Backbone.PLACEHOLDER_GROUP.unregisterPlaceholders()
+
+        ScriptEngine.unloadScripts() // Cleanup
+
+        BStatHandler.shutdown()
+
+        Backbone.unregisterListener(GuiHandler)
+        Backbone.unregisterListener(ItemHandler)
+        Backbone.unregisterListener(EntityHandler)
+
+        Backbone.Handler.COMMAND.unregister(BackboneCommand)
+
+
+        // Restore original System.out and System.err
+        beforeOut?.let { System.setOut(it) }
+        beforeErr?.let { System.setErr(it) }
     }
 
     /**
@@ -88,7 +113,5 @@ class BackboneServer : JavaPlugin() {
         Backbone.PLACEHOLDER_GROUP.add("version") { _, _ ->
             return@add Backbone.VERSION
         }
-
-        Backbone.PLACEHOLDER_GROUP.registerPlaceholders()
     }
 }

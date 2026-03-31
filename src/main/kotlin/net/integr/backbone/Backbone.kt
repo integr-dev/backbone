@@ -25,6 +25,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.scheduler.BukkitTask
 import org.jetbrains.annotations.ApiStatus
 
 /**
@@ -185,8 +186,8 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    fun dispatchMain(block: () -> Unit) {
-        SERVER.scheduler.runTask(PLUGIN, block)
+    fun dispatchMain(block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTask(PLUGIN, block)
     }
 
     /**
@@ -196,8 +197,8 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    fun dispatch(block: () -> Unit) {
-        SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
+    fun dispatch(block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
     }
 
     /**
@@ -208,8 +209,8 @@ object Backbone {
      *
      * @since 1.7.1
      */
-    fun dispatchLater(delay: Long, block: () -> Unit) {
-        SERVER.scheduler.runTaskLaterAsynchronously(PLUGIN, block, delay)
+    fun dispatchLater(delay: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskLaterAsynchronously(PLUGIN, block, delay)
     }
 
     /**
@@ -221,8 +222,8 @@ object Backbone {
      *
      * @since 1.7.1
      */
-    fun dispatchTimer(delay: Long, period: Long, block: () -> Unit) {
-        SERVER.scheduler.runTaskTimerAsynchronously(PLUGIN, block, delay, period)
+    fun dispatchTimer(delay: Long, period: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskTimerAsynchronously(PLUGIN, block, delay, period)
     }
 
     /**
@@ -233,8 +234,8 @@ object Backbone {
      *
      * @since 1.7.1
      */
-    fun dispatchMainLater(delay: Long, block: () -> Unit) {
-        SERVER.scheduler.runTaskLater(PLUGIN, block, delay)
+    fun dispatchMainLater(delay: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskLater(PLUGIN, block, delay)
     }
 
     /**
@@ -246,8 +247,8 @@ object Backbone {
      *
      * @since 1.7.1
      */
-    fun dispatchMainTimer(delay: Long, period: Long, block: () -> Unit) {
-        SERVER.scheduler.runTaskTimer(PLUGIN, block, delay, period)
+    fun dispatchMainTimer(delay: Long, period: Long, block: () -> Unit): BukkitTask {
+        return SERVER.scheduler.runTaskTimer(PLUGIN, block, delay, period)
     }
 
     /**

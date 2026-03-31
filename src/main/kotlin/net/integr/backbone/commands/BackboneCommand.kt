@@ -13,6 +13,7 @@
 
 package net.integr.backbone.commands
 
+import kotlinx.coroutines.runBlocking
 import net.integr.backbone.Backbone
 import net.integr.backbone.commands.arguments.ValidatedArgument.ValidationResult.Companion.fail
 import net.integr.backbone.commands.arguments.commandArgument
@@ -120,10 +121,14 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Reloading scripts...")
                 val start = System.currentTimeMillis()
 
-                val hasError = ScriptLinker.compileAndLink()
-                val time = System.currentTimeMillis() - start
-                ctx.respond("Scripts reloaded in ${time}ms.")
-                if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")
+                Backbone.dispatchMain {
+                    runBlocking {
+                        val hasError = ScriptLinker.compileAndLink()
+                        val time = System.currentTimeMillis() - start
+                        ctx.respond("Scripts reloaded in ${time}ms.")
+                        if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")
+                    }
+                }
             }
         }
 
@@ -144,7 +149,9 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Enabling script...")
 
                 try {
-                    ScriptEngine.enableScript(script)
+                    Backbone.dispatchMain {
+                        ScriptEngine.enableScript(script)
+                    }
                     ctx.respond("Script enabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while enabling the script.")
@@ -168,7 +175,9 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Disabling script...")
 
                 try {
-                    ScriptEngine.disableScript(script)
+                    Backbone.dispatchMain {
+                        ScriptEngine.disableScript(script)
+                    }
                     ctx.respond("Script disabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while disabling the script.")

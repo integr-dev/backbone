@@ -45,10 +45,10 @@ class PlaceholderGroup(val pId: String, val pAuthor: String, val pVersion: Strin
     }
 
     override fun onPlaceholderRequest(player: Player?, params: String): String? {
-        player?.sendMessage("Received placeholder request with params: $params")
-        val placeholder = placeholders.keys.find { params.startsWith(it) }?.let { placeholders[it] }
-        if (placeholder != null) {
-            return placeholder.call(player, params.substringAfter("_"))
+        val placeholder = PlaceholderHelper.match(placeholders.keys, params)
+        val placeholderObj = placeholders[placeholder]
+        if (placeholder != null && placeholderObj != null) {
+            return placeholderObj.call(player, params)
         }
 
         return null

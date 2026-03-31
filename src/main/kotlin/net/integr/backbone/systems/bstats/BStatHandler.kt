@@ -45,4 +45,14 @@ object BStatHandler {
         logger.info("Initializing bStats...")
         metrics = Metrics(Backbone.PLUGIN, PLUGIN_ID)
     }
+
+    /**
+     * Shuts down the bStats metrics.
+     * @since 1.7.1
+     */
+    fun shutdown() {
+        logger.info("Shutting down bStats...")
+        metrics?.shutdown()
+        metrics = null
+    }
 }

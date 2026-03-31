@@ -47,6 +47,8 @@ dependencies {
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
+    testImplementation("me.clip:placeholderapi:2.12.2")
+
     testImplementation("org.mockito:mockito-core:5.2.0")
     testImplementation("org.mockito:mockito-inline:5.2.0")
     testImplementation("org.mockito:mockito-junit-jupiter:5.2.0")
