@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.integr"
-version = "1.7.0"
+version = "1.7.1"
 
 repositories {
     mavenCentral()
@@ -26,7 +26,7 @@ dependencies {
 
     implementation("org.bstats:bstats-bukkit:3.2.1")
 
-    implementation("me.clip:placeholderapi:2.12.2")
+    compileOnly("me.clip:placeholderapi:2.12.2")
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 

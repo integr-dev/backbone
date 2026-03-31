@@ -44,6 +44,16 @@ import kotlin.script.experimental.jvm.jvm
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
 object ScriptConfiguration : ScriptCompilationConfiguration({
     jvm {
+        val pluginManager = Backbone.SERVER.pluginManager
+
+        // Add dependencies from the classloaders of all loaded plugins
+        pluginManager.plugins.forEach { plugin ->
+            dependenciesFromClassloader(
+                classLoader = plugin::class.java.classLoader,
+                wholeClasspath = true
+            )
+        }
+
         dependenciesFromClassloader(classLoader = Backbone::class.java.classLoader, wholeClasspath = true)
         defaultImports(DependsOn::class, Repository::class, CompilerOptions::class)
         compilerOptions("-jvm-target", "21")

@@ -48,7 +48,6 @@ class BackboneServer : JavaPlugin() {
         System.setErr(PrintStream(FileOutputStream(FileDescriptor.err), true))
 
         Backbone.SCRIPT_POOL.create()
-        setPlaceholders()
 
         runBlocking {
             ScriptLinker.compileAndLink()
@@ -62,10 +61,13 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.Handler.COMMAND.register(BackboneCommand)
 
-        Backbone.SERVER.scheduler.runTaskTimer(Backbone.PLUGIN, Runnable {
+        Backbone.dispatchMainTimer(0L, 1L) {
             EventBus.post(TickEvent())
-        }, 0L, 1L)
+        }
 
+        Backbone.dispatchMain {
+            setPlaceholders()
+        }
     }
 
     /**
@@ -83,10 +85,10 @@ class BackboneServer : JavaPlugin() {
      * @since 1.0.0
      */
     private fun setPlaceholders() {
-        Backbone.PLACEHOLDER_GROUP.create("backbone_version") { _, _ ->
-            return@create Backbone.VERSION
+        Backbone.PLACEHOLDER_GROUP.add("version") { _, _ ->
+            return@add Backbone.VERSION
         }
 
-        Backbone.PLACEHOLDER_GROUP.registerAll()
+        Backbone.PLACEHOLDER_GROUP.registerPlaceholders()
     }
 }

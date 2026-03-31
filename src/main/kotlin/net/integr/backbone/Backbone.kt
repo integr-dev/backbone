@@ -103,7 +103,7 @@ object Backbone {
      */
     @get:ApiStatus.Internal
     val PLACEHOLDER_GROUP by lazy {
-        PlaceholderGroup(VERSION, "backbone")
+        PlaceholderGroup("backbone", "Integr", VERSION)
     }
 
     /**
@@ -198,6 +198,56 @@ object Backbone {
      */
     fun dispatch(block: () -> Unit) {
         SERVER.scheduler.runTaskAsynchronously(PLUGIN, block)
+    }
+
+    /**
+     * Dispatches a task to be run asynchronously on the server after a delay.
+     *
+     * @param delay The delay in ticks before the task is run.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchLater(delay: Long, block: () -> Unit) {
+        SERVER.scheduler.runTaskLaterAsynchronously(PLUGIN, block, delay)
+    }
+
+    /**
+     * Dispatches a task to be run asynchronously on the server repeatedly with a fixed delay between each run.
+     *
+     * @param delay The delay in ticks before the first run of the task.
+     * @param period The delay in ticks between each run of the task.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchTimer(delay: Long, period: Long, block: () -> Unit) {
+        SERVER.scheduler.runTaskTimerAsynchronously(PLUGIN, block, delay, period)
+    }
+
+    /**
+     * Dispatches a task to be run on the main thread of the server after a delay.
+     *
+     * @param delay The delay in ticks before the task is run.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchMainLater(delay: Long, block: () -> Unit) {
+        SERVER.scheduler.runTaskLater(PLUGIN, block, delay)
+    }
+
+    /**
+     * Dispatches a task to be run on the main thread of the server repeatedly with a fixed delay between each run.
+     *
+     * @param delay The delay in ticks before the first run of the task.
+     * @param period The delay in ticks between each run of the task.
+     * @param block The block of code to run.
+     *
+     * @since 1.7.1
+     */
+    fun dispatchMainTimer(delay: Long, period: Long, block: () -> Unit) {
+        SERVER.scheduler.runTaskTimer(PLUGIN, block, delay, period)
     }
 
     /**
