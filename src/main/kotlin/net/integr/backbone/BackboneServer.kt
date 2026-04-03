@@ -89,7 +89,9 @@ class BackboneServer : JavaPlugin() {
 
         Backbone.PLACEHOLDER_GROUP.unregisterPlaceholders()
 
-        ScriptEngine.unloadScripts() // Cleanup
+        runBlocking {
+            ScriptEngine.unloadScripts() // Cleanup
+        }
 
         BStatHandler.shutdown()
 

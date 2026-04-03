@@ -13,9 +13,16 @@
 
 package net.integr.backbone.systems.entity
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.persistence.PersistenceHelper
 import net.integr.backbone.systems.persistence.PersistenceKeys
+import net.integr.backbone.systems.serverDispatcher
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Entity
@@ -27,6 +34,7 @@ import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.persistence.PersistentDataType
 import org.jetbrains.annotations.ApiStatus
 import kotlin.collections.set
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Handles the registration and management of custom entities.
@@ -77,9 +85,34 @@ object EntityHandler : Listener {
      * @throws IllegalArgumentException If the entity with the given ID is not found.
      * @since 1.0.0
      */
-    fun spawn(entity: String, location: Location, world: World): Entity {
+    suspend fun spawn(entity: String, location: Location, world: World): Entity {
         val customEntity = entities[entity] ?: throw IllegalArgumentException("Entity not found.")
-        return customEntity.spawn(location, world)
+
+        return withContext(Dispatchers.serverDispatcher()) {
+             customEntity.spawn(location, world)
+        }
+    }
+
+    /**
+     * Recreates the goals for a given entity if it has a custom entity ID tag.
+     *
+     * @param entity The entity for which to recreate goals.
+     * @since 1.7.1
+     */
+    suspend fun recreateGoals(entity: Entity) {
+        val id = PersistenceHelper.read(entity, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
+        if (id != null) {
+            val customEntity = entities[id]
+            if (customEntity == null) {
+                logger.warning("Custom entity not found for entity: ${entity.entityId} is '$id' at ${entity.location}")
+                return
+            }
+
+            logger.info("Re-creating goals for entity: ${entity.entityId} is '$id' at ${entity.location}")
+            withContext(Dispatchers.serverDispatcher()) {
+                customEntity.recreateGoals(entity as Mob)
+            }
+        }
     }
 
     /**
@@ -90,16 +123,8 @@ object EntityHandler : Listener {
     @EventHandler
     fun onEntityLoad(event: EntitiesLoadEvent) {
         for (entity in event.entities) {
-            val id = PersistenceHelper.read(entity, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
-            if (id != null) {
-                val customEntity = entities[id]
-                if (customEntity == null) {
-                    logger.warning("Custom entity not found for entity: ${entity.entityId} is '$id' at ${entity.location}")
-                    continue
-                }
-
-                logger.info("Re-creating goals for entity: ${entity.entityId} is '$id' at ${entity.location}")
-                customEntity.recreateGoals(entity as Mob)
+            runBlocking {
+                recreateGoals(entity)
             }
         }
     }

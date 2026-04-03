@@ -40,7 +40,7 @@ abstract class ManagedLifecycle : Listener {
      * functionality.
      * @since 1.0.0
      */
-    protected abstract fun onLoad()
+    protected abstract suspend fun onLoad()
 
     /**
      * Called when the component is unloaded.
@@ -50,7 +50,7 @@ abstract class ManagedLifecycle : Listener {
      * should contain logic for cleaning up resources and de-initializing the component.
      * @since 1.0.0
      */
-    protected abstract fun onUnload()
+    protected abstract suspend fun onUnload()
 
     /**
      * Used internally by the hot-reloader to trigger loading of the lifecycle.
@@ -58,7 +58,7 @@ abstract class ManagedLifecycle : Listener {
      * @since 1.0.0
      */
     @ApiStatus.Internal
-    fun load() {
+    suspend fun load() {
         onLoad()
     }
 
@@ -67,7 +67,7 @@ abstract class ManagedLifecycle : Listener {
      * @since 1.0.0
      */
     @ApiStatus.Internal
-    fun unload() {
+    suspend fun unload() {
         onUnload()
     }
 

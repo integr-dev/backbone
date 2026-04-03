@@ -14,6 +14,7 @@
 package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.events.IscEvent
@@ -27,6 +28,7 @@ import net.integr.backbone.systems.network.http.Requestor
 import net.integr.backbone.systems.network.http.request.RequestBuilder
 import net.integr.backbone.systems.network.http.response.Response
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
+import net.integr.backbone.systems.serverDispatcher
 import org.bukkit.entity.Mob
 import org.bukkit.entity.Player
 import kotlin.reflect.full.starProjectedType
@@ -170,6 +172,15 @@ fun LifecycleBuilder.usePlaceholder(id: String, author: String, version: String,
     val group = PlaceholderGroup(id, author, version)
     group.block()
 
-    onLoad { group.registerPlaceholders() }
-    onUnload { group.unregisterPlaceholders() }
+    onLoad {
+        withContext(Dispatchers.serverDispatcher()) {
+            group.registerPlaceholders()
+        }
+    }
+
+    onUnload {
+        withContext(Dispatchers.serverDispatcher()) {
+            group.unregisterPlaceholders()
+        }
+    }
 }

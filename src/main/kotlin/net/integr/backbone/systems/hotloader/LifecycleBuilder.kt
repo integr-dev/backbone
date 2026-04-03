@@ -35,14 +35,14 @@ fun lifecycle(block: LifecycleBuilder.() -> Unit): ManagedLifecycle {
  * @since 1.6.0
  */
 class LifecycleBuilder : ManagedLifecycle() {
-    private val onLoadCalls: MutableList<() -> Unit> = mutableListOf()
-    private val onUnloadCalls: MutableList<() -> Unit> = mutableListOf()
+    private val onLoadCalls: MutableList<suspend () -> Unit> = mutableListOf()
+    private val onUnloadCalls: MutableList<suspend () -> Unit> = mutableListOf()
 
-    override fun onLoad() {
+    override suspend fun onLoad() {
         onLoadCalls.forEach { it() }
     }
 
-    override fun onUnload() {
+    override suspend fun onUnload() {
         onUnloadCalls.forEach { it() }
     }
 
@@ -50,7 +50,7 @@ class LifecycleBuilder : ManagedLifecycle() {
      * Registers a block to run when the script is loaded.
      * @since 1.6.0
      */
-    fun onLoad(block: () -> Unit) {
+    fun onLoad(block: suspend () -> Unit) {
         onLoadCalls += block
     }
 
@@ -58,7 +58,7 @@ class LifecycleBuilder : ManagedLifecycle() {
      * Registers a block to run when the script is unloaded.
      * @since 1.6.0
      */
-    fun onUnload(block: () -> Unit) {
+    fun onUnload(block: suspend () -> Unit) {
         onUnloadCalls += block
     }
 }

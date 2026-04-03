@@ -41,7 +41,7 @@ object ScriptEngine {
      * @return `true` if any errors occurred during unloading, `false` otherwise.
      * @since 1.0.0
      */
-    fun unloadScripts(): Boolean {
+    suspend fun unloadScripts(): Boolean {
         var errs = false
 
         for ((name, state) in ScriptStore.scripts) {
@@ -74,7 +74,7 @@ object ScriptEngine {
      *                                  or an error occurs during unloading.
      * @since 1.0.0
      */
-    fun disableScript(name: String) {
+    suspend fun disableScript(name: String) {
         val state = ScriptStore.getScriptByName(name) ?: throw IllegalArgumentException("Script not found.")
         val script = state.lifecycle
 
@@ -108,7 +108,7 @@ object ScriptEngine {
      *                                  or an error occurs during loading.
      * @since 1.0.0
      */
-    fun enableScript(name: String) {
+    suspend fun enableScript(name: String) {
         val state = ScriptStore.getScriptByName(name) ?: throw IllegalArgumentException("Script not found.")
         val script = state.lifecycle
 
@@ -142,7 +142,7 @@ object ScriptEngine {
      * @throws IllegalArgumentException If the script is not found or an error occurs during wiping.
      * @since 1.0.0
      */
-    fun wipeScript(name: String) {
+    suspend fun wipeScript(name: String) {
         val state = ScriptStore.getScriptByName(name) ?: throw IllegalArgumentException("Script not found.")
         val script = state.lifecycle
 
