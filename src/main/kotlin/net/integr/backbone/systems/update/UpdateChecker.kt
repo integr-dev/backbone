@@ -21,18 +21,32 @@ object UpdateChecker {
     private val logger = Backbone.LOGGER.derive("update-checker")
     private const val UPDATE_URL = "https://api.modrinth.com/v2/project/backbone-lib/version?include_changelog=false"
 
-    suspend fun hasUpdate(): Boolean { //TODO add config to disable update checks, also use the checker
+    private var hasUpdate = false
+
+    suspend fun checkUpdate(): Boolean { //TODO: Command to manually check for updates and show changelog if available
+        logger.info("Checking for updates...")
         val response = Requestor.request(UPDATE_URL, HttpMethod.GET)
 
         if (response.ok) {
             val body = response.json()
             val latestVersion = body[0]["name"].stringValue()
             val currentVersion = Backbone.VERSION
+            logger.info("Latest version: $latestVersion, Current version: $currentVersion")
 
-            return isNewerVersion(latestVersion, currentVersion)
+            val newer = isNewerVersion(latestVersion, currentVersion)
+
+            if (newer) {
+                logger.warning("A new version of Backbone is available: $latestVersion. You are running $currentVersion.")
+            } else {
+                logger.info("You are running the latest version of Backbone.")
+            }
+
+            hasUpdate = newer
+            return newer
         }
 
         logger.warning("Failed to check for updates: ${response.code} ${response.body}")
+        hasUpdate = false
         return false
     }
 

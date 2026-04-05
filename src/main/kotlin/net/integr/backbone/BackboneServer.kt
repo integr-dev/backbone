@@ -13,6 +13,8 @@
 
 package net.integr.backbone
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.TickEvent
@@ -23,12 +25,14 @@ import net.integr.backbone.systems.gui.GuiHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.item.ItemHandler
+import net.integr.backbone.systems.update.UpdateChecker
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
 import org.jetbrains.annotations.ApiStatus
 import java.io.FileDescriptor
 import java.io.FileOutputStream
 import java.io.PrintStream
+import kotlin.time.measureTime
 
 /**
  * The main plugin class for the Backbone API.
@@ -45,39 +49,59 @@ class BackboneServer : JavaPlugin() {
      * @since 1.0.0
      */
     override fun onEnable() {
-        val out = PrintStream(FileOutputStream(FileDescriptor.out), true)
-        val err = PrintStream(FileOutputStream(FileDescriptor.err), true)
+        val timeTaken = measureTime {
+            val out = PrintStream(FileOutputStream(FileDescriptor.out), true)
+            val err = PrintStream(FileOutputStream(FileDescriptor.err), true)
 
-        beforeOut = System.out
-        beforeErr = System.err
+            beforeOut = System.out
+            beforeErr = System.err
 
-        // Bypass papers println intercept
-        System.setOut(out)
-        System.setErr(err)
+            // Bypass papers println intercept
+            System.setOut(out)
+            System.setErr(err)
 
-        Backbone.SCRIPT_POOL.create()
+            Backbone.SCRIPT_POOL.create()
 
-        runBlocking {
-            ScriptLinker.compileAndLink()
+            tickTask = Backbone.dispatchMainTimer(0L, 1L) {
+                EventBus.post(TickEvent())
+            }
+
+            runBlocking { // Perform initialization tasks in parallel using coroutines to speed up startup time
+                launch { // Misc initialization
+                    BStatHandler.init()
+
+                    Backbone.registerListener(GuiHandler)
+                    Backbone.registerListener(ItemHandler)
+                    Backbone.registerListener(EntityHandler)
+
+                    Backbone.Handler.COMMAND.register(BackboneCommand)
+                }
+
+                launch { // Compile and link scripts
+                    val scriptsTimeTaken = measureTime {
+                        ScriptLinker.compileAndLink()
+                    }
+
+                    Backbone.LOGGER.info("Compiled and linked scripts in ${scriptsTimeTaken.inWholeSeconds}s")
+                }
+
+                launch { // Set up placeholders
+                    setPlaceholders()
+
+                    Backbone.PLACEHOLDER_GROUP.registerPlaceholders()
+                }
+
+                launch(Dispatchers.IO) { // Check for updates
+                    if (Backbone.CONFIG_STATE.checkForUpdates) {
+                        UpdateChecker.checkUpdate()
+                    }
+                }
+
+                Backbone.LOGGER.info("Dispatched initialization tasks, waiting for completion...")
+            }
         }
 
-        BStatHandler.init()
-
-        Backbone.registerListener(GuiHandler)
-        Backbone.registerListener(ItemHandler)
-        Backbone.registerListener(EntityHandler)
-
-        Backbone.Handler.COMMAND.register(BackboneCommand)
-
-        tickTask = Backbone.dispatchMainTimer(0L, 1L) {
-            EventBus.post(TickEvent())
-        }
-
-        Backbone.dispatchMain {
-            setPlaceholders()
-
-            Backbone.PLACEHOLDER_GROUP.registerPlaceholders()
-        }
+        Backbone.LOGGER.info("Initialization tasks completed in ${timeTaken.inWholeSeconds}s, backbone is now enabled!")
     }
 
     /**
@@ -85,26 +109,36 @@ class BackboneServer : JavaPlugin() {
      * @since 1.0.0
      */
     override fun onDisable() {
-        tickTask?.cancel() // Stop the tick task
+        val timeTaken = measureTime {
+            tickTask?.cancel() // Stop the tick task
 
-        Backbone.PLACEHOLDER_GROUP.unregisterPlaceholders()
+            Backbone.PLACEHOLDER_GROUP.unregisterPlaceholders()
 
-        runBlocking {
-            ScriptEngine.unloadScripts() // Cleanup
+            runBlocking {
+                launch {
+                    BStatHandler.shutdown()
+
+                    Backbone.unregisterListener(GuiHandler)
+                    Backbone.unregisterListener(ItemHandler)
+                    Backbone.unregisterListener(EntityHandler)
+
+                    Backbone.Handler.COMMAND.unregister(BackboneCommand)
+                }
+
+                launch {
+                    ScriptEngine.unloadScripts()
+                }
+
+                Backbone.LOGGER.info("Dispatched shutdown tasks, waiting for completion...")
+            }
+
+            // Restore original System.out and System.err
+            beforeOut?.let { System.setOut(it) }
+            beforeErr?.let { System.setErr(it) }
         }
 
-        BStatHandler.shutdown()
+        Backbone.LOGGER.info("Shutdown tasks completed in ${timeTaken.inWholeMilliseconds}ms, backbone is now disabled!")
 
-        Backbone.unregisterListener(GuiHandler)
-        Backbone.unregisterListener(ItemHandler)
-        Backbone.unregisterListener(EntityHandler)
-
-        Backbone.Handler.COMMAND.unregister(BackboneCommand)
-
-
-        // Restore original System.out and System.err
-        beforeOut?.let { System.setOut(it) }
-        beforeErr?.let { System.setErr(it) }
     }
 
     /**

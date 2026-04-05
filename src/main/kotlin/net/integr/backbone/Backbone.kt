@@ -76,6 +76,9 @@ object Backbone {
         CONFIG_POOL.config("backbone.yaml", BackboneConfig())
     }
 
+    val CONFIG_STATE
+        get() = MAIN_CONFIG.getState()!!
+
     /**
      * Internal script pool.
      *
