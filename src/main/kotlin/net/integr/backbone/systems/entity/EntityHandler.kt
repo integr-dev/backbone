@@ -13,16 +13,13 @@
 
 package net.integr.backbone.systems.entity
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.persistence.PersistenceHelper
 import net.integr.backbone.systems.persistence.PersistenceKeys
-import net.integr.backbone.systems.serverDispatcher
+import net.integr.backbone.serverDispatcher
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Entity
@@ -34,7 +31,6 @@ import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.persistence.PersistentDataType
 import org.jetbrains.annotations.ApiStatus
 import kotlin.collections.set
-import kotlin.coroutines.CoroutineContext
 
 /**
  * Handles the registration and management of custom entities.

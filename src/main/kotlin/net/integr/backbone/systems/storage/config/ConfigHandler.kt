@@ -12,14 +12,13 @@
  */
 
 package net.integr.backbone.systems.storage.config
-
+import tools.jackson.module.kotlin.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.logger.BackboneLogger
 import net.integr.backbone.systems.storage.ResourceLocation
-import tools.jackson.core.PrettyPrinter
-import tools.jackson.core.util.DefaultPrettyPrinter
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.dataformat.yaml.YAMLMapper
@@ -34,10 +33,10 @@ import kotlin.reflect.KClass
  *
  * @since 1.0.0
  */
-class ConfigHandler<T : Any>(private val file: ResourceLocation, private val klass: KClass<T>, private val mapper: ObjectMapper) {
+class ConfigHandler<T : Any>(private val file: ResourceLocation, private val klass: KClass<T>, private val mapper: ObjectMapper, private val default: T? = null) {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val logger = Backbone.LOGGER.derive("config-handler")
+    private val logger = BackboneLogger("backbone.config-handler", true, Backbone.pluginInternal) // Trickery here to avoid circular dependency
 
     private var cachedState: T? = null
 
@@ -49,12 +48,10 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      * @since 1.0.0
      */
     fun writeState(obj: T) {
-        logger.info("Writing config state to ${file.location.absolutePath}")
         cachedState = obj
 
         coroutineScope.launch {
-            val str = mapper.writeValueAsString(obj)
-            file.location.writeText(str)
+            writeStateSync(obj)
         }
     }
 
@@ -66,25 +63,44 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      * @since 1.0.0
      */
     fun writeStateSync(obj: T) {
-        logger.info("Writing config state to ${file.location.absolutePath}")
         cachedState = obj
 
-        val str = mapper.writeValueAsString(obj)
-        file.location.writeText(str)
+        try {
+            val str = mapper.writeValueAsString(obj)
+            file.location.writeText(str)
+        } catch (e: Exception) {
+            logger.severe("Failed to write config file ${file.location}: ${e.message}")
+        }
+    }
+
+    /**
+     * Synchronously rewrite the current state of the config to the file.
+     * This will use the cached state, if there is no cached state, this will do nothing.
+     *
+     * @since 1.8.0
+     */
+    fun rewriteStateSync() {
+        cachedState?.let { writeStateSync(it) }
     }
 
     /**
      * Synchronously update and get the current state of the config from the file.
      *
-     * @return The current state of the config.
+     * @return The current state of the config. Returns null if there was an error reading the file or parsing the config.
      *
      * @since 1.0.0
      */
-    fun updateAndGetStateSync(): T {
-        val str = file.location.readText()
-        val state = mapper.readValue(str, klass.java)
-        cachedState = state
-        return state
+    fun updateAndGetStateSync(): T? {
+        try {
+            val str = file.location.readText()
+            val state = mapper.readValue(str, klass.java)
+            cachedState = state
+            return state
+        } catch (e: Exception) {
+            logger.severe("Failed to read config file ${file.location}: ${e.message}")
+            if (default != null) writeStateSync(default)
+            return default
+        }
     }
 
     /**
@@ -93,9 +109,14 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      * @since 1.0.0
      */
     fun updateSync() {
-        val str = file.location.readText()
-        val state = mapper.readValue(str, klass.java)
-        cachedState = state
+        try {
+            val str = file.location.readText()
+            val state = mapper.readValue(str, klass.java)
+            cachedState = state
+        } catch (e: Exception) {
+            logger.severe("Failed to read config file ${file.location}: ${e.message}")
+            if (default != null) writeStateSync(default)
+        }
     }
 
     /**
@@ -105,9 +126,7 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
      */
     fun update() {
         coroutineScope.launch {
-            val str = file.location.readText()
-            val state = mapper.readValue(str, klass.java)
-            cachedState = state
+            updateSync()
         }
     }
 
@@ -126,11 +145,13 @@ class ConfigHandler<T : Any>(private val file: ResourceLocation, private val kla
     companion object {
         val YAML: YAMLMapper = YAMLMapper
             .builder()
+            .addModule(KotlinModule.Builder().build())
             .findAndAddModules()
             .build()
 
         val JSON: JsonMapper = JsonMapper
             .builder()
+            .addModule(KotlinModule.Builder().build())
             .findAndAddModules()
             .build()
     }

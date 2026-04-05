@@ -14,9 +14,10 @@
 package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.runBlocking
-import net.integr.backbone.BackboneLogger
+import net.integr.backbone.systems.logger.BackboneLogger
 import net.integr.backbone.systems.hotloader.configuration.UtilityScript
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
+import net.integr.backbone.systems.logger.BackboneCustomLogger
 import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import java.io.FileOutputStream
@@ -161,7 +162,7 @@ object ScriptCompiler {
         reports.forEach { report ->
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
                 logger.warning(
-                    "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneLogger.CustomFormat.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
+                    "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneCustomLogger.CustomFormat.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
                 )
 
                 report.exception?.printStackTrace()
@@ -178,9 +179,9 @@ object ScriptCompiler {
      */
     private fun getSeverityColor(sev: ScriptDiagnostic.Severity): String {
         return when (sev) {
-            ScriptDiagnostic.Severity.WARNING -> BackboneLogger.CustomFormat.ANSI_YELLOW
-            ScriptDiagnostic.Severity.ERROR -> BackboneLogger.CustomFormat.ANSI_RED
-            else -> BackboneLogger.CustomFormat.ANSI_CYAN
+            ScriptDiagnostic.Severity.WARNING -> BackboneCustomLogger.CustomFormat.ANSI_YELLOW
+            ScriptDiagnostic.Severity.ERROR -> BackboneCustomLogger.CustomFormat.ANSI_RED
+            else -> BackboneCustomLogger.CustomFormat.ANSI_CYAN
         }
     }
 

@@ -13,7 +13,6 @@
 
 package net.integr.backbone.systems.hotloader
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
@@ -28,9 +27,8 @@ import net.integr.backbone.systems.network.http.Requestor
 import net.integr.backbone.systems.network.http.request.RequestBuilder
 import net.integr.backbone.systems.network.http.response.Response
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
-import net.integr.backbone.systems.serverDispatcher
+import net.integr.backbone.serverDispatcher
 import org.bukkit.entity.Mob
-import org.bukkit.entity.Player
 import kotlin.reflect.full.starProjectedType
 
 /**
@@ -40,7 +38,7 @@ import kotlin.reflect.full.starProjectedType
  * @param method The HTTP method to use (e.g., GET, POST).
  * @param builderBlock An optional block to configure the request using a [RequestBuilder].
  * @return A [Response] containing the response data as a string.
- * @since 1.6.0
+ * @since 1.7.0
  */
 suspend fun request(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}) =
     Requestor.request(uri, method, builderBlock)
@@ -52,7 +50,7 @@ suspend fun request(uri: String, method: HttpMethod, builderBlock: RequestBuilde
  * @param method The HTTP method to use (e.g., GET, POST).
  * @param builderBlock An optional block to configure the request using a [RequestBuilder].
  * @return A [Response] containing the response data as a string.
- * @since 1.6.0
+ * @since 1.7.0
  */
 fun requestSync(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}) =
     Requestor.requestSync(uri, method, builderBlock)
@@ -64,7 +62,7 @@ fun requestSync(uri: String, method: HttpMethod, builderBlock: RequestBuilder.()
  * @param method The HTTP method to use (e.g., GET, POST).
  * @param builderBlock An optional block to configure the request using a [RequestBuilder].
  * @param then A callback block that receives the [Response] containing the response data as a string.
- * @since 1.6.0
+ * @since 1.7.0
  */
 fun requestAndThen(uri: String, method: HttpMethod, builderBlock: RequestBuilder.() -> Unit = {}, then: (Response<String>) -> Unit)
     = Requestor.requestAndThen(uri, method, builderBlock, then)

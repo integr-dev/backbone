@@ -18,6 +18,7 @@ import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
 import net.integr.backbone.systems.item.ItemHandler
+import net.integr.backbone.systems.logger.BackboneLogger
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
 import net.integr.backbone.systems.storage.ResourcePool
@@ -62,6 +63,20 @@ object Backbone {
     val CONFIG_POOL = ResourcePool.fromConfig("backbone")
 
     /**
+     * Backbones main config. **Important:** Do not use this.
+     * Create a new config instead:
+     * ```kotlin
+     * val config = pool.config<MyConfig>("my-config.yaml")
+     * ```
+     *
+     * @since 1.8.0
+     */
+    @get:ApiStatus.Internal
+    val MAIN_CONFIG by lazy {
+        CONFIG_POOL.config("backbone.yaml", BackboneConfig())
+    }
+
+    /**
      * Internal script pool.
      *
      * @since 1.0.0
@@ -78,8 +93,10 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    @ApiStatus.Internal
-    val LOGGER = BackboneLogger("backbone")
+    @get:ApiStatus.Internal
+    val LOGGER by lazy {
+        BackboneLogger("backbone", MAIN_CONFIG.getState()!!.loggerCompatibilityMode, pluginInternal)
+    }
 
     /**
      * Backbones root permission. **Important:** Do not use this for your own permission checks.
@@ -116,7 +133,8 @@ object Backbone {
      *
      * @since 1.0.0
      */
-    private val pluginInternal: JavaPlugin? by lazy {
+    @get:ApiStatus.Internal
+    internal val pluginInternal: JavaPlugin? by lazy {
         Utils.tryOrNull { JavaPlugin.getPlugin(BackboneServer::class.java) } // For testing purposes we allow null here
     }
 

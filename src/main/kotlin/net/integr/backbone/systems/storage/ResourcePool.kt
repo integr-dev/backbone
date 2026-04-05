@@ -117,7 +117,29 @@ class ResourcePool(val origin: Path, id: String) {
     inline fun <reified T : Any> config(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
-        return ConfigHandler(location, T::class, ConfigHandler.YAML)
+        val handler = ConfigHandler(location, T::class, ConfigHandler.YAML)
+        handler.updateSync()
+        handler.rewriteStateSync()
+        return handler
+    }
+
+    /**
+     * Allocates a new configuration file within this resource pool, ensuring its creation.
+     * This method also writes the provided initial state to the configuration file.
+     *
+     * @param id The identifier for the new configuration file.
+     * @param default The initial state to write to the configuration file.
+     * @return A `ConfigHandler` object representing the new configuration.
+     *
+     * @since 1.8.0
+     */
+    inline fun <reified T : Any> config(id: String, default: T): ConfigHandler<T> {
+        val location = allocate(id)
+        location.create()
+        val handler = ConfigHandler(location, T::class, ConfigHandler.YAML, default)
+        handler.updateSync()
+        handler.rewriteStateSync()
+        return handler
     }
 
     /**
@@ -132,7 +154,29 @@ class ResourcePool(val origin: Path, id: String) {
     inline fun <reified T : Any> configJson(id: String): ConfigHandler<T> {
         val location = allocate(id)
         location.create()
-        return ConfigHandler(location, T::class, ConfigHandler.YAML)
+        val handler = ConfigHandler(location, T::class, ConfigHandler.YAML)
+        handler.updateSync()
+        handler.rewriteStateSync()
+        return handler
+    }
+
+    /**
+     * Allocates a new configuration file within this resource pool, ensuring its creation.
+     * This method uses JSON for serialization instead of YAML and also writes the provided initial state to the configuration file.
+     *
+     * @param id The identifier for the new configuration file.
+     * @param default The initial state to write to the configuration file.
+     * @return A `ConfigHandler` object representing the new configuration.
+     *
+     * @since 1.8.0
+     */
+    inline fun <reified T : Any> configJson(id: String, default: T): ConfigHandler<T> {
+        val location = allocate(id)
+        location.create()
+        val handler = ConfigHandler(location, T::class, ConfigHandler.YAML, default)
+        handler.updateSync()
+        handler.rewriteStateSync()
+        return handler
     }
 
     override fun equals(other: Any?): Boolean {

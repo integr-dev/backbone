@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone
+package net.integr.backbone.systems.logger
 
 import java.nio.file.Path
 import java.text.SimpleDateFormat
@@ -32,7 +32,7 @@ import kotlin.io.path.createFile
  *
  * @since 1.0.0
  */
-class BackboneLogger(name: String) : Logger(name, null) {
+class BackboneCustomLogger(name: String) : Logger(name, null) {
     private val logFile = Path.of("./logs/backbone.log")
     private val customFormat = CustomFormat(name, true)
     private val customFileFormat = CustomFormat(name, false)
@@ -49,18 +49,6 @@ class BackboneLogger(name: String) : Logger(name, null) {
         addHandler(CustomHandler())
     }
 
-
-    /**
-     * Derive a new logger with a sub-name.
-     *
-     * @param subName The sub-name for the new logger.
-     * @return A new `BackboneLogger` instance.
-     *
-     * @since 1.0.0
-     */
-    fun derive(subName: String): BackboneLogger {
-        return BackboneLogger("$name.$subName")
-    }
 
     private inner class CustomHandler : Handler() {
         override fun publish(record: LogRecord) {
