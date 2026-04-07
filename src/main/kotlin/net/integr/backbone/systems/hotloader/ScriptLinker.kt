@@ -18,12 +18,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
 import net.integr.backbone.systems.hotloader.configuration.Script
 import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.io.path.name
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
@@ -47,10 +52,19 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
  * @since 1.0.0
  */
 @ApiStatus.Internal
+@OptIn(ExperimentalAtomicApi::class)
 object ScriptLinker {
     private val logger = ScriptEngine.logger.derive("linker")
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private val reloadEpoch = AtomicLong(0)
+
+    /**
+     * Tracks old classloaders across reloads to allow explicit cleanup.
+     * Without closing old classloaders, they accumulate in memory and cause classloader leaks.
+     */
+    private val oldClassLoaders = mutableListOf<ExtendableClassLoader>()
 
     /**
      * Compiles and links all scripts found in the [Backbone.SCRIPT_POOL] directory.
@@ -162,6 +176,8 @@ object ScriptLinker {
             }
         }
 
+        val epoch = reloadEpoch.incrementAndFetch()
+
         for (file in scripts) {
             jobs += coroutineScope.launch {
                 try {
@@ -179,6 +195,9 @@ object ScriptLinker {
                     if (oldLifecycle != null) {
                         lifecycle.updateStatesFrom(oldLifecycle.lifecycle)
                         logger.info("[${file.name}] Transferred state from old script.")
+
+                        // Leak detection
+                        ProbeHandler.register(file.name, epoch, oldLifecycle)
                     }
 
                     newScripts[file.name] = ScriptStore.State(false, lifecycle)
@@ -194,6 +213,23 @@ object ScriptLinker {
 
         logger.info("Compiled ${newScripts.size} scripts.")
         logger.info("Now swapping hot...")
+
+        // Close old classloaders to prevent classloader retention leaks
+        logger.info("Closing ${oldClassLoaders.size} old classloaders...")
+        for (oldLoader in oldClassLoaders) {
+            try {
+                withContext(Dispatchers.IO) {
+                    oldLoader.close()
+                }
+            } catch (e: Exception) {
+                logger.warning("Failed to close old classloader: ${e.message}")
+            }
+        }
+
+        oldClassLoaders.clear()
+
+        // Store the new fullClassLoader for cleanup on next reload
+        oldClassLoaders.add(fullClassLoader)
 
         val unloadErrs = unloadScripts()
         errs = errs || unloadErrs

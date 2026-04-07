@@ -13,14 +13,17 @@
 
 package net.integr.backbone.commands
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
+import net.integr.backbone.commands.arguments.ValidatedArgument
 import net.integr.backbone.commands.arguments.ValidatedArgument.ValidationResult.Companion.fail
 import net.integr.backbone.commands.arguments.commandArgument
 import net.integr.backbone.commands.arguments.customEntityArgument
 import net.integr.backbone.commands.arguments.customItemArgument
+import net.integr.backbone.commands.arguments.doubleArgument
 import net.integr.backbone.commands.arguments.scriptArgument
-import net.integr.backbone.commands.arguments.stringArgument
+import net.integr.backbone.commands.arguments.validatedArgument
 import net.integr.backbone.systems.command.Command
 import net.integr.backbone.systems.command.CommandHandler
 import net.integr.backbone.systems.command.Execution
@@ -29,6 +32,8 @@ import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
 import net.integr.backbone.systems.item.ItemHandler
+import net.integr.backbone.serverDispatcher
+import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.text.component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -80,7 +85,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val scriptingPerm = perm.derive("scripting")
 
         override fun onBuild() {
-            subCommands(Reload, Enable, Disable, Wipe)
+            subCommands(Reload, Enable, Disable, Wipe, Probes)
         }
 
         override suspend fun exec(ctx: Execution) {
@@ -121,14 +126,10 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Reloading scripts...")
                 val start = System.currentTimeMillis()
 
-                Backbone.dispatchMain {
-                    runBlocking {
-                        val hasError = ScriptLinker.compileAndLink()
-                        val time = System.currentTimeMillis() - start
-                        ctx.respond("Scripts reloaded in ${time}ms.")
-                        if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")
-                    }
-                }
+                val hasError = ScriptLinker.compileAndLink()
+                val time = System.currentTimeMillis() - start
+                ctx.respond("Scripts reloaded in ${time}ms.")
+                if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")
             }
         }
 
@@ -149,9 +150,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Enabling script...")
 
                 try {
-                    Backbone.dispatchMain {
-                        ScriptEngine.enableScript(script)
-                    }
+                    ScriptEngine.enableScript(script)
                     ctx.respond("Script enabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while enabling the script.")
@@ -175,9 +174,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 ctx.respond("Disabling script...")
 
                 try {
-                    Backbone.dispatchMain {
-                        ScriptEngine.disableScript(script)
-                    }
+                    ScriptEngine.disableScript(script)
                     ctx.respond("Script disabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while disabling the script.")
@@ -191,18 +188,12 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             override fun onBuild() {
                 arguments(
                     scriptArgument("script", "The script to wipe state from"),
-                    stringArgument("confirmation", "The name of the script for confirmation")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
                 ctx.requirePermission(scriptingWipePerm)
                 val script = ctx.get<String>("script")
-                val confirmation = ctx.get<String>("confirmation")
-
-                if (script != confirmation) {
-                    ctx.fail("Confirmation failed. Script name does not match: $script != $confirmation")
-                }
 
                 ctx.respond("Wiping state from script...")
 
@@ -211,6 +202,62 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                     ctx.respond("Script state wiped.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while wiping state from the script.")
+                }
+            }
+        }
+
+        object Probes : Command("probes", "Commands for managing hot-reload leak probes") {
+            val scriptingProbesPerm = scriptingPerm.derive("probes")
+
+            override fun onBuild() {
+                subCommands(Clear, CheckNow)
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(scriptingProbesPerm)
+
+                ctx.respond("Active Probes [${ProbeHandler.probes.size}]:")
+                for (probe in ProbeHandler.probes) {
+                    ctx.respondComponent(component {
+                        append("  - ${probe.value.script} (epoch ${probe.value.epoch})") {
+                            color(Color(169, 173, 168))
+                        }
+                    })
+                }
+            }
+
+            object Clear : Command("clear", "Clears all probes") {
+                val scriptingProbesClearPerm = scriptingProbesPerm.derive("clear")
+
+                override suspend fun exec(ctx: Execution) {
+                    ctx.requirePermission(scriptingProbesClearPerm)
+
+                    ProbeHandler.probes.clear()
+                    ctx.respond("All probes cleared.")
+                }
+            }
+
+            object CheckNow : Command("check-now", "Manually triggers a check for leaked objects") {
+                val scriptingProbesCheckNowPerm = scriptingProbesPerm.derive("check-now")
+
+                override suspend fun exec(ctx: Execution) {
+                    ctx.requirePermission(scriptingProbesCheckNowPerm)
+
+                    ctx.respond("Probe check triggered.")
+                    val suspected = ProbeHandler.check()
+
+                    if (suspected.isEmpty()) {
+                        ctx.respond("No leaks detected.")
+                    } else {
+                        ctx.respond("Suspected Leaked Scripts [${suspected.size}]:")
+                        for (probe in suspected) {
+                            ctx.respondComponent(component {
+                                append("  - ${probe.script} (epoch ${probe.epoch})") {
+                                    color(Color(201, 82, 60))
+                                }
+                            })
+                        }
+                    }
                 }
             }
         }
@@ -253,14 +300,18 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
 
                 ctx.respond("Generating item...")
 
-                Backbone.dispatchMain {
-                    try {
-                        val stack = ItemHandler.generate(item)
+
+
+                try {
+                    val stack = ItemHandler.generate(item)
+
+                    withContext(Dispatchers.serverDispatcher()) {
                         ctx.getPlayer().inventory.addItem(stack)
-                        ctx.respond("Item generated.")
-                    } catch (e: Exception) {
-                        ctx.fail(e.message ?: "An error occurred while generating the item.")
                     }
+
+                    ctx.respond("Item generated.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while generating the item.")
                 }
             }
         }
@@ -321,7 +372,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val entityPerm = perm.derive("entity")
 
         override fun onBuild() {
-            subCommands(Spawn)
+            subCommands(Spawn, RecreateGoals)
         }
 
         override suspend fun exec(ctx: Execution) {
@@ -362,13 +413,48 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
 
                 val player = ctx.getPlayer()
 
-                Backbone.dispatchMain {
-                    try {
-                        EntityHandler.spawn(entity, player.location, player.world)
-                        ctx.respond("Entity spawned.")
-                    } catch (e: Exception) {
-                        ctx.fail(e.message ?: "An error occurred while spawning the entity.")
+                try {
+                    EntityHandler.spawn(entity, player.location, player.world)
+                    ctx.respond("Entity spawned.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while spawning the entity.")
+                }
+            }
+        }
+
+        object RecreateGoals : Command("recreate-goals", "Recreates the goals of a custom entity") {
+            val entityRecreateGoalsPerm = entityPerm.derive("recreate-goals")
+
+            override fun onBuild() {
+                arguments(
+                    validatedArgument(doubleArgument("radius", "The radius to search for entities to recreate goals for")) { value ->
+                        if (value <= 0) ValidatedArgument.ValidationResult.fail("must be greater than 0.")
+                        else ValidatedArgument.ValidationResult.ok()
                     }
+                )
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(entityRecreateGoalsPerm)
+                ctx.requirePlayer()
+
+                ctx.respond("Recreating entity goals...")
+
+                val player = ctx.getPlayer()
+                val radius = ctx.get<Double>("radius")
+
+                try {
+                    withContext(Dispatchers.serverDispatcher()) {
+                        val nearbyEntities = player.getNearbyEntities(radius, radius, radius)
+
+                        for (entity in nearbyEntities) {
+                            EntityHandler.recreateGoals(entity)
+                        }
+                    }
+
+                    ctx.respond("Entity goals recreated.")
+                } catch (e: Exception) {
+                    ctx.fail(e.message ?: "An error occurred while recrating goals.")
                 }
             }
         }

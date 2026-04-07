@@ -170,7 +170,7 @@ Backbone provides a simple and powerful way to manage your plugin's data and con
 
 #### Resource Pools
 
-A `ResourcePool` is a namespaced container for your resources. It's recommended to create a separate pool for each script or feature set to avoid conflicts.
+A `ResourcePool` is a namespaced container for your resources. It's recommended to create a separate pool for each part of your server set to avoid conflicts.
 
 ```kotlin
 // Create a resource pool for your script's storage
@@ -186,10 +186,9 @@ This will create directories at `storage/mystorage/` and `config/myconfig/` in y
 
 You can manage typed configuration files. Backbone handles the serialization and deserialization of your data classes automatically.
 
-First, define a serializable data class for your configuration:
+First, define a data class for your configuration:
 
 ```kotlin
-@Serializable // Requires the kotlinx.serialization plugin
 data class MyConfig(val settingA: String = "default", val settingB: Int = 10)
 ```
 
@@ -197,7 +196,7 @@ Then, use the `config()` function on your resource pool to get a handler for it:
 
 ```kotlin
 // Get a handler for a config file named 'settings.yml'
-val configHandler = myScriptConfig.config<MyConfig>("settings.yml")
+val configHandler = myScriptConfig.config<MyConfig>("settings.yml", MyConfig())
 
 // Load the config file synchronously
 configHandler.updateSync()

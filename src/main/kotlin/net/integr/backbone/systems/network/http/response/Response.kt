@@ -15,6 +15,8 @@ package net.integr.backbone.systems.network.http.response
 
 import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 import tools.jackson.module.kotlin.readValue
 import java.net.http.HttpResponse
 
@@ -45,7 +47,11 @@ data class Response<T>(
     fun <R> mapJson(mapper: (String) -> R): R = mapper(this.body)
 
     companion object {
-        val mapper = ObjectMapper()
+        val mapper: JsonMapper = JsonMapper
+            .builder()
+            .addModule(KotlinModule.Builder().build())
+            .findAndAddModules()
+            .build()
         /**
          * Creates a Response from a standard HttpResponse.
          * @param response The HttpResponse to wrap.

@@ -70,6 +70,7 @@ class PlaceholderGroup(val pId: String, val pAuthor: String, val pVersion: Strin
      */
     fun registerPlaceholders() {
         if (Backbone.SERVER.pluginManager.isPluginEnabled("PlaceholderAPI")) {
+
             super.register()
         } else {
             logger.warning("PlaceholderAPI is not installed/enabled on the server. Ignoring.")

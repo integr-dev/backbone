@@ -92,8 +92,7 @@ object ItemHandler : Listener {
 
      */
     fun replicate(item: ItemStack): ItemStack? {
-        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
-        if (customItemUid == null) return null
+        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return null
         val customItem = items[customItemUid] ?: throw IllegalArgumentException("Item not found.")
 
         return customItem.generate()
@@ -145,11 +144,9 @@ object ItemHandler : Listener {
     @ApiStatus.Internal
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
-        val item = event.item
-        if (item == null) return
+        val item = event.item ?: return
 
-        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
-        if (customItemUid == null) return
+        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
         val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
@@ -167,8 +164,7 @@ object ItemHandler : Listener {
     fun onPlayerDrop(event: EntityDropItemEvent) {
         val item = event.itemDrop
 
-        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
-        if (customItemUid == null) return
+        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
         val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
@@ -186,8 +182,7 @@ object ItemHandler : Listener {
     fun onPlayerPickup(event: EntityPickupItemEvent) {
         val item = event.item
 
-        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
-        if (customItemUid == null) return
+        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
         val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
