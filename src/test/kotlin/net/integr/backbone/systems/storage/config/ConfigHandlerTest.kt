@@ -30,7 +30,7 @@ class ConfigHandlerTest {
 
         val readConfig = configHandler.updateAndGetStateSync()
 
-        assertEquals(testConfig.testField, readConfig.testField)
+        assertEquals(testConfig.testField, readConfig!!.testField)
         assertEquals(testConfig.testNumber, readConfig.testNumber)
     }
 
@@ -48,7 +48,7 @@ class ConfigHandlerTest {
 
         val updatedConfig = configHandler.updateAndGetStateSync()
 
-        assertEquals("updated", updatedConfig.testField)
+        assertEquals("updated", updatedConfig!!.testField)
         assertEquals(456, updatedConfig.testNumber)
     }
 
@@ -77,7 +77,7 @@ class ConfigHandlerTest {
 
         val readConfig = configHandler.updateAndGetStateSync()
 
-        assertEquals(testConfig.testField, readConfig.testField)
+        assertEquals(testConfig.testField, readConfig!!.testField)
         assertEquals(testConfig.testNumber, readConfig.testNumber)
     }
 
@@ -95,7 +95,7 @@ class ConfigHandlerTest {
 
         val updatedConfig = configHandler.updateAndGetStateSync()
 
-        assertEquals("jsonUpdated", updatedConfig.testField)
+        assertEquals("jsonUpdated", updatedConfig!!.testField)
         assertEquals(654, updatedConfig.testNumber)
     }
 
