@@ -18,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
@@ -58,6 +59,12 @@ object ScriptLinker {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val reloadEpoch = AtomicLong(0)
+
+    /**
+     * Tracks old classloaders across reloads to allow explicit cleanup.
+     * Without closing old classloaders, they accumulate in memory and cause classloader leaks.
+     */
+    private val oldClassLoaders = mutableListOf<ExtendableClassLoader>()
 
     /**
      * Compiles and links all scripts found in the [Backbone.SCRIPT_POOL] directory.
@@ -206,6 +213,23 @@ object ScriptLinker {
 
         logger.info("Compiled ${newScripts.size} scripts.")
         logger.info("Now swapping hot...")
+
+        // Close old classloaders to prevent classloader retention leaks
+        logger.info("Closing ${oldClassLoaders.size} old classloaders...")
+        for (oldLoader in oldClassLoaders) {
+            try {
+                withContext(Dispatchers.IO) {
+                    oldLoader.close()
+                }
+            } catch (e: Exception) {
+                logger.warning("Failed to close old classloader: ${e.message}")
+            }
+        }
+
+        oldClassLoaders.clear()
+
+        // Store the new fullClassLoader for cleanup on next reload
+        oldClassLoaders.add(fullClassLoader)
 
         val unloadErrs = unloadScripts()
         errs = errs || unloadErrs

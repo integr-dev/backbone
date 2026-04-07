@@ -33,6 +33,7 @@ import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.hotloader.ScriptStore
 import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.serverDispatcher
+import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.text.component
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
@@ -84,7 +85,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val scriptingPerm = perm.derive("scripting")
 
         override fun onBuild() {
-            subCommands(Reload, Enable, Disable, Wipe)
+            subCommands(Reload, Enable, Disable, Wipe, Probes)
         }
 
         override suspend fun exec(ctx: Execution) {
@@ -201,6 +202,62 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                     ctx.respond("Script state wiped.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while wiping state from the script.")
+                }
+            }
+        }
+
+        object Probes : Command("probes", "Commands for managing hot-reload leak probes") {
+            val scriptingProbesPerm = scriptingPerm.derive("probes")
+
+            override fun onBuild() {
+                subCommands(Clear, CheckNow)
+            }
+
+            override suspend fun exec(ctx: Execution) {
+                ctx.requirePermission(scriptingProbesPerm)
+
+                ctx.respond("Active Probes [${ProbeHandler.probes.size}]:")
+                for (probe in ProbeHandler.probes) {
+                    ctx.respondComponent(component {
+                        append("  - ${probe.value.script} (epoch ${probe.value.epoch})") {
+                            color(Color(169, 173, 168))
+                        }
+                    })
+                }
+            }
+
+            object Clear : Command("clear", "Clears all probes") {
+                val scriptingProbesClearPerm = scriptingProbesPerm.derive("clear")
+
+                override suspend fun exec(ctx: Execution) {
+                    ctx.requirePermission(scriptingProbesClearPerm)
+
+                    ProbeHandler.probes.clear()
+                    ctx.respond("All probes cleared.")
+                }
+            }
+
+            object CheckNow : Command("check-now", "Manually triggers a check for leaked objects") {
+                val scriptingProbesCheckNowPerm = scriptingProbesPerm.derive("check-now")
+
+                override suspend fun exec(ctx: Execution) {
+                    ctx.requirePermission(scriptingProbesCheckNowPerm)
+
+                    ctx.respond("Probe check triggered.")
+                    val suspected = ProbeHandler.check()
+
+                    if (suspected.isEmpty()) {
+                        ctx.respond("No leaks detected.")
+                    } else {
+                        ctx.respond("Suspected Leaked Scripts [${suspected.size}]:")
+                        for (probe in suspected) {
+                            ctx.respondComponent(component {
+                                append("  - ${probe.script} (epoch ${probe.epoch})") {
+                                    color(Color(201, 82, 60))
+                                }
+                            })
+                        }
+                    }
                 }
             }
         }

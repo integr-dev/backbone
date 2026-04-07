@@ -14,16 +14,42 @@
 package net.integr.backbone.systems.diagnostic
 
 import net.integr.backbone.Backbone
+import org.jetbrains.annotations.ApiStatus
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.text.set
 
+/**
+ * A utility object for tracking potential memory leaks of script lifecycles and classloaders after hot-reloads.
+ *
+ * This object maintains weak references to the lifecycle instances and their classloaders associated with each script reload.
+ * It periodically checks if these references have been garbage collected, which would indicate that the old script has been fully unloaded. If references remain alive for an extended period after a reload, it logs warnings to help identify potential memory leaks in the hot-reloading process.
+ *
+ * @since 1.8.0
+ */
 object ProbeHandler {
-    val logger = Backbone.LOGGER.derive("probe-handler")
+    private val logger = Backbone.LOGGER.derive("probe-handler")
 
-    private val probes = ConcurrentHashMap<String, LeakProbe>() // key: "$script:$epoch"
+    /**
+     * All active probes tracking script reloads, keyed by a combination of script name and reload epoch. Each probe contains weak references to the lifecycle instance and classloader of the old script, allowing us to detect if they have been garbage collected.
+     *
+     * The key format is "$script:$epoch", where `script` is the name of the script being reloaded and `epoch` is the reload epoch associated with that reload. This allows us to track multiple reloads of the same script over time.
+     *
+     * @since 1.8.0
+     */
+    @ApiStatus.Internal
+    val probes = ConcurrentHashMap<String, LeakProbe>() // key: "$script:$epoch"
+
     private val failedChecks = ConcurrentHashMap<String, Int>()
 
+    /**
+     * Registers a new probe for a script reload, tracking the lifecycle and classloader of the old script instance.
+     *
+     * @param script The name of the script being reloaded.
+     * @param epoch The reload epoch associated with this reload.
+     * @param oldLifecycle The lifecycle instance of the old script, which may be leaked if not properly unloaded.
+     *
+     * @since 1.8.0
+     */
     fun register(script: String, epoch: Long, oldLifecycle: Any) {
         val key = "$script:$epoch"
         probes[key] = LeakProbe(
@@ -34,7 +60,16 @@ object ProbeHandler {
         )
     }
 
-    fun check(nowMs: Long = System.currentTimeMillis()) {
+    /**
+     * Checks all registered probes for potential leaks by verifying if the lifecycle and classloader references have been garbage collected. If references remain alive for an extended period after a reload, it logs warnings to help identify potential memory leaks.
+     *
+     * @param nowMs The current time in milliseconds, used to calculate the age of each probe. Defaults to the current system time.
+     * @return A list of probes that are suspected to be leaking based on their lifecycle and classloader references still being alive after multiple checks.
+     * @since 1.8.0
+     */
+    fun check(nowMs: Long = System.currentTimeMillis()): List<LeakProbe> {
+        val leaks: MutableList<LeakProbe> = mutableListOf()
+
         for ((key, probe) in probes) {
             val ageMs = nowMs - probe.createdAtMs
             if (ageMs < 60_000) continue // grace period after reload
@@ -54,7 +89,10 @@ object ProbeHandler {
             if (n >= 3) {
                 // escalate only after repeated failures to avoid false positives
                 logger.warning("Possible script leak: script=${probe.script}, epoch=${probe.epoch}, lifecycleAlive=$lifecycleAlive, classLoaderAlive=$loaderAlive, ageMs=$ageMs")
+                leaks.add(probe)
             }
         }
+
+        return leaks
     }
 }
