@@ -19,11 +19,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
 import net.integr.backbone.systems.hotloader.configuration.Script
 import org.jetbrains.annotations.ApiStatus
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.io.path.name
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
@@ -47,10 +51,13 @@ import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTe
  * @since 1.0.0
  */
 @ApiStatus.Internal
+@OptIn(ExperimentalAtomicApi::class)
 object ScriptLinker {
     private val logger = ScriptEngine.logger.derive("linker")
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
+    private val reloadEpoch = AtomicLong(0)
 
     /**
      * Compiles and links all scripts found in the [Backbone.SCRIPT_POOL] directory.
@@ -162,6 +169,8 @@ object ScriptLinker {
             }
         }
 
+        val epoch = reloadEpoch.incrementAndFetch()
+
         for (file in scripts) {
             jobs += coroutineScope.launch {
                 try {
@@ -179,6 +188,9 @@ object ScriptLinker {
                     if (oldLifecycle != null) {
                         lifecycle.updateStatesFrom(oldLifecycle.lifecycle)
                         logger.info("[${file.name}] Transferred state from old script.")
+
+                        // Leak detection
+                        ProbeHandler.register(file.name, epoch, oldLifecycle)
                     }
 
                     newScripts[file.name] = ScriptStore.State(false, lifecycle)

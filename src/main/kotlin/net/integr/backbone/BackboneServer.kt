@@ -19,6 +19,7 @@ import kotlinx.coroutines.runBlocking
 import net.integr.backbone.commands.BackboneCommand
 import net.integr.backbone.events.TickEvent
 import net.integr.backbone.systems.bstats.BStatHandler
+import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.entity.EntityHandler
 import net.integr.backbone.systems.event.EventBus
 import net.integr.backbone.systems.gui.GuiHandler
@@ -41,6 +42,7 @@ import kotlin.time.measureTime
 @ApiStatus.Internal
 class BackboneServer : JavaPlugin() {
     private var tickTask: BukkitTask? = null
+    private var probeCheckerTask: BukkitTask? = null
     private var beforeOut: PrintStream? = null
     private var beforeErr: PrintStream? = null
 
@@ -64,6 +66,11 @@ class BackboneServer : JavaPlugin() {
 
             tickTask = Backbone.dispatchMainTimer(0L, 1L) {
                 EventBus.post(TickEvent())
+            }
+
+            // Start leak probe checker every 30 seconds (600 ticks)
+            probeCheckerTask = Backbone.dispatchTimer(1200L, 600L) {
+                ProbeHandler.check()
             }
 
             runBlocking { // Perform initialization tasks in parallel using coroutines to speed up startup time
@@ -108,9 +115,10 @@ class BackboneServer : JavaPlugin() {
      * Called by bukkit.
      * @since 1.0.0
      */
-    override fun onDisable() {
-        val timeTaken = measureTime {
-            tickTask?.cancel() // Stop the tick task
+     override fun onDisable() {
+         val timeTaken = measureTime {
+             tickTask?.cancel() // Stop the tick task
+             probeCheckerTask?.cancel() // Stop the probe checker task
 
             Backbone.PLACEHOLDER_GROUP.unregisterPlaceholders()
 
