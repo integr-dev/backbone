@@ -35,6 +35,7 @@ import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.serverDispatcher
 import net.integr.backbone.systems.diagnostic.ProbeHandler
 import net.integr.backbone.systems.text.component
+import net.integr.backbone.systems.update.UpdateChecker
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
 import java.awt.Color
@@ -51,7 +52,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
     //TODO: Permission handling in builder so we can stop completing commands with no permission, and not just fail on execution.
 
     override fun onBuild() {
-        subCommands(Scripting, Item, Entity, Help)
+        subCommands(Scripting, Item, Entity, Help, CheckUpdate)
     }
 
     override suspend fun exec(ctx: Execution) {
@@ -457,6 +458,27 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while recrating goals.")
                 }
+            }
+        }
+    }
+
+    object CheckUpdate : Command("check-update", "Checks for updates to the backbone plugin") {
+        val checkUpdatePerm = perm.derive("check-update")
+
+        override suspend fun exec(ctx: Execution) {
+            ctx.requirePermission(checkUpdatePerm)
+
+            ctx.respond("Checking for updates...")
+
+            try {
+                val hasUpdate = UpdateChecker.checkUpdate()
+                if (hasUpdate) {
+                    ctx.respond("A new version of Backbone is available! Check console for details.")
+                } else {
+                    ctx.respond("You are running the latest version of Backbone.")
+                }
+            } catch (e: Exception) {
+                ctx.fail(e.message ?: "An error occurred while checking for updates.")
             }
         }
     }

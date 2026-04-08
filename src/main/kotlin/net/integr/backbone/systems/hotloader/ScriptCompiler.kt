@@ -37,6 +37,7 @@ import kotlin.script.experimental.jvm.impl.getOrCreateActualClassloader
 import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
+import kotlin.time.measureTime
 
 /**
  * Utility object for compiling Kotlin scripts within the Backbone hot-reloading system.
@@ -64,7 +65,18 @@ object ScriptCompiler {
      * A simple scripting host for compiling and evaluating Kotlin scripts.
      * @since 1.0.0
      */
-    private val scriptingHost = BasicJvmScriptingHost()
+    private val scriptingHost by lazy {
+        logger.info("Scripting host warming up...")
+
+        var host: BasicJvmScriptingHost
+        val time = measureTime {
+            host = BasicJvmScriptingHost()
+        }
+
+        logger.info("Scripting host ready! (took ${time.inWholeMilliseconds}ms)")
+
+        host
+    }
 
     /**
      * Compile and evaluate a Backbone script.
