@@ -58,7 +58,7 @@ object ScriptLinker {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val reloadEpoch = AtomicLong(0)
+    private val reloadEpoch = AtomicLong(-1)
 
     /**
      * Tracks old classloaders across reloads to allow explicit cleanup.
@@ -181,7 +181,7 @@ object ScriptLinker {
         for (file in scripts) {
             jobs += coroutineScope.launch {
                 try {
-                    val oldLifecycle = ScriptStore.scripts[file.name]
+                    val oldState = ScriptStore.scripts[file.name]
 
                     logger.info("[${file.name}] Compiling...")
 
@@ -192,15 +192,14 @@ object ScriptLinker {
 
                     logger.info("[${file.name}] Done compiling.")
 
-                    if (oldLifecycle != null) {
-                        lifecycle.updateStatesFrom(oldLifecycle.lifecycle)
+                    if (oldState != null) {
+                        lifecycle.updateStatesFrom(oldState.lifecycle)
                         logger.info("[${file.name}] Transferred state from old script.")
 
-                        // Leak detection
-                        ProbeHandler.register(file.name, epoch, oldLifecycle)
+                        ProbeHandler.register(file.name, epoch, oldState.lifecycle, oldState.attachedLoader)
                     }
 
-                    newScripts[file.name] = ScriptStore.State(false, lifecycle)
+                    newScripts[file.name] = ScriptStore.State(false, lifecycle, fullClassLoader)
 
                 } catch (e: Exception) {
                     logger.severe("[${file.name}] Failed to compile. (${e.message})")

@@ -47,7 +47,8 @@ import java.awt.Color
  * @since 1.0.0
  */
 object BackboneCommand : Command("backbone", "Base command for backbone", listOf("bb")) {
-    val perm = Backbone.ROOT_PERMISSION.derive("command")
+    val perm = Backbone.ROOT_PERMISSION.derive("backbone")
+    //TODO: Permission handling in builder so we can stop completing commands with no permission, and not just fail on execution.
 
     override fun onBuild() {
         subCommands(Scripting, Item, Entity, Help)

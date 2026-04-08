@@ -37,7 +37,7 @@ object ScriptStore {
      *                     providing access to its lifecycle methods and sustained states.
      * @since 1.0.0
      */
-    class State(var enabled: Boolean, var lifecycle: ManagedLifecycle)
+    class State(var enabled: Boolean, var lifecycle: ManagedLifecycle, var attachedLoader: ClassLoader)
 
     /**
      * A thread-safe map to store all currently loaded scripts.
