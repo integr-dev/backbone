@@ -74,6 +74,19 @@ class ArgumentChain(args: List<String>) {
     }
 
     /**
+     * Checks whether there is another argument after the current one.
+     *
+     * This is useful for tab completion where a trailing space results in a
+     * new empty token and should allow descending into the next command level.
+     *
+     * @return True if a next argument exists, false otherwise.
+     * @since 1.8.2
+     */
+    fun hasNext(): Boolean {
+        return head?.next != null
+    }
+
+    /**
      * Returns the full string of the remaining arguments in the chain.
      *
      * @return The full string of the remaining arguments.

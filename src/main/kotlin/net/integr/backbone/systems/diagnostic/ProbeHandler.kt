@@ -28,6 +28,11 @@ import java.util.concurrent.ConcurrentHashMap
  */
 object ProbeHandler {
     private val logger = Backbone.LOGGER.derive("probe-handler")
+    private const val GRACE_PERIOD_MS = 60_000L
+    private const val GC_HINT_COOLDOWN_MS = 90_000L
+    private const val GC_HINT_AFTER_FAILED_CHECKS = 2
+    private const val WARN_AFTER_FAILED_CHECKS = 3
+    private var lastGcHintMs = 0L
 
     /**
      * All active probes tracking script reloads, keyed by a combination of script name and reload epoch. Each probe contains weak references to the lifecycle instance and classloader of the old script, allowing us to detect if they have been garbage collected.
@@ -47,16 +52,18 @@ object ProbeHandler {
      * @param script The name of the script being reloaded.
      * @param epoch The reload epoch associated with this reload.
      * @param oldLifecycle The lifecycle instance of the old script, which may be leaked if not properly unloaded.
+     * @param classLoader The classloader that loaded the old script. This must be explicitly passed to ensure
+     *                     the probe tracks the correct classloader independent of the lifecycle object's lifecycle.
      *
      * @since 1.8.0
      */
-    fun register(script: String, epoch: Long, oldLifecycle: Any) {
+    fun register(script: String, epoch: Long, oldLifecycle: Any, classLoader: ClassLoader) {
         val key = "$script:$epoch"
         probes[key] = LeakProbe(
             script = script,
             epoch = epoch,
             lifecycleRef = WeakReference(oldLifecycle),
-            classLoaderRef = WeakReference(oldLifecycle.javaClass.classLoader)
+            classLoaderRef = WeakReference(classLoader)
         )
     }
 
@@ -69,10 +76,11 @@ object ProbeHandler {
      */
     fun check(nowMs: Long = System.currentTimeMillis()): List<LeakProbe> {
         val leaks: MutableList<LeakProbe> = mutableListOf()
+        var shouldHintGc = false
 
         for ((key, probe) in probes) {
             val ageMs = nowMs - probe.createdAtMs
-            if (ageMs < 60_000) continue // grace period after reload
+            if (ageMs < GRACE_PERIOD_MS) continue // grace period after reload
 
             val lifecycleAlive = probe.lifecycleRef.get() != null
             val loaderAlive = probe.classLoaderRef.get() != null
@@ -86,11 +94,22 @@ object ProbeHandler {
             val n = (failedChecks[key] ?: 0) + 1
             failedChecks[key] = n
 
-            if (n >= 3) {
+            if (n >= GC_HINT_AFTER_FAILED_CHECKS) {
+                shouldHintGc = true
+            }
+
+            if (n >= WARN_AFTER_FAILED_CHECKS) {
                 // escalate only after repeated failures to avoid false positives
                 logger.warning("Possible script leak: script=${probe.script}, epoch=${probe.epoch}, lifecycleAlive=$lifecycleAlive, classLoaderAlive=$loaderAlive, ageMs=$ageMs")
                 leaks.add(probe)
             }
+        }
+
+        // Hint GC sparingly to avoid stalling the server thread while still reducing weak-ref false positives.
+        if (shouldHintGc && nowMs - lastGcHintMs >= GC_HINT_COOLDOWN_MS) {
+            logger.info("Hinting GC to collect potential script leaks...")
+            System.gc()
+            lastGcHintMs = nowMs
         }
 
         return leaks

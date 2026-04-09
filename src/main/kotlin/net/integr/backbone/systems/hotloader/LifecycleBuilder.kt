@@ -61,4 +61,14 @@ class LifecycleBuilder : ManagedLifecycle() {
     fun onUnload(block: suspend () -> Unit) {
         onUnloadCalls += block
     }
+
+    /**
+     * Clears all callback lists to break reference cycles and allow garbage collection.
+     * This should only be called when a script is being permanently replaced, not when disabled/enabled.
+     * @since 1.8.0
+     */
+    fun clearCallbacks() {
+        onLoadCalls.clear()
+        onUnloadCalls.clear()
+    }
 }

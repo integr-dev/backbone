@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.diagnostic.ProbeHandler
+import net.integr.backbone.systems.diagnostic.result.DiagnosticException
+import net.integr.backbone.systems.diagnostic.result.DiagnosticResult
+import net.integr.backbone.systems.diagnostic.result.diagnosticList
 import net.integr.backbone.systems.hotloader.ScriptEngine.unloadScripts
 import net.integr.backbone.systems.hotloader.configuration.Script
 import org.jetbrains.annotations.ApiStatus
@@ -58,7 +61,7 @@ object ScriptLinker {
 
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
-    private val reloadEpoch = AtomicLong(0)
+    private val reloadEpoch = AtomicLong(-1)
 
     /**
      * Tracks old classloaders across reloads to allow explicit cleanup.
@@ -81,11 +84,12 @@ object ScriptLinker {
      * Any errors encountered during compilation, linking, or loading are logged, and the process
      * continues for other scripts.
      *
-     * @return `true` if any errors occurred during the entire process, `false` otherwise.
+     * @return A [DiagnosticResult] containing the success status and any diagnostics from the compilation and linking process.
      * @since 1.0.0
      */
-    suspend fun compileAndLink(): Boolean {
-        var errs = false
+    suspend fun compileAndLink(): DiagnosticResult<Unit> {
+        val diagnostics = diagnosticList()
+        var hasFailed = false
 
         val utilityScripts = Backbone.SCRIPT_POOL
             .listFiles()
@@ -109,16 +113,13 @@ object ScriptLinker {
                 try {
                     logger.info("[${file.name}] Compiling...")
                     val result = ScriptCompiler.compileUtilityScript(file.toFile())
-                    logger.info("[${file.name}] Done compiling: ${result?.classLoader}")
+                    logger.info("[${file.name}] Done compiling: ${result.classLoader}")
 
-                    if (result != null) {
-                        compilationResults += result
-                    } else {
-                        logger.warning("[${file.name}] No ClassLoader found.")
-                    }
-                } catch (e: Exception) {
-                    logger.severe("[${file.name}] Failed to compile. (${e.javaClass.simpleName})")
-                    errs = true
+                    compilationResults += result
+                } catch (e: DiagnosticException) {
+                    logger.severe("[${file.name}] Failed to compile and grab loader. (${e.javaClass.simpleName})")
+                    hasFailed = true
+                    diagnostics += e.diagnostics
                 }
             }
         }
@@ -181,7 +182,7 @@ object ScriptLinker {
         for (file in scripts) {
             jobs += coroutineScope.launch {
                 try {
-                    val oldLifecycle = ScriptStore.scripts[file.name]
+                    val oldState = ScriptStore.scripts[file.name]
 
                     logger.info("[${file.name}] Compiling...")
 
@@ -192,19 +193,19 @@ object ScriptLinker {
 
                     logger.info("[${file.name}] Done compiling.")
 
-                    if (oldLifecycle != null) {
-                        lifecycle.updateStatesFrom(oldLifecycle.lifecycle)
+                    if (oldState != null) {
+                        lifecycle.updateStatesFrom(oldState.lifecycle)
                         logger.info("[${file.name}] Transferred state from old script.")
 
-                        // Leak detection
-                        ProbeHandler.register(file.name, epoch, oldLifecycle)
+                        ProbeHandler.register(file.name, epoch, oldState.lifecycle, oldState.attachedLoader)
                     }
 
-                    newScripts[file.name] = ScriptStore.State(false, lifecycle)
+                    newScripts[file.name] = ScriptStore.State(false, lifecycle, fullClassLoader)
 
-                } catch (e: Exception) {
+                } catch (e: DiagnosticException) {
                     logger.severe("[${file.name}] Failed to compile. (${e.message})")
-                    errs = true
+                    hasFailed = true
+                    diagnostics += e.diagnostics
                 }
             }
         }
@@ -231,8 +232,10 @@ object ScriptLinker {
         // Store the new fullClassLoader for cleanup on next reload
         oldClassLoaders.add(fullClassLoader)
 
-        val unloadErrs = unloadScripts()
-        errs = errs || unloadErrs
+        val unloadRes = unloadScripts()
+        hasFailed = hasFailed or !unloadRes.success
+        diagnostics += unloadRes.diagnostics
+
         logger.info("Unloaded old scripts.")
 
         logger.info("Enabling ${newScripts.size} scripts...")
@@ -245,13 +248,13 @@ object ScriptLinker {
             } catch (e: Exception) {
                 logger.severe("[$name] Failed to enable. (${e.javaClass.simpleName})")
                 e.printStackTrace()
-                errs = true
+                hasFailed = true
             }
         }
 
         ScriptStore.scripts = newScripts
         logger.info("Loaded and swapped ${ScriptStore.scripts.size} scripts.")
 
-        return errs
+        return DiagnosticResult(Unit, !hasFailed, diagnostics)
     }
 }

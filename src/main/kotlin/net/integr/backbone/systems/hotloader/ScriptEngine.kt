@@ -14,6 +14,9 @@
 package net.integr.backbone.systems.hotloader
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.diagnostic.result.Diagnostic
+import net.integr.backbone.systems.diagnostic.result.DiagnosticResult
+import net.integr.backbone.systems.diagnostic.result.diagnosticList
 import org.jetbrains.annotations.ApiStatus
 
 /**
@@ -38,11 +41,12 @@ object ScriptEngine {
      * the [ScriptStore.scripts] map. It logs any errors encountered during the
      * unloading process.
      *
-     * @return `true` if any errors occurred during unloading, `false` otherwise.
+     * @return A [DiagnosticResult] containing the success status and any diagnostics from the unloading process.
      * @since 1.0.0
      */
-    suspend fun unloadScripts(): Boolean {
-        var errs = false
+    suspend fun unloadScripts(): DiagnosticResult<Unit> {
+        val diagnostics = diagnosticList()
+        var hasFailed = false
 
         for ((name, state) in ScriptStore.scripts) {
             try {
@@ -51,13 +55,14 @@ object ScriptEngine {
                 logger.info("Unloading script: $name")
             } catch (e: Exception) {
                 logger.severe("Failed to unload script: $name")
+                diagnostics += Diagnostic("Failed to unload script: $name", Diagnostic.Severity.ERROR)
                 e.printStackTrace()
-                errs = true
+                hasFailed = true
             }
         }
 
         ScriptStore.scripts.clear()
-        return errs
+        return DiagnosticResult(Unit, !hasFailed, diagnostics)
     }
 
     /**

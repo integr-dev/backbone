@@ -19,17 +19,77 @@ Whether you're a server administrator looking to add custom features with simple
 - **Command Framework:** A simple yet powerful command system to create custom commands directly from your scripts.
 - **Storage Abstraction:** Manage data with a flexible storage system that supports SQLite databases and typed configuration files.
 - **GUI Framework:** A declarative GUI framework for creating complex and interactive inventories from your scripts.
-- **Text Formatting:** A flexible text formatting system with support for custom alphabets and color codes.
-- **Entity Framework:** Custom entity utility for adding custom entities via the goals api.
+- **Text and Component Formatting:** A flexible text formatting system with support for custom alphabets and color codes.
 - **Display Entity Rendering System:** A powerful display entity rendering system for creating custom visuals
 - **Custom Item Framework:** A stateful custom item framework for creating items with unique abilities.
+- **Custom Entity Framework:** Custom entity utility for adding custom entities via the goals api.
+- **PlaceholderAPI Integration:** Built-in support for PlaceholderAPI with the ability to define your own custom placeholders.
+- **Simple HTTP Client DSL:** Easily make HTTP requests from your scripts and handle responses with a simple DSL.
+- **Update Checker:** Automatically check for updates to the Backbone plugin and stay up-to-date with the latest features and fixes.
+- **Automatic Memory Leak Detection:** Backbone includes a built-in system for detecting and preventing memory leaks in your scripts, helping to keep your server running smoothly.
+- **Modern Logging System:** A new logging system that works with color, optionally allowing you to log through the old system if needed for compatibility with certain hosts.
+- **And much more!** The possibilities are endless with Backbone's extensible architecture and powerful scripting capabilities.
+
+## Table of Contents
+<!-- TOC -->
+* [Backbone](#backbone)
+  * [Features](#features)
+  * [Table of Contents](#table-of-contents)
+  * [Getting Started](#getting-started)
+    * [Requirements](#requirements)
+    * [Installation](#installation)
+  * [Management Commands](#management-commands)
+    * [Scripting Commands](#scripting-commands)
+    * [Custom Item Commands](#custom-item-commands)
+    * [Custom Entity Commands](#custom-entity-commands)
+  * [Configuration](#configuration)
+  * [Examples](#examples)
+    * [Hot-Loadable Scripts](#hot-loadable-scripts)
+      * [Script Location and Aggregation](#script-location-and-aggregation)
+      * [Script Structure](#script-structure)
+    * [Advanced Scripting](#advanced-scripting)
+      * [Sharing Code Between Scripts](#sharing-code-between-scripts)
+      * [Managing Dependencies with `@DependsOn` and `@Repository`](#managing-dependencies-with-dependson-and-repository)
+      * [Customizing with `@CompilerOptions`](#customizing-with-compileroptions)
+    * [Storage and Configuration](#storage-and-configuration)
+      * [Resource Pools](#resource-pools)
+      * [Configuration](#configuration-1)
+      * [Databases](#databases)
+    * [Custom Events](#custom-events)
+    * [Inter-Script Communication](#inter-script-communication)
+      * [Sending a Message](#sending-a-message)
+      * [Receiving a Message](#receiving-a-message)
+      * [How it Works](#how-it-works)
+    * [HTTP Requests in Scripts](#http-requests-in-scripts)
+      * [Example: Making an HTTP Request in a Script](#example-making-an-http-request-in-a-script)
+    * [Commands](#commands)
+    * [Custom Arguments](#custom-arguments)
+    * [Custom Items](#custom-items)
+      * [Defining a Custom Item](#defining-a-custom-item)
+    * [Custom Entities](#custom-entities)
+    * [Display Entity Rendering](#display-entity-rendering)
+    * [Custom Formatting and Utilities](#custom-formatting-and-utilities)
+      * [Components](#components)
+      * [Command Feedback Format](#command-feedback-format)
+      * [Custom Alphabets](#custom-alphabets)
+    * [GUIs](#guis)
+    * [PlaceholderAPI Integration](#placeholderapi-integration)
+      * [Custom Placeholders](#custom-placeholders)
+  * [For Developers](#for-developers)
+    * [Prerequisites](#prerequisites)
+    * [Build, Test, and Run Locally](#build-test-and-run-locally)
+    * [Development Notes](#development-notes)
+  * [For Contributors](#for-contributors)
+<!-- TOC -->
 
 ## Getting Started
 
 Getting started with Backbone is straightforward. The primary way to use Backbone is by installing it as a plugin and then creating your own custom features through its scripting engine.
 
 ### Requirements
-- Minecraft Java Edition Server version 1.21 or higher.
+- Minecraft Java Edition Server version _1.21.11_ or higher.
+- A Spigot-based server implementation (e.g., Spigot, Paper).
+- Java 17 or higher.
 - [PlaceholderAPI](https://modrinth.com/plugin/placeholderapi) (optional, for placeholder support).
 
 ### Installation
@@ -43,6 +103,8 @@ For advanced users who wish to build a plugin that depends on Backbone, you can 
 ## Management Commands
 Backbone comes with a set of powerful management commands to control its various systems. The base command is `/backbone`, which can also be accessed using the alias `/bb`.
 
+First of all, you can use `/bb help` to get info about a command, including its arguments and subcommands. For example, `/bb help scripting` will show you all the available subcommands and arguments for managing scripts.
+
 ### Scripting Commands
 The `/bb scripting` command provides tools to manage your hot-loadable scripts.
 
@@ -50,7 +112,10 @@ The `/bb scripting` command provides tools to manage your hot-loadable scripts.
 -   `/bb scripting reload`: Reloads all scripts, applying any changes you've made.
 -   `/bb scripting enable <script_name>`: Enables a disabled script.
 -   `/bb scripting disable <script_name>`: Disables an enabled script.
--   `/bb scripting wipe <script_name> <confirmation>`: Wipes the persistent state of a script. Requires the script name to be entered twice for confirmation.
+-   `/bb scripting wipe <script_name>`: Wipes the persistent state of a script.
+-   `/bb scripting probes`: Lists all active script probes. These are used to detect memory leaks and other issues in scripts.
+-   `/bb scripting probes clear`: Clears all active script probes.
+-   `/bb scripting probes check-now`: Manually triggers a check of all active script probes.
 
 ### Custom Item Commands
 The `/bb item` command allows you to interact with the custom item system.
@@ -65,6 +130,16 @@ The `/bb entity` command provides control over custom entities.
 
 -   `/bb entity`: Lists all registered custom entities.
 -   `/bb entity spawn <entity_name>`: Spawns the specified custom entity at your location.
+-   `/bb entity recreate-goals <radius>`: Recreates the AI goals of all custom entities within the specified radius around you. This is useful for testing and debugging custom entity behavior.
+
+## Configuration
+Backbone's main config is located at `config/backbone/backbone.yaml`. This file contains general settings for the plugin, such as enabling the update checker.
+
+```yaml
+---
+checkForUpdates: true # Enable or disable the update checker that notifies you of new versions of Backbone.
+loggerCompatibilityMode: false # If true, Backbone will not use the new logging system and will instead log through the old Bukkit logger. This may be necessary for certain hosts that do not support the new logging system, but it is recommended to keep this disabled.
+```
 
 ## Examples
 
@@ -128,7 +203,7 @@ This means you can use the defined classes and methods in your main scripts as i
 
 **`main.bb.kts`**
 ```kotlin
-// ... inside your ManagedLifecycle
+// ... inside your Lifecycle
 val utils = MyUtilities()
 println(utils.getGreeting()) // Prints "Hello from a utility script!"
 ```
@@ -496,7 +571,7 @@ lifecycle {
 
 Backbone includes a flexible text component system that allows you to customize the look and feel of your script's output.
 
-### Components
+#### Components
 
 Backbone has a simple component builder abstraction that is based on the papermc `net.kyori.adventure.text.Component`
 
@@ -599,4 +674,56 @@ Backbone provides a set of placeholders through its soft dependency on Placehold
 
 - `%backbone_version%`: Displays the current version of the Backbone plugin.
 
+#### Custom Placeholders
+Backbone also allows you to define your own custom placeholders that can be used across your server. You can create a custom placeholder by implementing the `Placeholder` interface and registering it with the `PlaceholderManager`.
+
+```kotlin
+// Define a custom placeholder that returns the current server time
+lifecycle {
+    usePlaceholder("my-expansion", "me", "1.0.0") {
+        add("time") { player, args ->
+            System.currentTimeMillis().toString()
+        }
+    }
+}
+```
+
 More placeholders are planned for future releases.
+
+## For Developers
+
+If you want to work on Backbone itself (not just scripts on a server), this section covers the quickest local setup.
+
+### Prerequisites
+- Java 21 (the Gradle toolchain targets Java 21).
+- Git.
+- No global Gradle install required; use the included Gradle wrapper.
+
+### Build, Test, and Run Locally
+
+On Windows (PowerShell):
+```powershell
+.\gradlew.bat clean build
+.\gradlew.bat test
+.\gradlew.bat runServer
+```
+
+On macOS/Linux:
+```bash
+./gradlew clean build
+./gradlew test
+./gradlew runServer
+```
+
+- `build` also produces a shaded plugin jar through `shadowJar`.
+- `runServer` starts a local Paper test server for iterative development.
+
+### Development Notes
+- Unit tests run on JUnit 5 via Gradle.
+- The test task sets `EXEC_CONTEXT=test` automatically.
+- Local server data for `runServer` is stored in the repository's `run/` directory.
+- Use `/bb scripting reload` in-game to quickly validate script-related changes.
+
+## For Contributors
+Contributions are welcome. If you have an idea for a feature, found a bug, or want to improve docs, please open an issue or submit a pull request on GitHub.
+

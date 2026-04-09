@@ -58,7 +58,7 @@ class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
      * @return A formatted [Component].
      * @since 1.0.0
      */
-    fun formatErr(str: String): Component {
+    fun formatError(str: String): Component {
         return component {
             append(handlerName) {
                 color(handlerColor)
@@ -68,8 +68,54 @@ class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
                 color(Color(43, 43, 42))
             }
 
-            append(str) {
+            append("× $str") {
                 color(Color(245, 66, 75))
+            }
+        }
+    }
+
+    /**
+     * Format a string into a formatted success message component with the handler name and color.
+     *
+     * @param str The string to format.
+     * @return A formatted [Component].
+     * @since 1.8.1
+     */
+    fun formatSuccess(str: String): Component {
+        return component {
+            append(handlerName) {
+                color(handlerColor)
+            }
+
+            append(" » ") {
+                color(Color(43, 43, 42))
+            }
+
+            append("✔ $str") {
+                color(Color(141, 184, 130))
+            }
+        }
+    }
+
+    /**
+     * Format a string into a formatted warning message component with the handler name and color.
+     *
+     * @param str The string to format.
+     * @return A formatted [Component].
+     * @since 1.8.1
+     */
+    fun formatWarning(str: String): Component {
+        return component {
+            append(handlerName) {
+                color(handlerColor)
+            }
+
+            append(" » ") {
+                color(Color(43, 43, 42))
+            }
+
+            append("⚡ $str") {
+                color(Color(255, 165, 0))
             }
         }
     }

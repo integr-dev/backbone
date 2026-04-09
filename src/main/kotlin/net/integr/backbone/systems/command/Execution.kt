@@ -55,6 +55,37 @@ class Execution @ApiStatus.Internal constructor(val sender: CommandSender?, val 
     }
 
     /**
+     * Sends a formatted success message back to the command sender.
+     *
+     * @param message The success message to send.
+     * @since 1.8.1
+     */
+    fun respondSuccess(message: String) {
+        sender?.sendMessage(format.formatSuccess(message))
+    }
+
+    /**
+     * Sends a formatted warning message back to the command sender.
+     *
+     * @param message The warning message to send.
+     *
+     * @since 1.8.1
+     */
+    fun respondWarning(message: String) {
+        sender?.sendMessage(format.formatWarning(message))
+    }
+
+    /**
+     * Sends a formatted error message back to the command sender.
+     *
+     * @param message The error message to send.
+     * @since 1.8.1
+     */
+    fun respondError(message: String) {
+        sender?.sendMessage(format.formatError(message))
+    }
+
+    /**
      *
      * Sends a formatted component message back to the command sender.
      *
@@ -146,7 +177,7 @@ class Execution @ApiStatus.Internal constructor(val sender: CommandSender?, val 
      * @throws CommandFailedException Always throws this exception with the provided message.
      * @since 1.0.0
      */
-    fun fail(message: String) {
+    fun fail(message: String): Nothing {
         throw CommandFailedException(message)
     }
 

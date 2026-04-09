@@ -23,7 +23,7 @@ object UpdateChecker {
 
     private var hasUpdate = false
 
-    suspend fun checkUpdate(): Boolean { //TODO: Command to manually check for updates and show changelog if available
+    suspend fun checkUpdate(): Boolean {
         logger.info("Checking for updates...")
         val response = Requestor.request(UPDATE_URL, HttpMethod.GET)
 
