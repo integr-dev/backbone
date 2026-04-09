@@ -237,11 +237,11 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             it.aliases.any { alias -> alias.equals(curr, ignoreCase = true) }
         }
 
-        if (subcommand != null) {
-            if (remaining.contains(' ')) {
-                argChain.moveNext()
-                return subcommand.handleCompletion(sender, argChain)
-            }
+        // Only descend when the current token has been completed and the cursor
+        // moved to a next token (typically after typing a space).
+        if (subcommand != null && argChain.hasNext()) {
+            argChain.moveNext()
+            return subcommand.handleCompletion(sender, argChain)
         }
 
         if (!canExecute(sender)) return emptyList()
