@@ -34,6 +34,7 @@ import net.integr.backbone.systems.hotloader.ScriptStore
 import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.serverDispatcher
 import net.integr.backbone.systems.diagnostic.ProbeHandler
+import net.integr.backbone.systems.diagnostic.result.Diagnostic
 import net.integr.backbone.systems.text.component
 import net.integr.backbone.systems.update.UpdateChecker
 import net.kyori.adventure.text.event.ClickEvent
@@ -49,7 +50,6 @@ import java.awt.Color
  */
 object BackboneCommand : Command("backbone", "Base command for backbone", listOf("bb")) {
     val perm = Backbone.ROOT_PERMISSION.derive("backbone")
-    //TODO: Permission handling in builder so we can stop completing commands with no permission, and not just fail on execution.
 
     override fun onBuild() {
         subCommands(Scripting, Item, Entity, Help, CheckUpdate)
@@ -63,14 +63,14 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val helpPerm = perm.derive("help")
 
         override fun onBuild() {
+            requirePermissions(helpPerm)
+
             arguments(
                 commandArgument("command", "The command to get help for")
             )
         }
 
         override suspend fun exec(ctx: Execution) {
-            ctx.requirePermission(helpPerm)
-
             val command = ctx.get<String>("command")
             val help = CommandHandler.getHelp(command)
 
@@ -87,32 +87,22 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val scriptingPerm = perm.derive("scripting")
 
         override fun onBuild() {
+            requirePermissions(scriptingPerm)
             subCommands(Reload, Enable, Disable, Wipe, Probes)
         }
 
         override suspend fun exec(ctx: Execution) {
-            ctx.requirePermission(scriptingPerm)
-
             ctx.respond("Scripts [${ScriptStore.scripts.size}]:")
             for (script in ScriptStore.scripts) {
                 ctx.respondComponent(component {
                     append("  - ${script.key.substringBefore(".bb.kts")}: ") {
                         color(Color(169, 173, 168))
-                        onHover(HoverEvent.showText(component {
-                            append(if (script.value.enabled) "Disable " else "Enable ")
-                            append(script.key.substringBefore(".bb.kts"))
-                        }))
-
-                        onClick(ClickEvent.runCommand(
-                            "bb scripting ${if (script.value.enabled) "disable" else "enable"} "
-                                    + script.key.substringBefore(".bb.kts")
-                        ))
                     }
 
-                    append(if (script.value.enabled) "✔ enabled" else "❌ disabled") {
+                    append(if (script.value.enabled) "✔ enabled" else "× disabled") {
                         color(
                             if (script.value.enabled) Color(141, 184, 130)
-                            else Color(201, 82, 60)
+                            else Color(245, 66, 75)
                         )
                     }
                 })
@@ -122,16 +112,41 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         object Reload : Command("reload", "Reload all backbone scripts") {
             val scriptingReloadPerm = scriptingPerm.derive("reload")
 
-            override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(scriptingReloadPerm)
+            override fun onBuild() {
+                requirePermissions(scriptingReloadPerm)
+            }
 
+            override suspend fun exec(ctx: Execution) {
                 ctx.respond("Reloading scripts...")
                 val start = System.currentTimeMillis()
 
-                val hasError = ScriptLinker.compileAndLink()
+                val diagnostics = ScriptLinker.compileAndLink()
                 val time = System.currentTimeMillis() - start
-                ctx.respond("Scripts reloaded in ${time}ms.")
-                if (hasError) ctx.fail("Some scripts failed to compile. See console for details.")
+                ctx.respondSuccess("Scripts reloaded in ${time}ms.")
+                if (!diagnostics.success) {
+                    ctx.respondError("Some scripts failed to compile or enable/disable.")
+                    for (diagnostic in diagnostics.diagnostics) {
+                        ctx.respondComponent(component {
+                            append("  - [") {
+                                color(Color(169, 173, 168))
+                            }
+
+                            append("${diagnostic.severity}") {
+                                color(
+                                    when (diagnostic.severity) {
+                                        Diagnostic.Severity.INFO -> Color(169, 173, 168)
+                                        Diagnostic.Severity.WARNING -> Color(255, 165, 0)
+                                        Diagnostic.Severity.ERROR -> Color(245, 66, 75)
+                                    }
+                                )
+                            }
+
+                            append("] ${diagnostic.message}") {
+                                color(Color(169, 173, 168))
+                            }
+                        })
+                    }
+                }
             }
         }
 
@@ -139,21 +154,21 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val scriptingEnablePerm = scriptingPerm.derive("enable")
 
             override fun onBuild() {
+                requirePermissions(scriptingEnablePerm)
+
                 arguments(
                     scriptArgument("script", "The script to enable")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(scriptingEnablePerm)
-
                 val script = ctx.get<String>("script")
 
                 ctx.respond("Enabling script...")
 
                 try {
                     ScriptEngine.enableScript(script)
-                    ctx.respond("Script enabled.")
+                    ctx.respondSuccess("Script enabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while enabling the script.")
                 }
@@ -164,20 +179,21 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val scriptingDisablePerm = scriptingPerm.derive("disable")
 
             override fun onBuild() {
+                requirePermissions(scriptingDisablePerm)
+
                 arguments(
                     scriptArgument("script", "The script to disable")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(scriptingDisablePerm)
                 val script = ctx.get<String>("script")
 
                 ctx.respond("Disabling script...")
 
                 try {
                     ScriptEngine.disableScript(script)
-                    ctx.respond("Script disabled.")
+                    ctx.respondSuccess("Script disabled.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while disabling the script.")
                 }
@@ -188,20 +204,21 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val scriptingWipePerm = scriptingPerm.derive("wipe")
 
             override fun onBuild() {
+                requirePermissions(scriptingWipePerm)
+
                 arguments(
                     scriptArgument("script", "The script to wipe state from"),
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(scriptingWipePerm)
                 val script = ctx.get<String>("script")
 
                 ctx.respond("Wiping state from script...")
 
                 try {
                     ScriptEngine.wipeScript(script)
-                    ctx.respond("Script state wiped.")
+                    ctx.respondSuccess("Script state wiped.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while wiping state from the script.")
                 }
@@ -212,12 +229,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val scriptingProbesPerm = scriptingPerm.derive("probes")
 
             override fun onBuild() {
+                requirePermissions(scriptingProbesPerm)
                 subCommands(Clear, CheckNow)
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(scriptingProbesPerm)
-
                 ctx.respond("Active Probes [${ProbeHandler.probes.size}]:")
                 for (probe in ProbeHandler.probes) {
                     ctx.respondComponent(component {
@@ -231,31 +247,35 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             object Clear : Command("clear", "Clears all probes") {
                 val scriptingProbesClearPerm = scriptingProbesPerm.derive("clear")
 
-                override suspend fun exec(ctx: Execution) {
-                    ctx.requirePermission(scriptingProbesClearPerm)
+                override fun onBuild() {
+                    requirePermissions(scriptingProbesClearPerm)
+                }
 
+                override suspend fun exec(ctx: Execution) {
                     ProbeHandler.probes.clear()
-                    ctx.respond("All probes cleared.")
+                    ctx.respondSuccess("All probes cleared.")
                 }
             }
 
             object CheckNow : Command("check-now", "Manually triggers a check for leaked objects") {
                 val scriptingProbesCheckNowPerm = scriptingProbesPerm.derive("check-now")
 
-                override suspend fun exec(ctx: Execution) {
-                    ctx.requirePermission(scriptingProbesCheckNowPerm)
+                override fun onBuild() {
+                    requirePermissions(scriptingProbesCheckNowPerm)
+                }
 
+                override suspend fun exec(ctx: Execution) {
                     ctx.respond("Probe check triggered.")
                     val suspected = ProbeHandler.check()
 
                     if (suspected.isEmpty()) {
-                        ctx.respond("No leaks detected.")
+                        ctx.respondSuccess("No leaks detected.")
                     } else {
-                        ctx.respond("Suspected Leaked Scripts [${suspected.size}]:")
+                        ctx.respondWarning("Suspected Leaked Scripts [${suspected.size}]:")
                         for (probe in suspected) {
                             ctx.respondComponent(component {
                                 append("  - ${probe.script} (epoch ${probe.epoch})") {
-                                    color(Color(201, 82, 60))
+                                    color(Color(255, 165, 0))
                                 }
                             })
                         }
@@ -269,12 +289,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val itemPerm = perm.derive("item")
 
         override fun onBuild() {
+            requirePermissions(itemPerm)
             subCommands(Give, Replicate, Read)
         }
 
         override suspend fun exec(ctx: Execution) {
-            ctx.requirePermission(itemPerm)
-
             ctx.respond("Items [${ItemHandler.items.size}]:")
             for (item in ItemHandler.items) {
                 ctx.respondComponent(component {
@@ -289,13 +308,14 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val itemGivePerm = itemPerm.derive("give")
 
             override fun onBuild() {
+                requirePermissions(itemGivePerm)
+
                 arguments(
                     customItemArgument("item", "The custom item to give you")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(itemGivePerm)
                 ctx.requirePlayer()
 
                 val item = ctx.get<String>("item")
@@ -311,7 +331,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                         ctx.getPlayer().inventory.addItem(stack)
                     }
 
-                    ctx.respond("Item generated.")
+                    ctx.respondSuccess("Item generated.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while generating the item.")
                 }
@@ -321,8 +341,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         object Replicate : Command("replicate", "Copies the held item with a new instance.") {
             val itemReplicatePerm = itemPerm.derive("replicate")
 
+            override fun onBuild() {
+                requirePermissions(itemReplicatePerm)
+            }
+
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(itemReplicatePerm)
                 ctx.requirePlayer()
 
                 ctx.respond("Replicating item...")
@@ -331,7 +354,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                     val stack = ItemHandler.replicate(ctx.getPlayer().inventory.itemInMainHand)
                     if (stack == null) ctx.fail("Item is not a backbone item.")
                     else ctx.getPlayer().inventory.addItem(stack)
-                    ctx.respond("Item replicated.")
+                    ctx.respondSuccess("Item replicated.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while generating the item.")
                 }
@@ -341,8 +364,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         object Read : Command("read", "Reads all meta tags from the held item.") {
             val itemReadPerm = itemPerm.derive("read")
 
+            override fun onBuild() {
+                requirePermissions(itemReadPerm)
+            }
+
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(itemReadPerm)
                 ctx.requirePlayer()
 
                 ctx.respond("Reading item...")
@@ -374,12 +400,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
         val entityPerm = perm.derive("entity")
 
         override fun onBuild() {
+            requirePermissions(entityPerm)
             subCommands(Spawn, RecreateGoals)
         }
 
         override suspend fun exec(ctx: Execution) {
-            ctx.requirePermission(entityPerm)
-
             ctx.respond("Entities [${EntityHandler.entities.size}]:")
             for (entity in EntityHandler.entities) {
                 ctx.respondComponent(component {
@@ -400,13 +425,14 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val entitySpawnPerm = entityPerm.derive("spawn")
 
             override fun onBuild() {
+                requirePermissions(entitySpawnPerm)
+
                 arguments(
                     customEntityArgument("entity", "The custom entity to spawn")
                 )
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(entitySpawnPerm)
                 ctx.requirePlayer()
 
                 val entity = ctx.get<String>("entity")
@@ -417,7 +443,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
 
                 try {
                     EntityHandler.spawn(entity, player.location, player.world)
-                    ctx.respond("Entity spawned.")
+                    ctx.respondSuccess("Entity spawned.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while spawning the entity.")
                 }
@@ -428,6 +454,8 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             val entityRecreateGoalsPerm = entityPerm.derive("recreate-goals")
 
             override fun onBuild() {
+                requirePermissions(entityRecreateGoalsPerm)
+
                 arguments(
                     validatedArgument(doubleArgument("radius", "The radius to search for entities to recreate goals for")) { value ->
                         if (value <= 0) ValidatedArgument.ValidationResult.fail("must be greater than 0.")
@@ -437,7 +465,6 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
             }
 
             override suspend fun exec(ctx: Execution) {
-                ctx.requirePermission(entityRecreateGoalsPerm)
                 ctx.requirePlayer()
 
                 ctx.respond("Recreating entity goals...")
@@ -454,7 +481,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                         }
                     }
 
-                    ctx.respond("Entity goals recreated.")
+                    ctx.respondSuccess("Entity goals recreated.")
                 } catch (e: Exception) {
                     ctx.fail(e.message ?: "An error occurred while recrating goals.")
                 }
@@ -465,9 +492,11 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
     object CheckUpdate : Command("check-update", "Checks for updates to the backbone plugin") {
         val checkUpdatePerm = perm.derive("check-update")
 
-        override suspend fun exec(ctx: Execution) {
-            ctx.requirePermission(checkUpdatePerm)
+        override fun onBuild() {
+            requirePermissions(checkUpdatePerm)
+        }
 
+        override suspend fun exec(ctx: Execution) {
             ctx.respond("Checking for updates...")
 
             try {
@@ -475,7 +504,7 @@ object BackboneCommand : Command("backbone", "Base command for backbone", listOf
                 if (hasUpdate) {
                     ctx.respond("A new version of Backbone is available! Check console for details.")
                 } else {
-                    ctx.respond("You are running the latest version of Backbone.")
+                    ctx.respondSuccess("You are running the latest version of Backbone.")
                 }
             } catch (e: Exception) {
                 ctx.fail(e.message ?: "An error occurred while checking for updates.")

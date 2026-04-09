@@ -18,6 +18,7 @@ import net.integr.backbone.Backbone
 import net.integr.backbone.systems.command.argument.ArgumentChain
 import net.integr.backbone.systems.command.argument.Argument
 import net.integr.backbone.systems.command.help.HelpNode
+import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.text.formats.CommandFeedbackFormat
 import org.bukkit.command.CommandSender
 import org.bukkit.command.defaults.BukkitCommand
@@ -50,7 +51,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
     @ApiStatus.Internal
     private val arguments = mutableListOf<Argument<*>>()
 
-    private var subCommandNames: List<String> = listOf()
+    private var subCommandNames: Map<String, Command> = mapOf()
 
     /**
      * The parent command of this command, if any.
@@ -77,6 +78,20 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         private set
 
     /**
+     * The set of permissions required to execute this command.
+     *
+     * @since 1.8.1
+     */
+    private val requiredPermissions: MutableSet<PermissionNode> = mutableSetOf()
+
+    /**
+     * The set of permissions that would prevent a sender from executing this command if they have any of them.
+     *
+     * @since 1.8.1
+     */
+    private val excludedPermissions: MutableSet<PermissionNode> = mutableSetOf()
+
+    /**
      * Registers one or more sub-commands to this command.
      *
      * @param commands The sub-commands to register.
@@ -99,6 +114,38 @@ abstract class Command(name: String, description: String, aliases: List<String> 
      */
     fun arguments(vararg arguments: Argument<*>) {
         this.arguments.addAll(arguments)
+    }
+
+    /**
+     * Registers one or more required permissions for this command.
+     *
+     * @param permissions The permissions to register.
+     * @since 1.8.1
+     */
+    fun requirePermissions(vararg permissions: PermissionNode) {
+        requiredPermissions.addAll(permissions)
+    }
+
+    /**
+     * Registers one or more excluded permissions for this command.
+     * If a sender has any of the excluded permissions, they will not be able to execute the command, even if they have the required permissions.
+     *
+     * @param permissions The permissions to exclude.
+     * @since 1.8.1
+     */
+    fun excludePermissions(vararg permissions: PermissionNode) {
+        excludedPermissions.addAll(permissions)
+    }
+
+    /**
+     * Checks if the sender has the necessary permissions to execute this command.
+     *
+     * @param sender The CommandSender to check permissions for.
+     * @return True if the sender can execute the command, false otherwise.
+     * @since 1.8.1
+     */
+    private fun canExecute(sender: CommandSender): Boolean {
+        return requiredPermissions.all { sender.hasPermission(it.id) } && excludedPermissions.none { sender.hasPermission(it.id) }
     }
 
     /**
@@ -136,7 +183,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
         onBuild()
         computeHelpNode()
 
-        subCommandNames = subCommands.map { it.name } + subCommands.flatMap { it.aliases }
+        subCommandNames = subCommands.associateBy { it.name } + subCommands.flatMap { it.aliases.map { alias -> alias to it } }
     }
 
     /**
@@ -149,7 +196,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
      * @since 1.0.0
      */
     @ApiStatus.Internal
-    suspend fun handleExecution(sender: CommandSender?, argChain: ArgumentChain) {
+    suspend fun handleExecution(sender: CommandSender, argChain: ArgumentChain) {
         val curr = argChain.current()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
@@ -160,6 +207,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             argChain.moveNext()
             subcommand.handleExecution(sender, argChain)
         } else {
+            if (!canExecute(sender)) throw CommandFailedException("You are not allowed to execute this command.")
             // No matching subcommand found, move on to parse args for this command
             val args = parseArgs(argChain)
             val ctx = Execution(sender, args, format)
@@ -175,40 +223,46 @@ abstract class Command(name: String, description: String, aliases: List<String> 
      * Handles completion based on the provided argument chain.
      * This method recursively searches for subcommands and provides completions for the appropriate command or its arguments.
      *
+     * @param sender The CommandSender who is requesting tab completion.
      * @param argChain The ArgumentChain containing the command arguments.
      * @return A list of possible completions.
      * @since 1.0.0
      */
     @ApiStatus.Internal
-    fun handleCompletion(argChain: ArgumentChain): List<String> {
+    fun handleCompletion(sender: CommandSender, argChain: ArgumentChain): List<String> {
         val curr = argChain.current()
+        val remaining = argChain.remainingFullString()
         val subcommand = subCommands.find {
             it.name.equals(curr, ignoreCase = true) ||
             it.aliases.any { alias -> alias.equals(curr, ignoreCase = true) }
         }
 
         if (subcommand != null) {
-            argChain.moveNext()
-            return subcommand.handleCompletion(argChain)
-        } else {
-            // No matching subcommand found, move on to provide completions for this command
-            val possibleSubCommands = subCommandNames.filter { it.startsWith(curr ?: "", ignoreCase = true) }.toMutableList()
-            var argumentString = argChain.remainingFullString()
+            if (remaining.contains(' ')) {
+                argChain.moveNext()
+                return subcommand.handleCompletion(sender, argChain)
+            }
+        }
 
-            for (argument in arguments) {
-                val input = Argument.ArgumentInput(argumentString)
-                val completionResult = argument.getCompletions(input)
+        if (!canExecute(sender)) return emptyList()
 
-                if (completionResult.end == argumentString.length) {
-                    // Argument not filled yet, return current completions
-                    return possibleSubCommands + completionResult.completions
-                }
+        // No matching subcommand found, move on to provide completions for this command
+        val possibleSubCommands = subCommandNames.filter { it.value.canExecute(sender) && it.key.startsWith(curr ?: "", ignoreCase = true) }.keys.toList()
+        var argumentString = remaining
 
-                argumentString = argumentString.substring(completionResult.end).trimStart()
+        for (argument in arguments) {
+            val input = Argument.ArgumentInput(argumentString)
+            val completionResult = argument.getCompletions(input)
+
+            if (completionResult.end == argumentString.length) {
+                // Argument not filled yet, return current completions
+                return possibleSubCommands + completionResult.completions
             }
 
-            return possibleSubCommands
+            argumentString = argumentString.substring(completionResult.end).trimStart()
         }
+
+        return possibleSubCommands
     }
 
     /**
@@ -249,15 +303,15 @@ abstract class Command(name: String, description: String, aliases: List<String> 
             } catch (e: CommandFailedException) {
                 // Command has been failed manually
                 logger.warning("Execution '$name' by ${sender.name} failed: ${e.message} (${e.javaClass.simpleName})")
-                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+                sender.sendMessage(format.formatError(e.message ?: "An error occurred while executing the command."))
             } catch (e: CommandArgumentException) {
                 // User has provided invalid argument
                 logger.warning("Execution '$name' by ${sender.name} failed with argument error: ${e.message} (${e.javaClass.simpleName})")
-                sender.sendMessage(format.formatErr(e.message ?: "An error occurred while executing the command."))
+                sender.sendMessage(format.formatError(e.message ?: "An error occurred while executing the command."))
             } catch (e: Exception) {
                 // Unexpected error such as database failure
                 logger.severe("Execution '$name' by ${sender.name} failed irregularly: ${e.message} (${e.javaClass.simpleName})")
-                sender.sendMessage(format.formatErr("An error occurred while executing the command. Please contact administration."))
+                sender.sendMessage(format.formatError("An error occurred while executing the command. Please contact administration."))
                 e.printStackTrace()
             }
         }
@@ -271,7 +325,7 @@ abstract class Command(name: String, description: String, aliases: List<String> 
      */
     @ApiStatus.Internal
     override fun tabComplete(sender: CommandSender, alias: String, args: Array<out String>): List<String> {
-        return handleCompletion(ArgumentChain(args.toList()))
+        return handleCompletion(sender, ArgumentChain(args.toList()))
     }
 
     /**

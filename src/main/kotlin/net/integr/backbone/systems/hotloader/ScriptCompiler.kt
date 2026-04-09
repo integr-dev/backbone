@@ -14,7 +14,11 @@
 package net.integr.backbone.systems.hotloader
 
 import kotlinx.coroutines.runBlocking
-import net.integr.backbone.systems.logger.BackboneLogger
+import net.integr.backbone.systems.diagnostic.result.Diagnostic
+import net.integr.backbone.systems.diagnostic.result.DiagnosticException
+import net.integr.backbone.systems.diagnostic.result.DiagnosticResult
+import net.integr.backbone.systems.diagnostic.result.diagnosticList
+import net.integr.backbone.systems.diagnostic.result.diagnosticSuccess
 import net.integr.backbone.systems.hotloader.configuration.UtilityScript
 import net.integr.backbone.systems.hotloader.lifecycle.ManagedLifecycle
 import net.integr.backbone.systems.logger.BackboneCustomLogger
@@ -24,10 +28,12 @@ import java.io.FileOutputStream
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import kotlin.script.experimental.api.ResultValue
+import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptDiagnostic
 import kotlin.script.experimental.api.ScriptEvaluationConfiguration
 import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.api.dependencies
 import kotlin.script.experimental.api.valueOrNull
 import kotlin.script.experimental.host.toScriptSource
@@ -104,16 +110,14 @@ object ScriptCompiler {
             evaluationConfiguration = evaluationConfiguration
         )
 
-        logReports(file, result.reports)
+        val diag = aggregateReports(file, result.reports)
 
         val evalValue = result.valueOrNull()?.returnValue
 
         if (evalValue is ResultValue.Value && evalValue.value is ManagedLifecycle) {
             return evalValue.value as ManagedLifecycle
         } else {
-            throw IllegalStateException(
-                "Script did not return a ManagedLifecycle object. Found: $evalValue"
-            )
+            throw DiagnosticException("Script did not return a ManagedLifecycle object. Found: $evalValue", diag)
         }
     }
 
@@ -127,35 +131,39 @@ object ScriptCompiler {
      *
      * @param file The utility script file to compile.
      * @return A [CompilationResult] if compilation is successful, or `null` if it fails.
+     * @throws DiagnosticException If the compilation fails and no compiled script is found in the result.
      * @since 1.0.0
      */
-    fun compileUtilityScript(file: File): CompilationResult? {
+    fun compileUtilityScript(file: File): CompilationResult {
         val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<UtilityScript>()
         val evaluationConfiguration = createJvmEvaluationConfigurationFromTemplate<UtilityScript>()
 
-        return runBlocking {
-            logger.info("[${file.name}] Evaluating...")
-            val result = scriptingHost.compiler.invoke(
+        logger.info("[${file.name}] Evaluating...")
+
+        val result = runBlocking {
+            scriptingHost.compiler.invoke(
                 script = file.toScriptSource(),
                 scriptCompilationConfiguration = compilationConfiguration
             )
-
-            logReports(file, result.reports)
-
-            val value = result.valueOrNull()
-
-            if (value is KJvmCompiledScript) {
-                logger.info("[${file.name}] Grabbing ClassLoader...")
-                val classLoader = value.getOrCreateActualClassloader(evaluationConfiguration)
-
-                val classpath = value.compilationConfiguration[ScriptCompilationConfiguration.dependencies]
-                    ?.filterIsInstance<JvmDependency>()?.flatMap { it.classpath } ?: emptyList()
-
-                val result = CompilationResult(classpath, classLoader, value.scriptClassFQName)
-
-                return@runBlocking result
-            } else return@runBlocking null
         }
+
+        val diag = aggregateReports(file, result.reports)
+
+        val value = result.valueOrNull()
+
+        if (value is KJvmCompiledScript) {
+            logger.info("[${file.name}] Grabbing ClassLoader...")
+            val classLoader = value.getOrCreateActualClassloader(evaluationConfiguration)
+
+            val classpath = value.compilationConfiguration[ScriptCompilationConfiguration.dependencies]
+                ?.filterIsInstance<JvmDependency>()?.flatMap { it.classpath } ?: emptyList()
+
+            val result = CompilationResult(classpath, classLoader, value.scriptClassFQName)
+
+            return result
+        }
+
+        throw DiagnosticException("Failed to compile utility script. No compiled script found in result.", diag)
     }
 
     /**
@@ -168,11 +176,22 @@ object ScriptCompiler {
      *
      * @param file The script file associated with the reports.
      * @param reports The list of [ScriptDiagnostic] reports to log.
+     * @return A list of [Diagnostic] objects representing the logged reports, which can be used for further processing or error handling.
      * @since 1.0.0
      */
-    private fun logReports(file: File, reports: List<ScriptDiagnostic>) {
+    private fun aggregateReports(file: File, reports: List<ScriptDiagnostic>): List<Diagnostic> {
+        val diagnostics = diagnosticList()
+
         reports.forEach { report ->
+
+
             if (report.severity >= ScriptDiagnostic.Severity.WARNING) {
+                diagnostics += Diagnostic("[${file.name}] " + report.message, when (report.severity) {
+                    ScriptDiagnostic.Severity.WARNING -> Diagnostic.Severity.WARNING
+                    ScriptDiagnostic.Severity.ERROR -> Diagnostic.Severity.ERROR
+                    else -> Diagnostic.Severity.INFO
+                })
+
                 logger.warning(
                     "[${file.name}] [${getSeverityColor(report.severity)}${report.severity}${BackboneCustomLogger.CustomFormat.ANSI_RESET}] ${report.message} (${getLocationReadable(report.location)})"
                 )
@@ -180,6 +199,8 @@ object ScriptCompiler {
                 report.exception?.printStackTrace()
             }
         }
+
+        return diagnostics
     }
 
     /**
