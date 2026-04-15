@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.persistence.PersistenceHelper
-import net.integr.backbone.systems.persistence.PersistenceKeys
+import net.integr.backbone.systems.persistence.nbt.NbtHelper
+import net.integr.backbone.systems.persistence.nbt.NbtKeys
 import net.integr.backbone.serverDispatcher
 import org.bukkit.Location
 import org.bukkit.World
@@ -96,7 +96,7 @@ object EntityHandler : Listener {
      * @since 1.7.1
      */
     suspend fun recreateGoals(entity: Entity) {
-        val id = PersistenceHelper.read(entity, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
+        val id = NbtHelper.read(entity, NbtKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
         if (id != null) {
             val customEntity = entities[id]
             if (customEntity == null) {
@@ -134,7 +134,7 @@ object EntityHandler : Listener {
     @EventHandler
     fun onPlayerInteractEntity(event: PlayerInteractEntityEvent) {
         val entity = event.rightClicked
-        val id = PersistenceHelper.read(entity, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
+        val id = NbtHelper.read(entity, NbtKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING)
         if (id != null) {
             val customEntity = entities[id]
             if (customEntity == null) {

@@ -16,8 +16,8 @@ package net.integr.backbone.systems.entity
 import com.destroystokyo.paper.entity.ai.GoalKey
 import net.integr.backbone.Backbone
 import net.integr.backbone.Utils
-import net.integr.backbone.systems.persistence.PersistenceHelper
-import net.integr.backbone.systems.persistence.PersistenceKeys
+import net.integr.backbone.systems.persistence.nbt.NbtHelper
+import net.integr.backbone.systems.persistence.nbt.NbtKeys
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.EntityType
@@ -97,7 +97,7 @@ abstract class CustomEntity<T : Mob>(val id: String, val type: EntityType, val s
         if (stopDespawning) e.removeWhenFarAway = false
 
         // Tag the entity with the custom entity ID
-        PersistenceHelper.write(e, PersistenceKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING, id)
+        NbtHelper.write(e, NbtKeys.BACKBONE_CUSTOM_ENTITY_UID.key, PersistentDataType.STRING, id)
         return e
     }
 

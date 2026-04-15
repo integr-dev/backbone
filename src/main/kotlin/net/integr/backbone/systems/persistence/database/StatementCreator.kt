@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage.database
+package net.integr.backbone.systems.persistence.database
 
 import net.integr.backbone.Backbone
 import org.intellij.lang.annotations.Language

@@ -16,5 +16,6 @@ package net.integr.backbone
 
 data class BackboneConfig(
     val checkForUpdates: Boolean = true,
-    val loggerCompatibilityMode: Boolean = false
+    val loggerCompatibilityMode: Boolean = false,
+    val useAntiDupe: Boolean = true,
 )

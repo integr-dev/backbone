@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage
+package net.integr.backbone.systems.persistence
 
-import net.integr.backbone.systems.storage.config.ConfigHandler
-import net.integr.backbone.systems.storage.database.DatabaseConnection
+import net.integr.backbone.systems.persistence.config.ConfigHandler
+import net.integr.backbone.systems.persistence.database.DatabaseConnection
 import org.jetbrains.annotations.ApiStatus
 import java.nio.file.Path
 import kotlin.io.path.createDirectories

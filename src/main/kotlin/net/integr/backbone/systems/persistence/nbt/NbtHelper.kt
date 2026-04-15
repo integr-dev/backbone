@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.persistence
+package net.integr.backbone.systems.persistence.nbt
 
 import net.integr.backbone.Backbone
 import org.bukkit.entity.Entity
@@ -24,12 +24,12 @@ import kotlin.uuid.Uuid
  * A utility object for interacting with Bukkit's [org.bukkit.persistence.PersistentDataContainer] system.
  *
  * This helper provides simplified methods for reading and writing persistent data to
- * [org.bukkit.inventory.ItemStack]s and [org.bukkit.entity.Entity]s, using Backbone's
+ * [ItemStack]s and [Entity]s, using Backbone's
  * namespaced keys. It also includes a utility for generating unique IDs.
  *
  * @since 1.0.0
  */
-object PersistenceHelper {
+object NbtHelper {
     /**
      * Write a persistent data tag to an [ItemStack].
 

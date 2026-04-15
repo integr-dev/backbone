@@ -14,7 +14,9 @@
 package net.integr.backbone.systems.diagnostic
 
 import net.integr.backbone.Backbone
+import net.integr.backbone.systems.text.component
 import org.jetbrains.annotations.ApiStatus
+import java.awt.Color
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
@@ -101,6 +103,8 @@ object ProbeHandler {
             if (n >= WARN_AFTER_FAILED_CHECKS) {
                 // escalate only after repeated failures to avoid false positives
                 logger.warning("Possible script leak: script=${probe.script}, epoch=${probe.epoch}, lifecycleAlive=$lifecycleAlive, classLoaderAlive=$loaderAlive, ageMs=$ageMs")
+                Backbone.fireAlert(Backbone.alertFeedbackFormat
+                    .formatWarning("Possible script leak detected for script '${probe.script}' (epoch ${probe.epoch})"))
                 leaks.add(probe)
             }
         }

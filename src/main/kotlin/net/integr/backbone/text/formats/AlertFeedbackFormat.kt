@@ -19,44 +19,21 @@ import net.kyori.adventure.text.Component
 import java.awt.Color
 
 /**
- * Represents a standardized format for command feedback.
+ * A class for formatting alert feedback messages with a consistent style, including a handler name and color.
  *
  * @param handler The name of the handler (e.g., plugin name) to display in the feedback.
  * @param handlerColor The color to use for the handler name.
- * @since 1.0.0
+ * @since 1.9.0
  */
-class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
+class AlertFeedbackFormat(handler: String) {
     private val handlerName = BoldSmallAlphabet.encode(handler)
-
-    /**
-     * Format a string into a formatted component with the handler name and color.
-     *
-     * @param str The string to format.
-     * @return A formatted [Component].
-     * @since 1.0.0
-     */
-    fun format(str: String): Component {
-        return component {
-            append(handlerName) {
-                color(handlerColor)
-            }
-
-            append(" » ") {
-                color(Color(43, 43, 42))
-            }
-
-            append(str) {
-                color(Color(169, 173, 168))
-            }
-        }
-    }
 
     /**
      * Format a string into a formatted error message component with the handler name and color.
      *
      * @param str The string to format.
      * @return A formatted [Component].
-     * @since 1.0.0
+     * @since 1.9.0
      */
     fun formatError(str: String): Component {
         return component {
@@ -75,34 +52,11 @@ class CommandFeedbackFormat(handler: String, val handlerColor: Color) {
     }
 
     /**
-     * Format a string into a formatted success message component with the handler name and color.
-     *
-     * @param str The string to format.
-     * @return A formatted [Component].
-     * @since 1.8.1
-     */
-    fun formatSuccess(str: String): Component {
-        return component {
-            append(handlerName) {
-                color(handlerColor)
-            }
-
-            append(" » ") {
-                color(Color(43, 43, 42))
-            }
-
-            append("✔ $str") {
-                color(Color(141, 184, 130))
-            }
-        }
-    }
-
-    /**
      * Format a string into a formatted warning message component with the handler name and color.
      *
      * @param str The string to format.
      * @return A formatted [Component].
-     * @since 1.8.1
+     * @since 1.9.0
      */
     fun formatWarning(str: String): Component {
         return component {

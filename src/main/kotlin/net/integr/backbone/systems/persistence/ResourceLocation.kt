@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage
+package net.integr.backbone.systems.persistence
 
 import java.io.File
 

@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage.config
+package net.integr.backbone.systems.persistence.config
 import tools.jackson.module.kotlin.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.integr.backbone.Backbone
 import net.integr.backbone.systems.logger.BackboneLogger
-import net.integr.backbone.systems.storage.ResourceLocation
+import net.integr.backbone.systems.persistence.ResourceLocation
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.json.JsonMapper
 import tools.jackson.dataformat.yaml.YAMLMapper

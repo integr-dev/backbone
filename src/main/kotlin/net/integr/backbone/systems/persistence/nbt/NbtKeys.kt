@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.persistence
+package net.integr.backbone.systems.persistence.nbt
 
 import org.jetbrains.annotations.ApiStatus
 
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.ApiStatus
  * @since 1.0.0
  */
 @ApiStatus.Internal
-enum class PersistenceKeys(val key: String) {
+enum class NbtKeys(val key: String) {
     BACKBONE_CUSTOM_ITEM_UID("bbciuid"), // Backbone Custom Item UID
     BACKBONE_CUSTOM_ITEM_INSTANCE_UID("bbciiuid"), // Backbone Custom Item Instance UID
     BACKBONE_CUSTOM_ITEM_STATE_UID("bbcisuid"), // Backbone Custom Item State UID

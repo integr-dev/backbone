@@ -14,8 +14,8 @@
 package net.integr.backbone.systems.item
 
 import net.integr.backbone.Utils
-import net.integr.backbone.systems.persistence.PersistenceHelper
-import net.integr.backbone.systems.persistence.PersistenceKeys
+import net.integr.backbone.systems.persistence.nbt.NbtHelper
+import net.integr.backbone.systems.persistence.nbt.NbtKeys
 import org.bukkit.Material
 import org.bukkit.event.entity.EntityDropItemEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
@@ -67,7 +67,7 @@ abstract class CustomItemState(val material: Material, val id: String) {
      * @since 1.0.0
      */
     private fun attach(stack: ItemStack) {
-        PersistenceHelper.write(stack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING, id)
+        NbtHelper.write(stack, NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING, id)
     }
 
     /**

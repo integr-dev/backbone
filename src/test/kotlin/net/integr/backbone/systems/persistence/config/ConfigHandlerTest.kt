@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage.config
+package net.integr.backbone.systems.persistence.config
 
-import net.integr.backbone.systems.storage.ResourcePool
+import net.integr.backbone.systems.persistence.ResourcePool
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

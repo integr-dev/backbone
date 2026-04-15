@@ -21,8 +21,11 @@ import net.integr.backbone.systems.item.ItemHandler
 import net.integr.backbone.systems.logger.BackboneLogger
 import net.integr.backbone.systems.permission.PermissionNode
 import net.integr.backbone.systems.placeholder.PlaceholderGroup
-import net.integr.backbone.systems.storage.ResourcePool
+import net.integr.backbone.systems.persistence.ResourcePool
+import net.integr.backbone.text.formats.AlertFeedbackFormat
+import net.kyori.adventure.text.Component
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
@@ -114,6 +117,21 @@ object Backbone {
     val ROOT_PERMISSION = PermissionNode("backbone")
 
     /**
+     * Backbones alerts permission. **Important:** Do not use this for your own permission checks.
+     *
+     * This is used internally by Backbone to check if a player has permission to receive alerts.
+     *
+     * Create a new node instead:
+     * ```kotlin
+     * val node = PermissionNode("my-server.alerts")
+     * ```
+     *
+     * @since 1.9.0
+     */
+    @ApiStatus.Internal
+    val ALERTS_PERMISSION = ROOT_PERMISSION.derive("alerts")
+
+    /**
      * Backbones placeholders. **Important:** Do not use this for your own custom placeholders.
      * Create a new group instead:
      * ```kotlin
@@ -140,6 +158,16 @@ object Backbone {
     internal val pluginInternal: JavaPlugin? by lazy {
         Utils.tryOrNull { JavaPlugin.getPlugin(BackboneServer::class.java) } // For testing purposes we allow null here
     }
+
+    /**
+     * Backbones internal alert feedback format. **Important:** Do not use this for your own feedback formatting.
+     * Create a new format instead:
+     * ```kotlin
+     * val format = AlertFeedbackFormat("my-server")
+     * ```
+     */
+    @ApiStatus.Internal
+    val alertFeedbackFormat = AlertFeedbackFormat("backbone")
 
     /**
      * The global backbone plugin instance.
@@ -283,6 +311,22 @@ object Backbone {
      */
     fun getKey(namespace: String, key: String): NamespacedKey {
         return NamespacedKey(namespace, key)
+    }
+
+    /**
+     * Sends an alert message to all online players who have permission to receive alerts.
+     * This is used internally by Backbone to send alert messages to players who should receive them.
+     * The permission checked is defined by [ALERTS_PERMISSION]. Players must have this permission to receive the alert message.
+     *
+     * @param component The message to send as an alert, represented as a [Component] for rich text formatting.
+     * @since 1.9.0
+     */
+    fun fireAlert(component: Component) {
+        SERVER.onlinePlayers.forEach {
+            if (it.hasPermission(ALERTS_PERMISSION.id)) {
+                it.sendMessage(component)
+            }
+        }
     }
 
     /**

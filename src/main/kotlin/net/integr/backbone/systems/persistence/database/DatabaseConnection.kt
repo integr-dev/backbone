@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 
-package net.integr.backbone.systems.storage.database
+package net.integr.backbone.systems.persistence.database
 
 import net.integr.backbone.Backbone
-import net.integr.backbone.systems.storage.ResourceLocation
+import net.integr.backbone.systems.persistence.ResourceLocation
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.Savepoint

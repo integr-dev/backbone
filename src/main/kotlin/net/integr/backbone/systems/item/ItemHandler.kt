@@ -13,8 +13,8 @@
 
 package net.integr.backbone.systems.item
 
-import net.integr.backbone.systems.persistence.PersistenceHelper
-import net.integr.backbone.systems.persistence.PersistenceKeys
+import net.integr.backbone.systems.persistence.nbt.NbtHelper
+import net.integr.backbone.systems.persistence.nbt.NbtKeys
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDropItemEvent
@@ -92,7 +92,7 @@ object ItemHandler : Listener {
 
      */
     fun replicate(item: ItemStack): ItemStack? {
-        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return null
+        val customItemUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return null
         val customItem = items[customItemUid] ?: throw IllegalArgumentException("Item not found.")
 
         return customItem.generate()
@@ -110,15 +110,15 @@ object ItemHandler : Listener {
      * @since 1.0.0
      */
     fun readTags(item: ItemStack): Map<String, String> {
-        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
-        val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
-        val customItemStateInstanceUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING)
+        val customItemUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING)
+        val customItemStateUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
+        val customItemStateInstanceUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING)
 
         val map = mutableMapOf<String, String>()
 
-        if (customItemUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key] = customItemUid
-        if (customItemStateUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key] = customItemStateUid
-        if (customItemStateInstanceUid != null) map[PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key] = customItemStateInstanceUid
+        if (customItemUid != null) map[NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key] = customItemUid
+        if (customItemStateUid != null) map[NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key] = customItemStateUid
+        if (customItemStateInstanceUid != null) map[NbtKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key] = customItemStateInstanceUid
 
         return map
     }
@@ -133,7 +133,7 @@ object ItemHandler : Listener {
      * @since 1.0.0
      */
     fun getInstanceId(item: ItemStack): String {
-        return PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING) ?: PersistenceHelper.genUid()
+        return NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_INSTANCE_UID.key, PersistentDataType.STRING) ?: NbtHelper.genUid()
     }
 
     /**
@@ -146,9 +146,9 @@ object ItemHandler : Listener {
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val item = event.item ?: return
 
-        val customItemUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
+        val customItemUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
-        val customItemStateUid = PersistenceHelper.read(item, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
+        val customItemStateUid = NbtHelper.read(item, NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
         customItem.postInteract(customItemStateUid, event)
@@ -164,9 +164,9 @@ object ItemHandler : Listener {
     fun onPlayerDrop(event: EntityDropItemEvent) {
         val item = event.itemDrop
 
-        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
+        val customItemUid = NbtHelper.read(item.itemStack, NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
-        val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
+        val customItemStateUid = NbtHelper.read(item.itemStack, NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
         customItem.postDrop(customItemStateUid, event)
@@ -182,9 +182,9 @@ object ItemHandler : Listener {
     fun onPlayerPickup(event: EntityPickupItemEvent) {
         val item = event.item
 
-        val customItemUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
+        val customItemUid = NbtHelper.read(item.itemStack, NbtKeys.BACKBONE_CUSTOM_ITEM_UID.key, PersistentDataType.STRING) ?: return
 
-        val customItemStateUid = PersistenceHelper.read(item.itemStack, PersistenceKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
+        val customItemStateUid = NbtHelper.read(item.itemStack, NbtKeys.BACKBONE_CUSTOM_ITEM_STATE_UID.key, PersistentDataType.STRING)
 
         val customItem = items[customItemUid] ?: return
         customItem.postPickup(customItemStateUid, event)

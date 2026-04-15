@@ -26,6 +26,7 @@ import net.integr.backbone.systems.gui.GuiHandler
 import net.integr.backbone.systems.hotloader.ScriptEngine
 import net.integr.backbone.systems.hotloader.ScriptLinker
 import net.integr.backbone.systems.item.ItemHandler
+import net.integr.backbone.systems.item.antidupe.AntiDupeHandler
 import net.integr.backbone.systems.update.UpdateChecker
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.scheduler.BukkitTask
@@ -80,6 +81,8 @@ class BackboneServer : JavaPlugin() {
                     Backbone.registerListener(GuiHandler)
                     Backbone.registerListener(ItemHandler)
                     Backbone.registerListener(EntityHandler)
+
+                    AntiDupeHandler.initialize() // Set up anti-dupe strategies
 
                     Backbone.Handler.COMMAND.register(BackboneCommand)
                 }
